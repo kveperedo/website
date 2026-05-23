@@ -16,7 +16,7 @@ export const SummarySection = () => {
 
       <ScrollButton
         className="mt-4 md:absolute md:bottom-0 md:mt-0 md:mb-9"
-        href={`#${SECTION_IDS.INFO}}`}
+        href={`#${SECTION_IDS.INFO}`}
       />
     </section>
   );
