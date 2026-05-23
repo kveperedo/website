@@ -13,7 +13,7 @@
   },
   "sortTailwindcss": {
     "stylesheet": "./src/styles.css",
-    "functions": ["clsx", "cn"],
+    "functions": ["cn"],
     "preserveWhitespace": true
   },
   "ignorePatterns": ["src/routeTree.gen.ts"]

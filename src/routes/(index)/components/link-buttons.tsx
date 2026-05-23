@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "#/lib/cn";
 
 import { GithubIcon } from "../icons/github-icon";
 
@@ -10,7 +10,7 @@ const iconClassName = "h-6 w-6 text-neutral-50 opacity-50 transition-opacity hov
 
 export const LinkButtons = ({ className }: LinkButtonsProps) => {
   return (
-    <div className={clsx("flex gap-6", className)}>
+    <div className={cn("flex gap-6", className)}>
       <a
         className="cursor-pointer"
         target="_blank"

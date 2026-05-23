@@ -1,3 +1,7 @@
+import { Link as AriaLink } from "react-aria-components";
+
+import { buttonStyles } from "#/components/button/button.styles";
+
 import { LinkButtons } from "../components/link-buttons";
 import { ScrollButton } from "../components/scroll-button";
 import { SECTION_IDS } from "../constants";
@@ -19,13 +23,14 @@ export const IntroductionSection = () => {
         {POSITION}
       </h4>
 
-      <a
+      <AriaLink
         href="/resume.pdf"
         target="_blank"
-        className="rounded border border-neutral-800 bg-neutral-900/40 px-10 py-4 font-serif font-medium tracking-wider text-neutral-50 transition-all duration-500 hover:border-neutral-500"
+        rel="noreferrer"
+        className={buttonStyles({ variant: "secondary" })}
       >
         Resume
-      </a>
+      </AriaLink>
 
       <LinkButtons />
 

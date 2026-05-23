@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "#/lib/cn";
 
 import { ScrollButton } from "../components/scroll-button";
 import { Timeline } from "../components/timeline";
@@ -170,7 +170,7 @@ export const InfoSection = () => {
           return (
             <Timeline
               key={name + issuer}
-              className={clsx(isNotFirstItem && "-my-12")}
+              className={cn(isNotFirstItem && "-my-12")}
               startDate={date}
               title={name}
               subtitle={issuer}
