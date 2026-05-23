@@ -2,9 +2,9 @@ import { Link as AriaLink } from "react-aria-components";
 
 import { buttonStyles } from "#/components/button/button.styles";
 
-import { LinkButtons } from "../components/link-buttons";
-import { ScrollButton } from "../components/scroll-button";
-import { SECTION_IDS } from "../constants";
+import { LinkButtons } from "../-components/link-buttons";
+import { ScrollButton } from "../-components/scroll-button";
+import { SECTION_IDS } from "../-constants";
 
 const NAME = "kevin von erich peredo";
 const POSITION = "Senior Frontend Engineer";

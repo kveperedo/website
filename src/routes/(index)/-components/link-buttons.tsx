@@ -1,6 +1,6 @@
 import { cn } from "#/lib/cn";
 
-import { GithubIcon } from "../icons/github-icon";
+import { GithubIcon } from "../-icons/github-icon";
 
 type LinkButtonsProps = {
   className?: string;

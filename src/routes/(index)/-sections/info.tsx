@@ -1,8 +1,8 @@
 import { cn } from "#/lib/cn";
 
-import { ScrollButton } from "../components/scroll-button";
-import { Timeline } from "../components/timeline";
-import { SECTION_IDS } from "../constants";
+import { ScrollButton } from "../-components/scroll-button";
+import { Timeline } from "../-components/timeline";
+import { SECTION_IDS } from "../-constants";
 
 const EXPERIENCE: Array<{
   startDate: { month: string; year: number };

@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Background } from "./components/background";
-import { FadeIn } from "./components/fade-in";
-import { LinkButtons } from "./components/link-buttons";
-import { ScrollButton } from "./components/scroll-button";
-import { SECTION_IDS } from "./constants";
-import { InfoSection } from "./sections/info";
-import { IntroductionSection } from "./sections/introduction";
-import { ProjectsSection } from "./sections/projects";
-import { SummarySection } from "./sections/summary";
+import { Background } from "./-components/background";
+import { FadeIn } from "./-components/fade-in";
+import { LinkButtons } from "./-components/link-buttons";
+import { ScrollButton } from "./-components/scroll-button";
+import { SECTION_IDS } from "./-constants";
+import { InfoSection } from "./-sections/info";
+import { IntroductionSection } from "./-sections/introduction";
+import { ProjectsSection } from "./-sections/projects";
+import { SummarySection } from "./-sections/summary";
 
 export const Route = createFileRoute("/(index)/")({
   head: () => ({
