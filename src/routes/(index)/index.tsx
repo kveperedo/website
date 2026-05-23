@@ -1,16 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Background } from "./index/components/background";
-import { FadeIn } from "./index/components/fade-in";
-import { LinkButtons } from "./index/components/link-buttons";
-import { ScrollButton } from "./index/components/scroll-button";
-import { SECTION_IDS } from "./index/constants";
-import { InfoSection } from "./index/sections/info";
-import { IntroductionSection } from "./index/sections/introduction";
-import { ProjectsSection } from "./index/sections/projects";
-import { SummarySection } from "./index/sections/summary";
+import { Background } from "./components/background";
+import { FadeIn } from "./components/fade-in";
+import { LinkButtons } from "./components/link-buttons";
+import { ScrollButton } from "./components/scroll-button";
+import { SECTION_IDS } from "./constants";
+import { InfoSection } from "./sections/info";
+import { IntroductionSection } from "./sections/introduction";
+import { ProjectsSection } from "./sections/projects";
+import { SummarySection } from "./sections/summary";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/(index)/")({
   head: () => ({
     meta: [
       { title: "Portfolio | Kevin Von Erich Peredo" },
