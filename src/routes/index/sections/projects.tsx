@@ -56,7 +56,7 @@ const PROJECTS: Array<{
 export const ProjectsSection = () => {
   return (
     <section id={SECTION_IDS.PROJECTS} className="relative flex flex-col items-center px-8 py-16">
-      <h1 className="mb-20 text-4xl">Projects</h1>
+      <h1 className="mb-20 text-4xl font-medium">Projects</h1>
 
       <div className="flex flex-wrap justify-center gap-10">
         {PROJECTS.map(({ name, summary, date, githubLink, technologies, link }) => (
