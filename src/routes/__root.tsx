@@ -30,7 +30,11 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className="scroll-smooth bg-black font-serif tracking-wider text-neutral-50 selection:bg-pink-600/40 selection:text-neutral-100"
+    >
       <head>
         <HeadContent />
       </head>
