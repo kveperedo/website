@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Background } from "./index/components/background";
+import { FadeIn } from "./index/components/fade-in";
 import { LinkButtons } from "./index/components/link-buttons";
 import { ScrollButton } from "./index/components/scroll-button";
 import { SECTION_IDS } from "./index/constants";
@@ -9,11 +10,12 @@ import { IntroductionSection } from "./index/sections/introduction";
 import { ProjectsSection } from "./index/sections/projects";
 import { SummarySection } from "./index/sections/summary";
 
-export const Route = createFileRoute("/")({ component: App });
+export const Route = createFileRoute("/")({ component: Index });
 
-function App() {
+function Index() {
   return (
     <main className="relative">
+      <FadeIn />
       <Background />
       <div className="relative container mx-auto">
         <IntroductionSection />
