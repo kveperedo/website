@@ -22,7 +22,7 @@ export const IntroductionSection = () => {
       <a
         href="/resume.pdf"
         target="_blank"
-        className="rounded border border-neutral-800 bg-neutral-900/40 py-4 px-10 font-serif font-medium tracking-wider text-neutral-50 transition-all duration-500 hover:border-neutral-500"
+        className="rounded border border-neutral-800 bg-neutral-900/40 px-10 py-4 font-serif font-medium tracking-wider text-neutral-50 transition-all duration-500 hover:border-neutral-500"
       >
         Resume
       </a>
