@@ -10,5 +10,8 @@
   },
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
-  "editor.formatOnSaveMode": "file" // tell oxfmt to format the whole file, not only the modified lines
+  "editor.formatOnSaveMode": "file",
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  } // tell oxfmt to format the whole file, not only the modified lines
 }
