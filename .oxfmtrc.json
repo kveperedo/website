@@ -16,5 +16,5 @@
     "functions": ["cn"],
     "preserveWhitespace": true
   },
-  "ignorePatterns": ["src/routeTree.gen.ts", ".agents/*"]
+  "ignorePatterns": ["src/routeTree.gen.ts", ".agents/*", "drizzle/*"]
 }

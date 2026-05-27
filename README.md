@@ -17,6 +17,8 @@ This project serves as a central place to share my work, background, and ongoing
 - Tailwind
 - Vite
 - TypeScript
+- Drizzle ORM
+- PostgreSQL
 
 ## Project Structure
 
@@ -38,10 +40,35 @@ Create a local `.env` file with these required values:
 
 - `SESSION_SECRET`: a long random secret used to sign the session cookie
 - `ADMIN_PASSWORD_HASH`: a bcrypt hash of the admin password used by the login flow
+- `DATABASE_URL`: PostgreSQL connection string used by Drizzle ORM
 
-The repo includes [.env.example](/Users/personal/Documents/website/.env.example) as a reference.
+The repo includes `.env.example` as a reference.
 
 If you need a bcrypt hash, generate one with a small Node script or any bcrypt CLI utility before starting the app.
+
+## Database (Drizzle ORM)
+
+Generate and apply migrations:
+
+```bash
+npm run db:generate
+npm run db:migrate
+```
+
+Useful DB commands:
+
+```bash
+npm run db:check
+npm run db:push
+npm run db:studio
+```
+
+Notes:
+
+- `db:generate` creates SQL files in `drizzle/migrations` from `src/db/schema.ts`.
+- `db:migrate` applies generated SQL migrations to your database.
+- `db:studio` opens Drizzle Studio for browsing tables and rows.
+- Run DB migrations as a separate deployment step, not inside `npm run build`.
 
 ## Build For Production
 

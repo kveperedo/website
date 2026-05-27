@@ -1,4 +1,4 @@
-name: Pre-Deploy Checks
+name: Deploy Pipeline
 
 on:
   pull_request:
@@ -9,13 +9,14 @@ on:
       - main
 
 concurrency:
-  group: pre-deploy-checks-${{ github.ref }}
+  group: deploy-pipeline-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  pre-deployment-checks:
+  deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
 
     steps:
       - name: Checkout
@@ -35,3 +36,8 @@ jobs:
 
       - name: Run format check
         run: npm run format:check
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:migrate
