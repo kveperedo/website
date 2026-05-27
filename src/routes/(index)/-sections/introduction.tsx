@@ -1,6 +1,9 @@
+import { getRouteApi, Link } from "@tanstack/react-router";
+import { BanknoteIcon } from "lucide-react";
 import { Link as AriaLink } from "react-aria-components";
 
 import { buttonStyles } from "#/components/button/button.styles";
+import { iconButtonStyles } from "#/components/icon-button";
 
 import { LinkButtons } from "../-components/link-buttons";
 import { ScrollButton } from "../-components/scroll-button";
@@ -9,35 +12,53 @@ import { SECTION_IDS } from "../-constants";
 const NAME = "kevin von erich peredo";
 const POSITION = "Senior Frontend Engineer";
 
+const routeApi = getRouteApi("/(index)/");
+
 export const IntroductionSection = () => {
+  const { isUserLoggedIn } = routeApi.useLoaderData();
+
   return (
     <main
       id={SECTION_IDS.INTRO}
-      className="relative m-auto flex h-screen flex-col items-center justify-center gap-10"
+      className="relative m-auto flex h-screen flex-col items-center justify-center gap-4"
     >
-      <h1 className="text-center font-mono text-5xl text-neutral-50 md:text-6xl lg:text-8xl">
-        {NAME}
-      </h1>
+      {isUserLoggedIn && (
+        <div className="flex items-center justify-center gap-4">
+          <Link
+            to="/finances"
+            className={iconButtonStyles({ variant: "tertiary", size: "sm" })}
+            aria-label="Go to finance page"
+          >
+            <BanknoteIcon />
+          </Link>
+        </div>
+      )}
 
-      <h4 className="text-center font-serif text-2xl tracking-wide text-neutral-300 md:text-3xl lg:text-4xl">
-        {POSITION}
-      </h4>
+      <div className="flex flex-col items-center justify-center gap-10">
+        <h1 className="text-center font-mono text-5xl text-neutral-50 md:text-6xl lg:text-8xl">
+          {NAME}
+        </h1>
 
-      <AriaLink
-        href="/resume.pdf"
-        target="_blank"
-        rel="noreferrer"
-        className={buttonStyles({ variant: "secondary" })}
-      >
-        Resume
-      </AriaLink>
+        <h4 className="text-center font-serif text-2xl tracking-wide text-neutral-300 md:text-3xl lg:text-4xl">
+          {POSITION}
+        </h4>
 
-      <LinkButtons />
+        <AriaLink
+          href="/resume.pdf"
+          target="_blank"
+          rel="noreferrer"
+          className={buttonStyles({ variant: "secondary" })}
+        >
+          Resume
+        </AriaLink>
 
-      <ScrollButton
-        className="mt-8 md:absolute md:bottom-0 md:mb-9"
-        href={`#${SECTION_IDS.SUMMARY}`}
-      />
+        <LinkButtons />
+
+        <ScrollButton
+          className="mt-8 md:absolute md:bottom-0 md:mb-9"
+          href={`#${SECTION_IDS.SUMMARY}`}
+        />
+      </div>
     </main>
   );
 };

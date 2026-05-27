@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { getCurrentUserFn } from "#/utils/auth.functions";
+
 import { FadeIn } from "./-components/fade-in";
 import { LinkButtons } from "./-components/link-buttons";
 import { ScrollButton } from "./-components/scroll-button";
@@ -11,6 +13,11 @@ import { SummarySection } from "./-sections/summary";
 
 export const Route = createFileRoute("/(index)/")({
   head: () => ({ meta: META }),
+  loader: async () => {
+    const currentUser = await getCurrentUserFn();
+
+    return { isUserLoggedIn: !!currentUser };
+  },
   component: Index,
 });
 
