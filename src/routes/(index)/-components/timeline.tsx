@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "#/lib/cn";
 
 import { Tag } from "./tag";
 
@@ -68,9 +68,9 @@ export const Timeline = ({
   };
 
   return (
-    <div className={clsx("flex", className)}>
+    <div className={cn("flex", className)}>
       <div
-        className={clsx(
+        className={cn(
           "mr-10 hidden w-12 flex-col items-end pt-16 md:flex",
           stickyDots && "md:pt-19",
         )}
@@ -81,7 +81,7 @@ export const Timeline = ({
       </div>
       <div className="relative flex-1 border-l-2 border-neutral-500 px-8 py-16 pr-0 md:px-10 md:pr-8">
         <div
-          className={clsx(
+          className={cn(
             "flex h-3 w-3 ",
             stickyDots
               ? "sticky top-2.25 -ml-9.75 md:top-5.25 md:-ml-11.75"

@@ -1,6 +1,6 @@
-import { Tag } from "../components/tag";
-import { SECTION_IDS } from "../constants";
-import { GithubIcon } from "../icons/github-icon";
+import { Tag } from "../-components/tag";
+import { SECTION_IDS } from "../-constants";
+import { GithubIcon } from "../-icons/github-icon";
 
 const PROJECTS: Array<{
   name: string;
