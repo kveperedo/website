@@ -44,7 +44,7 @@ function RouteComponent() {
               }
             }}
           >
-            <input hidden name="username" value="username" autoComplete="username" />
+            <input hidden name="username" defaultValue="username" autoComplete="username" />
             <TextField name="password" type="password" isRequired>
               <Label className="mb-2 block font-serif text-sm tracking-wide text-neutral-200">
                 Password

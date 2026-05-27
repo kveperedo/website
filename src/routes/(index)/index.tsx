@@ -16,7 +16,7 @@ export const Route = createFileRoute("/(index)/")({
   loader: async () => {
     const currentUser = await getCurrentUserFn();
 
-    return { isUserLoggedIn: !!currentUser };
+    return { isUserLoggedIn: currentUser };
   },
   component: Index,
 });
