@@ -32,6 +32,17 @@ Install dependencies and run the app locally:
 npm install
 npm run dev
 
+## Environment Variables
+
+Create a local `.env` file with these required values:
+
+- `SESSION_SECRET`: a long random secret used to sign the session cookie
+- `ADMIN_PASSWORD_HASH`: a bcrypt hash of the admin password used by the login flow
+
+The repo includes [.env.example](/Users/personal/Documents/website/.env.example) as a reference.
+
+If you need a bcrypt hash, generate one with a small Node script or any bcrypt CLI utility before starting the app.
+
 ## Build For Production
 
 Create a production build:
