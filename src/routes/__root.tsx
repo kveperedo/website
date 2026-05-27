@@ -3,6 +3,7 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
 import appCss from "../styles.css?url";
+import { Background } from "./(index)/-components/background";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -43,7 +44,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="font-serif wrap-anywhere antialiased">
+      <body className="relative font-serif wrap-anywhere antialiased">
+        <Background />
         {children}
         <TanStackDevtools
           config={{

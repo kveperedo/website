@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Background } from "./-components/background";
 import { FadeIn } from "./-components/fade-in";
 import { LinkButtons } from "./-components/link-buttons";
 import { ScrollButton } from "./-components/scroll-button";
@@ -40,7 +39,6 @@ function Index() {
   return (
     <main className="relative">
       <FadeIn />
-      <Background />
       <div className="relative container mx-auto">
         <IntroductionSection />
         <div className="h-10" />
