@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ExpensesCategory {
+  food_drinks
+  groceries_household
+  transportation
+  bills_utilities
+  health_wellness
+  hobbies_lifestyle
+  financial
+
+  @@map("expenses_categories")
+}
+
+model Expense {
+  id          String           @id @default(uuid()) @db.Uuid
+  description String
+  amount      Decimal          @db.Decimal(10, 2)
+  category    ExpensesCategory
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@map("expenses")
+}

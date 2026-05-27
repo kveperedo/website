@@ -24,6 +24,16 @@ const useAppSession = () => {
   });
 };
 
+export const requireSession = async () => {
+  const session = await useAppSession();
+
+  if (!session.data.isLoggedIn) {
+    throw redirect({ to: "/login" });
+  }
+
+  return session;
+};
+
 export const getCurrentUser = async () => {
   const session = await useAppSession();
 
