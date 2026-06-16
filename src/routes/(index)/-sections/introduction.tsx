@@ -1,5 +1,5 @@
 import { getRouteApi, Link } from "@tanstack/react-router";
-import { BanknoteIcon } from "lucide-react";
+import { BanknoteIcon, SettingsIcon } from "lucide-react";
 import { Link as AriaLink } from "react-aria-components";
 
 import { buttonStyles } from "#/components/button/button.styles";
@@ -22,8 +22,15 @@ export const IntroductionSection = () => {
       id={SECTION_IDS.INTRO}
       className="relative m-auto flex h-screen flex-col items-center justify-center gap-4"
     >
-      {isUserLoggedIn && (
-        <div className="flex items-center justify-center gap-4">
+      <div className="flex items-center justify-center gap-4">
+        <Link
+          to="/config"
+          className={iconButtonStyles({ variant: "tertiary", size: "sm" })}
+          aria-label="Go to config page"
+        >
+          <SettingsIcon />
+        </Link>
+        {isUserLoggedIn && (
           <Link
             to="/finances"
             className={iconButtonStyles({ variant: "tertiary", size: "sm" })}
@@ -31,8 +38,8 @@ export const IntroductionSection = () => {
           >
             <BanknoteIcon />
           </Link>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="flex flex-col items-center justify-center gap-10">
         <h1 className="text-center font-mono text-5xl text-neutral-50 md:text-6xl lg:text-8xl">
