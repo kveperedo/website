@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as indexIndexRouteImport } from './routes/(index)/index'
 import { Route as AuthFinancesIndexRouteImport } from './routes/_auth/finances/index'
+import { Route as indexConfigIndexRouteImport } from './routes/(index)/config/index'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -33,15 +34,22 @@ const AuthFinancesIndexRoute = AuthFinancesIndexRouteImport.update({
   path: '/finances/',
   getParentRoute: () => AuthRoute,
 } as any)
+const indexConfigIndexRoute = indexConfigIndexRouteImport.update({
+  id: '/(index)/config/',
+  path: '/config/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof indexIndexRoute
   '/login': typeof LoginRoute
+  '/config/': typeof indexConfigIndexRoute
   '/finances/': typeof AuthFinancesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof indexIndexRoute
   '/login': typeof LoginRoute
+  '/config': typeof indexConfigIndexRoute
   '/finances': typeof AuthFinancesIndexRoute
 }
 export interface FileRoutesById {
@@ -49,20 +57,28 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/(index)/': typeof indexIndexRoute
+  '/(index)/config/': typeof indexConfigIndexRoute
   '/_auth/finances/': typeof AuthFinancesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/finances/'
+  fullPaths: '/' | '/login' | '/config/' | '/finances/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/finances'
-  id: '__root__' | '/_auth' | '/login' | '/(index)/' | '/_auth/finances/'
+  to: '/' | '/login' | '/config' | '/finances'
+  id:
+    | '__root__'
+    | '/_auth'
+    | '/login'
+    | '/(index)/'
+    | '/(index)/config/'
+    | '/_auth/finances/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   LoginRoute: typeof LoginRoute
   indexIndexRoute: typeof indexIndexRoute
+  indexConfigIndexRoute: typeof indexConfigIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -95,6 +111,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthFinancesIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/(index)/config/': {
+      id: '/(index)/config/'
+      path: '/config'
+      fullPath: '/config/'
+      preLoaderRoute: typeof indexConfigIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -112,6 +135,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   LoginRoute: LoginRoute,
   indexIndexRoute: indexIndexRoute,
+  indexConfigIndexRoute: indexConfigIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
