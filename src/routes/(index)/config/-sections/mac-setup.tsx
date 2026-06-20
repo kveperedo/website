@@ -4,8 +4,8 @@ import { JetbrainsFontSetup, NVMSetup, ZshSetup } from "./common-config-setup";
 
 export const MacSetup = () => {
   return (
-    <div className="space-y-8">
-      <div className="space-y-12">
+    <div className="space-y-6">
+      <div className="space-y-6">
         <Setup.Root title="Applications">
           <VSCodeSetup />
           <ChromeSetup />
