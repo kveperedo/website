@@ -21,25 +21,25 @@ export const CommandBlock = ({ command, language = "bash", className }: CommandB
   return (
     <div
       className={cn(
-        "relative mb-4 w-full overflow-hidden rounded border border-neutral-700 bg-neutral-950",
+        "relative mb-1 w-full overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 shadow-lg",
         className,
       )}
     >
-      <div className="flex items-center justify-between bg-neutral-900/50 px-4 py-2">
-        <span className="font-serif text-xs text-neutral-500">{language}</span>
+      <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900/60 px-4 py-2">
+        <span className="font-code text-xs text-neutral-500">{language}</span>
         <button
           onClick={handleCopy}
-          className="inline-flex items-center gap-2 rounded px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+          className="inline-flex items-center gap-1.5 rounded px-2 py-1 font-mono text-xs text-neutral-400 lowercase transition-all duration-500 hover:bg-neutral-800 hover:text-neutral-200"
           aria-label="Copy command"
         >
           {copied ? (
             <>
-              <Check className="h-4 w-4" />
+              <Check className="h-3.5 w-3.5" />
               <span>Copied!</span>
             </>
           ) : (
             <>
-              <Copy className="h-4 w-4" />
+              <Copy className="h-3.5 w-3.5" />
               <span>Copy</span>
             </>
           )}
