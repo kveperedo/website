@@ -9,133 +9,135 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthRouteImport } from './routes/_auth'
-import { Route as indexIndexRouteImport } from './routes/(index)/index'
-import { Route as AuthFinancesIndexRouteImport } from './routes/_auth/finances/index'
-import { Route as indexConfigIndexRouteImport } from './routes/(index)/config/index'
+import { Route as publicIndexRouteImport } from './routes/(public)/index'
+import { Route as publicLoginRouteImport } from './routes/(public)/login'
+import { Route as authedAuthRouteImport } from './routes/(authed)/_auth'
+import { Route as publicConfigIndexRouteImport } from './routes/(public)/config/index'
+import { Route as authedAuthFinancesIndexRouteImport } from './routes/(authed)/_auth/finances/index'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/_auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const indexIndexRoute = indexIndexRouteImport.update({
-  id: '/(index)/',
+const publicIndexRoute = publicIndexRouteImport.update({
+  id: '/(public)/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthFinancesIndexRoute = AuthFinancesIndexRouteImport.update({
-  id: '/finances/',
-  path: '/finances/',
-  getParentRoute: () => AuthRoute,
+const publicLoginRoute = publicLoginRouteImport.update({
+  id: '/(public)/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const indexConfigIndexRoute = indexConfigIndexRouteImport.update({
-  id: '/(index)/config/',
+const authedAuthRoute = authedAuthRouteImport.update({
+  id: '/(authed)/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const publicConfigIndexRoute = publicConfigIndexRouteImport.update({
+  id: '/(public)/config/',
   path: '/config/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const authedAuthFinancesIndexRoute = authedAuthFinancesIndexRouteImport.update({
+  id: '/finances/',
+  path: '/finances/',
+  getParentRoute: () => authedAuthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof indexIndexRoute
-  '/login': typeof LoginRoute
-  '/config/': typeof indexConfigIndexRoute
-  '/finances/': typeof AuthFinancesIndexRoute
+  '/login': typeof publicLoginRoute
+  '/': typeof publicIndexRoute
+  '/config/': typeof publicConfigIndexRoute
+  '/finances/': typeof authedAuthFinancesIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof indexIndexRoute
-  '/login': typeof LoginRoute
-  '/config': typeof indexConfigIndexRoute
-  '/finances': typeof AuthFinancesIndexRoute
+  '/login': typeof publicLoginRoute
+  '/': typeof publicIndexRoute
+  '/config': typeof publicConfigIndexRoute
+  '/finances': typeof authedAuthFinancesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_auth': typeof AuthRouteWithChildren
-  '/login': typeof LoginRoute
-  '/(index)/': typeof indexIndexRoute
-  '/(index)/config/': typeof indexConfigIndexRoute
-  '/_auth/finances/': typeof AuthFinancesIndexRoute
+  '/(authed)/_auth': typeof authedAuthRouteWithChildren
+  '/(public)/login': typeof publicLoginRoute
+  '/(public)/': typeof publicIndexRoute
+  '/(public)/config/': typeof publicConfigIndexRoute
+  '/(authed)/_auth/finances/': typeof authedAuthFinancesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/config/' | '/finances/'
+  fullPaths: '/login' | '/' | '/config/' | '/finances/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/config' | '/finances'
+  to: '/login' | '/' | '/config' | '/finances'
   id:
     | '__root__'
-    | '/_auth'
-    | '/login'
-    | '/(index)/'
-    | '/(index)/config/'
-    | '/_auth/finances/'
+    | '/(authed)/_auth'
+    | '/(public)/login'
+    | '/(public)/'
+    | '/(public)/config/'
+    | '/(authed)/_auth/finances/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthRoute: typeof AuthRouteWithChildren
-  LoginRoute: typeof LoginRoute
-  indexIndexRoute: typeof indexIndexRoute
-  indexConfigIndexRoute: typeof indexConfigIndexRoute
+  authedAuthRoute: typeof authedAuthRouteWithChildren
+  publicLoginRoute: typeof publicLoginRoute
+  publicIndexRoute: typeof publicIndexRoute
+  publicConfigIndexRoute: typeof publicConfigIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(index)/': {
-      id: '/(index)/'
+    '/(public)/': {
+      id: '/(public)/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof indexIndexRouteImport
+      preLoaderRoute: typeof publicIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth/finances/': {
-      id: '/_auth/finances/'
-      path: '/finances'
-      fullPath: '/finances/'
-      preLoaderRoute: typeof AuthFinancesIndexRouteImport
-      parentRoute: typeof AuthRoute
+    '/(public)/login': {
+      id: '/(public)/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof publicLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/(index)/config/': {
-      id: '/(index)/config/'
+    '/(authed)/_auth': {
+      id: '/(authed)/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof authedAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(public)/config/': {
+      id: '/(public)/config/'
       path: '/config'
       fullPath: '/config/'
-      preLoaderRoute: typeof indexConfigIndexRouteImport
+      preLoaderRoute: typeof publicConfigIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(authed)/_auth/finances/': {
+      id: '/(authed)/_auth/finances/'
+      path: '/finances'
+      fullPath: '/finances/'
+      preLoaderRoute: typeof authedAuthFinancesIndexRouteImport
+      parentRoute: typeof authedAuthRoute
     }
   }
 }
 
-interface AuthRouteChildren {
-  AuthFinancesIndexRoute: typeof AuthFinancesIndexRoute
+interface authedAuthRouteChildren {
+  authedAuthFinancesIndexRoute: typeof authedAuthFinancesIndexRoute
 }
 
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthFinancesIndexRoute: AuthFinancesIndexRoute,
+const authedAuthRouteChildren: authedAuthRouteChildren = {
+  authedAuthFinancesIndexRoute: authedAuthFinancesIndexRoute,
 }
 
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+const authedAuthRouteWithChildren = authedAuthRoute._addFileChildren(
+  authedAuthRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
-  AuthRoute: AuthRouteWithChildren,
-  LoginRoute: LoginRoute,
-  indexIndexRoute: indexIndexRoute,
-  indexConfigIndexRoute: indexConfigIndexRoute,
+  authedAuthRoute: authedAuthRouteWithChildren,
+  publicLoginRoute: publicLoginRoute,
+  publicIndexRoute: publicIndexRoute,
+  publicConfigIndexRoute: publicConfigIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -11,7 +11,7 @@ import { IntroductionSection } from "./-sections/introduction";
 import { ProjectsSection } from "./-sections/projects";
 import { SummarySection } from "./-sections/summary";
 
-export const Route = createFileRoute("/(index)/")({
+export const Route = createFileRoute("/(public)/")({
   head: () => ({ meta: META }),
   loader: async () => {
     const currentUser = await getCurrentUserFn();

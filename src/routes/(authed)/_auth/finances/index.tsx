@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { getExpensesFn } from "#/utils/expenses.function";
 
-export const Route = createFileRoute("/_auth/finances/")({
+export const Route = createFileRoute("/(authed)/_auth/finances/")({
   loader: async () => {
     const expenses = await getExpensesFn();
 
