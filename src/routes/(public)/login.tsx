@@ -6,7 +6,7 @@ import { Input, Label, TextField } from "react-aria-components";
 import { Button } from "#/components/button";
 import { loginFn } from "#/utils/auth.functions";
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/(public)/login")({
   component: RouteComponent,
 });
 
