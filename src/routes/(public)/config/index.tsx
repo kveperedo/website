@@ -5,7 +5,7 @@ import { iconButtonStyles } from "#/components/icon-button";
 
 import { MacSetup } from "./-sections/mac-setup";
 
-export const Route = createFileRoute("/(index)/config/")({
+export const Route = createFileRoute("/(public)/config/")({
   component: ConfigRoute,
 });
 

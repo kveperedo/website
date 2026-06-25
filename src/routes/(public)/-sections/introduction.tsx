@@ -12,7 +12,7 @@ import { SECTION_IDS } from "../-constants";
 const NAME = "kevin von erich peredo";
 const POSITION = "Senior Frontend Engineer";
 
-const routeApi = getRouteApi("/(index)/");
+const routeApi = getRouteApi("/(public)/");
 
 export const IntroductionSection = () => {
   const { isUserLoggedIn } = routeApi.useLoaderData();
