@@ -151,7 +151,7 @@ export const Timeline = ({
 
         {content && collapsible && (
           <div className="mt-6 rounded-none border border-border bg-card shadow-xl backdrop-blur">
-            <ul className="flex list-inside list-disc flex-col gap-3 p-6 md:list-outside">
+            <ul className="flex list-inside list-disc flex-col gap-3 p-6 pb-0 md:list-outside">
               {content.slice(0, 2).map((detail) => (
                 <li
                   key={detail}
@@ -162,18 +162,20 @@ export const Timeline = ({
               ))}
               <div
                 className={cn(
-                  "flex flex-col gap-3 overflow-hidden transition-all duration-300",
-                  isOpen ? "max-h-96" : "max-h-0",
+                  "grid transition-all duration-300",
+                  isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
                 )}
               >
-                {content.slice(2).map((detail) => (
-                  <li
-                    key={detail}
-                    className="text-sm leading-loose font-medium tracking-wide text-foreground md:ml-6"
-                  >
-                    {detail}
-                  </li>
-                ))}
+                <div className="flex flex-col gap-3 overflow-hidden">
+                  {content.slice(2).map((detail) => (
+                    <li
+                      key={detail}
+                      className="text-sm leading-loose font-medium tracking-wide text-foreground md:ml-6"
+                    >
+                      {detail}
+                    </li>
+                  ))}
+                </div>
               </div>
             </ul>
 
