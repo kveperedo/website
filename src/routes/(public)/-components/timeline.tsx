@@ -92,7 +92,7 @@ export const Timeline = ({
           className={cn(
             "flex h-3 w-3",
             collapsible
-              ? "sticky top-5.25 -ml-11.75"
+              ? "sticky top-11.25 -ml-9.75 md:top-5.25 md:-ml-11.75"
               : stickyDots
                 ? "sticky top-2.25 -ml-9.75 md:top-5.25 md:-ml-11.75"
                 : "absolute top-13 -left-1.75",
@@ -101,13 +101,13 @@ export const Timeline = ({
           <span
             className={cn(
               "absolute -z-10 h-full w-full animate-ping rounded-full bg-muted-foreground/50",
-              collapsible ? "top-5.25" : "top-4.5 md:top-5.25",
+              collapsible ? "top-11.25 md:top-5.25" : "top-4.5 md:top-5.25",
             )}
           />
           <span
             className={cn(
               "absolute h-full w-full rounded-full bg-foreground",
-              collapsible ? "top-5.25" : "top-4.5 md:top-5.25",
+              collapsible ? "top-11.25 md:top-5.25" : "top-4.5 md:top-5.25",
             )}
           />
         </div>
