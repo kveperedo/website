@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "react-aria": {
+      "type": "local",
+      "command": ["npx", "@react-aria/mcp@latest"],
+    },
+  },
+  "formatter": true,
+}

@@ -24,12 +24,13 @@ description: Generate a git commit message for staged changes. Trigger whenever 
 
 **Subject line** — required, always:
 - Imperative mood: "Add", "Fix", "Remove", "Update", not "Added" / "Fixes"
-- 72 characters max
+- 50 characters max
 - No trailing period
 - No conventional-commits prefix (no `feat:`, `fix:`, etc.) unless the project already uses them
 
 **Body** — always include; one or two sentences max:
 - Separated from the subject by one blank line
+- Wrap at 72 characters
 - For complex or large diffs: explain the motivation or constraint (the *why*), not what the code does
 - For simple or mechanical changes (rename, move, format): briefly state what changed and why in plain terms
 - No bullet points or numbered lists
