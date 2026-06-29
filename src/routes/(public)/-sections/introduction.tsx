@@ -1,9 +1,7 @@
 import { getRouteApi, Link } from "@tanstack/react-router";
 import { BanknoteIcon, SettingsIcon } from "lucide-react";
-import { Link as AriaLink } from "react-aria-components";
 
-import { buttonStyles } from "#/components/button/button.styles";
-import { iconButtonStyles } from "#/components/icon-button";
+import { Button } from "@/components/ui/button";
 
 import { LinkButtons } from "../-components/link-buttons";
 import { ScrollButton } from "../-components/scroll-button";
@@ -22,50 +20,45 @@ export const IntroductionSection = () => {
       id={SECTION_IDS.INTRO}
       className="relative m-auto flex h-screen flex-col items-center justify-center gap-4"
     >
-      <div className="flex items-center justify-center gap-4">
-        <Link
-          to="/config"
-          className={iconButtonStyles({ variant: "tertiary", size: "sm" })}
-          aria-label="Go to config page"
-        >
-          <SettingsIcon />
-        </Link>
+      <div className="absolute top-5 right-5 flex items-center gap-2">
+        <Button variant="ghost" size="sm" render={<Link to="/config" />}>
+          <SettingsIcon className="size-4" />
+          Config
+        </Button>
         {isUserLoggedIn && (
-          <Link
-            to="/finances"
-            className={iconButtonStyles({ variant: "tertiary", size: "sm" })}
-            aria-label="Go to finance page"
-          >
-            <BanknoteIcon />
-          </Link>
+          <Button variant="ghost" size="sm" render={<Link to="/finances" />}>
+            <BanknoteIcon className="size-4" />
+            Finances
+          </Button>
         )}
       </div>
 
-      <div className="flex flex-col items-center justify-center gap-10">
-        <h1 className="text-center font-mono text-5xl text-neutral-50 md:text-6xl lg:text-8xl">
+      <div className="flex flex-col items-center justify-center gap-4">
+        <h1 className="text-center font-display text-5xl text-foreground md:text-6xl lg:text-8xl">
           {NAME}
         </h1>
 
-        <h4 className="text-center font-serif text-2xl tracking-wide text-neutral-300 md:text-3xl lg:text-4xl">
+        <h4 className="text-center font-mono text-2xl tracking-wide text-muted-foreground md:text-3xl lg:text-4xl">
           {POSITION}
         </h4>
 
-        <AriaLink
-          href="/resume.pdf"
-          target="_blank"
-          rel="noreferrer"
-          className={buttonStyles({ variant: "secondary" })}
-        >
-          Resume
-        </AriaLink>
+        <div className="mt-2 flex items-center gap-4">
+          <Button
+            variant="default"
+            size="xl"
+            render={<a href="/resume.pdf" target="_blank" rel="noreferrer" />}
+          >
+            Resume
+          </Button>
 
-        <LinkButtons />
-
-        <ScrollButton
-          className="mt-8 md:absolute md:bottom-0 md:mb-9"
-          href={`#${SECTION_IDS.SUMMARY}`}
-        />
+          <LinkButtons />
+        </div>
       </div>
+
+      <ScrollButton
+        className="mt-8 md:absolute md:bottom-0 md:mb-9"
+        href={`#${SECTION_IDS.SUMMARY}`}
+      />
     </main>
   );
 };

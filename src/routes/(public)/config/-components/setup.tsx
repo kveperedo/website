@@ -1,34 +1,38 @@
-import { Link, type LinkProps } from "react-aria-components";
+import { Badge } from "@/components/ui/badge";
 
 type SetupRootProps = {
+  id?: string;
   title: string;
   children?: React.ReactNode;
 };
 
-const SetupRoot = ({ title, children }: SetupRootProps) => {
+const SetupRoot = ({ id, title, children }: SetupRootProps) => {
   return (
-    <div className="flex flex-col rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6 shadow-xl backdrop-blur transition-colors duration-500 hover:border-neutral-700 hover:bg-neutral-900/60 md:p-8">
-      <span className="mb-5 inline-flex self-start rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 font-mono text-xs font-bold text-neutral-400 lowercase">
+    <div
+      id={id}
+      className="flex w-full flex-col rounded-none border border-border bg-card p-6 shadow-xl backdrop-blur md:p-7"
+    >
+      <Badge variant="secondary" className="mb-4 self-start lowercase">
         {title}
-      </span>
-      <div className="space-y-3">{children}</div>
+      </Badge>
+      <div className="space-y-2.5">{children}</div>
     </div>
   );
 };
 
-type SetupLinkProps = LinkProps;
+type SetupLinkProps = React.ComponentProps<"a">;
 
 const SetupLink = ({ href, children, ...props }: SetupLinkProps) => {
   return (
-    <Link
-      {...props}
+    <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="text-neutral-300 underline decoration-neutral-700 underline-offset-4 transition-all duration-500 hover:text-indigo-400 hover:decoration-indigo-500/50"
+      className="text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground hover:decoration-foreground/50"
+      {...props}
     >
       {children ?? href}
-    </Link>
+    </a>
   );
 };
 
@@ -39,12 +43,14 @@ type SetupItemProps = {
 
 const SetupItem = ({ label, children }: SetupItemProps) => {
   return (
-    <div className="flex gap-3">
-      <span className="mt-[0.6rem] h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-600" />
+    <div className="flex gap-2.5">
+      <span className="mt-[0.45rem] h-1 w-1 shrink-0 rounded-full bg-muted-foreground" />
       <div className="min-w-0 flex-1">
-        <span className="leading-loose font-medium tracking-wide text-neutral-200">{label}</span>
+        <span className="text-sm leading-relaxed font-medium tracking-wide text-foreground">
+          {label}
+        </span>
         {children && (
-          <div className="mt-2 space-y-2 border-l border-neutral-800 pl-4">{children}</div>
+          <div className="mt-1.5 space-y-1.5 border-l border-border pl-3">{children}</div>
         )}
       </div>
     </div>
@@ -52,7 +58,7 @@ const SetupItem = ({ label, children }: SetupItemProps) => {
 };
 
 const SetupDash = () => {
-  return <span className="text-neutral-600">{" — "}</span>;
+  return <span className="text-muted-foreground">{" — "}</span>;
 };
 
 export const Setup = {

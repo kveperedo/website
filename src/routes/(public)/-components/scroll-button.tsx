@@ -1,6 +1,5 @@
-import { Button as AriaButton } from "react-aria-components";
-
-import { cn } from "#/lib/cn";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type ScrollButtonProps = {
   href: string;
@@ -9,12 +8,7 @@ type ScrollButtonProps = {
   disableBounce?: boolean;
 };
 
-export const ScrollButton = ({
-  href,
-  className,
-  direction = "down",
-  disableBounce,
-}: ScrollButtonProps) => {
+export const ScrollButton = ({ href, className, direction = "down" }: ScrollButtonProps) => {
   const handlePress = () => {
     const section = document.querySelector(href);
 
@@ -24,14 +18,16 @@ export const ScrollButton = ({
   };
 
   return (
-    <AriaButton
-      onPress={handlePress}
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handlePress}
       className={cn("cursor-pointer", direction === "up" && "rotate-180", className)}
       aria-label="scroll-down"
     >
       <svg
-        className={cn("h-6 w-6 text-neutral-100", !disableBounce && "animate-bounce")}
-        xmlns="http:www.w3.org/2000/svg"
+        className={cn("h-6 w-6 text-foreground")}
+        xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth="1.5"
@@ -43,6 +39,6 @@ export const ScrollButton = ({
           d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"
         ></path>
       </svg>
-    </AriaButton>
+    </Button>
   );
 };

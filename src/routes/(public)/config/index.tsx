@@ -1,35 +1,85 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { iconButtonStyles } from "#/components/icon-button";
+import { Button } from "@/components/ui/button";
 
 import { MacSetup } from "./-sections/mac-setup";
 
+const META: Array<React.JSX.IntrinsicElements["meta"]> = [
+  { title: "mac setup guide | Kevin Von Erich Peredo" },
+  { property: "og:url", content: "https://www.kevinperedo.com/config" },
+  { property: "og:type", content: "website" },
+  { property: "og:title", content: "mac setup guide | Kevin Von Erich Peredo" },
+  {
+    property: "og:description",
+    content:
+      "Personal reference for setting up a new macOS machine, including apps, tools, and system preferences.",
+  },
+  { property: "og:image", content: "/og-image.png" },
+  { name: "twitter:card", content: "summary_large_image" },
+  { property: "twitter:domain", content: "kevinperedo.com" },
+  { property: "twitter:url", content: "https://www.kevinperedo.com/config" },
+  { name: "twitter:title", content: "mac setup guide | Kevin Von Erich Peredo" },
+  {
+    name: "twitter:description",
+    content:
+      "Personal reference for setting up a new macOS machine, including apps, tools, and system preferences.",
+  },
+  { name: "twitter:image", content: "/og-image.png" },
+];
+
 export const Route = createFileRoute("/(public)/config/")({
+  head: () => ({ meta: META }),
   component: ConfigRoute,
 });
 
 function ConfigRoute() {
   return (
     <main className="relative min-h-screen">
-      <div className="relative container mx-auto px-8 py-16">
-        <div className="mb-12">
-          <div className="mb-4 flex items-center gap-4">
-            <Link
-              to="/"
-              className={iconButtonStyles({ variant: "tertiary", size: "sm" })}
+      <div className="relative container mx-auto px-8 py-12">
+        <div className="mb-10">
+          <div className="mb-2 flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              render={<Link to="/" />}
               aria-label="Go back to home"
             >
               <ArrowLeftIcon />
-            </Link>
-            <h1 className="font-mono text-5xl font-medium text-neutral-50 md:text-6xl">
+            </Button>
+            <h1 className="font-display text-3xl font-medium text-foreground md:text-4xl">
               mac setup guide
             </h1>
           </div>
-          <p className="max-w-2xl font-serif text-lg leading-loose text-neutral-400">
+
+          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
             My personal reference for setting up a new macOS machine, including apps, tools, and
             system preferences I rely on.
           </p>
+
+          <div className="mt-4 flex items-center gap-3">
+            <a
+              href="#applications"
+              className="font-mono text-xs text-muted-foreground underline-offset-4 transition-all duration-500 hover:text-foreground hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector("#applications")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              Applications
+            </a>
+            <span className="text-muted-foreground/40">·</span>
+            <a
+              href="#config"
+              className="font-mono text-xs text-muted-foreground underline-offset-4 transition-all duration-500 hover:text-foreground hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector("#config")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              Config
+            </a>
+          </div>
         </div>
 
         <div className="relative">

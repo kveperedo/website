@@ -1,4 +1,4 @@
-import { cn } from "#/lib/cn";
+import { cn } from "@/lib/utils";
 
 import { ScrollButton } from "../-components/scroll-button";
 import { Timeline } from "../-components/timeline";
@@ -131,15 +131,16 @@ export const InfoSection = () => {
   return (
     <section
       id={SECTION_IDS.INFO}
-      className="relative flex flex-col items-center justify-center px-8 py-16 pr-8 text-white"
+      className="relative flex flex-col items-center justify-center px-8 py-16 text-foreground"
     >
       <div>
-        <h1 className="mr-auto mb-16 text-left text-4xl font-medium">Experience</h1>
+        <h1 className="mr-auto mb-16 text-left font-heading text-4xl font-medium">Experience</h1>
 
         {EXPERIENCE.map(
           ({ position, company, details, location, startDate, endDate, technologies }) => (
             <Timeline
               key={company + position}
+              collapsible
               startDate={startDate}
               endDate={endDate ?? "Present"}
               title={position}
@@ -151,7 +152,7 @@ export const InfoSection = () => {
           ),
         )}
 
-        <h1 className="my-16 mr-auto text-left text-4xl font-medium">Education</h1>
+        <h1 className="my-16 mr-auto text-left font-heading text-4xl font-medium">Education</h1>
 
         <Timeline
           startDate={EDUCATION.startDate}
@@ -162,7 +163,9 @@ export const InfoSection = () => {
           content={EDUCATION.details}
         />
 
-        <h1 className="my-16 mr-auto text-left text-4xl font-medium">Licenses & Certificates</h1>
+        <h1 className="my-16 mr-auto text-left font-heading text-4xl font-medium">
+          Licenses & Certificates
+        </h1>
 
         {LICENSES_AND_CERTIFICATIONS.map(({ name, issuer, date }, index) => {
           const isNotFirstItem = index !== 0;

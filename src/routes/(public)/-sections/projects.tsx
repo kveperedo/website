@@ -1,4 +1,8 @@
-import { Tag } from "../-components/tag";
+import { ExternalLink } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
 import { SECTION_IDS } from "../-constants";
 import { GithubIcon } from "../-icons/github-icon";
 
@@ -56,49 +60,46 @@ const PROJECTS: Array<{
 export const ProjectsSection = () => {
   return (
     <section id={SECTION_IDS.PROJECTS} className="relative flex flex-col items-center px-8 py-16">
-      <h1 className="mb-20 text-4xl font-medium">Projects</h1>
+      <h1 className="mr-auto mb-20 font-heading text-4xl font-medium">Projects</h1>
 
-      <div className="flex flex-wrap justify-center gap-10">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {PROJECTS.map(({ name, summary, date, githubLink, technologies, link }) => (
           <div
             key={name}
-            className="flex flex-col rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6 shadow-xl backdrop-blur transition-colors hover:border-neutral-700 hover:bg-neutral-900/60 md:w-lg md:p-8"
+            className="flex w-full flex-col rounded-none border border-border bg-card p-6 shadow-xl backdrop-blur transition-all hover:border-ring/40 hover:bg-card hover:ring-1 hover:ring-ring/40 md:p-8"
           >
             <div className="flex items-center justify-between">
-              <h4 className="mb-1 text-2xl font-semibold text-neutral-50">{name}</h4>
+              <h4 className="mb-1 font-heading text-2xl font-semibold text-foreground">{name}</h4>
 
-              <div className="flex items-center gap-4">
-                <a href={githubLink} target="_blank">
-                  <GithubIcon className="h-6 w-6 text-neutral-400 transition-colors hover:text-neutral-200" />
-                </a>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  render={<a href={githubLink} target="_blank" rel="noreferrer" />}
+                >
+                  <GithubIcon className="size-4" />
+                </Button>
                 {link && (
-                  <a href={link} target="_blank">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      className="h-6 w-6 cursor-pointer text-neutral-400 transition-colors hover:text-neutral-200"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
-                      ></path>
-                    </svg>
-                  </a>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    render={<a href={link} target="_blank" rel="noreferrer" />}
+                  >
+                    <ExternalLink className="size-4" />
+                  </Button>
                 )}
               </div>
             </div>
-            <p className="mb-4 text-neutral-300">{date}</p>
+            <p className="mb-4 font-mono text-sm text-muted-foreground">{date}</p>
             <div className="mb-8 flex flex-wrap items-center gap-2">
               {technologies.map((label) => (
-                <Tag key={label}>{label}</Tag>
+                <Badge key={label} variant="secondary">
+                  {label}
+                </Badge>
               ))}
             </div>
 
-            <p className="mt-auto leading-8 font-medium text-neutral-300">{summary}</p>
+            <p className="mt-auto text-sm text-muted-foreground">{summary}</p>
           </div>
         ))}
       </div>

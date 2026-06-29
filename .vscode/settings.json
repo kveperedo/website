@@ -19,5 +19,6 @@
   },
   "[typescript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
-  } // tell oxfmt to format the whole file, not only the modified lines
+  },
+  "tailwindCSS.classFunctions": ["cva", "cn"]
 }
