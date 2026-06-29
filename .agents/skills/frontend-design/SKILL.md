@@ -5,29 +5,41 @@ description: Design guidance for this project's dark neon aesthetic. Use this sk
 
 # Design System
 
-This project uses a dark cyberpunk-minimal aesthetic: near-black backgrounds, three distinct typefaces, neon accent glows, and glassmorphism surfaces.
+This project uses a dark cyberpunk-minimal aesthetic: near-black backgrounds, three distinct typefaces, neon accent glows, and glassmorphism surfaces with sharp (`rounded-none`) geometry.
 
 ## Color Palette
 
-Base surfaces use Tailwind neutrals:
-- `bg-neutral-950` / `bg-neutral-900` — page and card backgrounds
-- `bg-neutral-900/40` + `backdrop-blur` — glass surface (preferred for cards, list items, content panels)
-- `border-neutral-800` — default border; `border-neutral-700` / `border-neutral-500` on hover
+All colors use semantic tokens via CSS variables (defined in `src/styles.css` under `.dark`). The site is always dark mode — `dark` class on `<html>` in `__root.tsx:42`.
 
 Text hierarchy:
-- `text-neutral-50` — primary headings
-- `text-neutral-100` / `text-neutral-200` — strong secondary content
-- `text-neutral-300` — captions, metadata, secondary labels
-- `text-neutral-400` — icon colors at rest
+- `text-foreground` (`oklch(0.985 0 0)`) — primary headings, strong content
+- `text-muted-foreground` (`oklch(0.708 0 0)`) — captions, metadata, secondary labels, dates
 
-Neon accents (use as glows, borders, and focus rings — not large fills):
-- **Indigo** — primary interactive: `indigo-900` bg, `indigo-800/40` border, `indigo-400` hover/focus
-- **Fuchsia** — ambient glow accent
-- **Emerald** — ambient glow accent
-- **Blue** — ambient glow accent
-- **Rose** — ambient glow accent
+Surfaces:
+- `bg-background` (`oklch(0.145 0 0)`) — page background
+- `bg-card` (`oklch(0.205 0 0)`) — cards, panels, elevated surfaces
 
-Neon colors appear in background blobs, button/focus ring accents, and hover border tints. Avoid large solid fills; prefer low-opacity with `blur-3xl`.
+Borders:
+- `border-border` (`oklch(1 0 0 / 10%)`) — default border
+- `border-input` (`oklch(1 0 0 / 15%)`) — input borders
+
+Interactive accent:
+- `primary` (`oklch(0.398 0.195 277.366)`) — indigo-toned primary for buttons, focus rings, hover states
+- `bg-primary text-primary-foreground` — default button
+- `text-primary` — link text
+- `ring` (`oklch(0.556 0 0)`) — focus ring base
+
+Destructive:
+- `text-destructive` / `bg-destructive/10` — errors, danger states
+
+Neon glow colors (used only in `background.tsx` blur-3xl blobs — not for large fills):
+- **Fuchsia-700** — hero blob (top-left)
+- **Indigo-700** — secondary blob (center-left)
+- **Emerald-700** — bottom blob
+- **Blue-700** — right blob
+- **Rose-700** — bottom-right blob
+
+All at low opacity (10–50%) with `blur-3xl`. Avoid neon as solid fills on UI elements.
 
 ## Typography
 
@@ -35,74 +47,145 @@ Three fonts — always use the Tailwind alias, never raw font names:
 
 | Alias | Font | Use |
 |---|---|---|
-| `font-mono` | Major Mono Display | Brand headings, page titles, signature text |
-| `font-serif` | Zilla Slab | Body text, descriptions, button labels, prose |
-| `font-code` | JetBrains Mono | Code, technical labels, monospace UI text |
+| `font-mono` | JetBrains Mono Variable | Body text, code, monospace UI (also the base font — `src/styles.css:189`) |
+| `font-heading` | Zilla Slab | Section headings, card titles, UI labels |
+| `font-display` | Major Mono Display | Hero name, brand display text, signature |
 
-Heading scale:
-- Hero: `font-mono text-5xl md:text-6xl lg:text-8xl text-neutral-50`
-- Section h1: `text-4xl font-medium` (implicit weight from font)
-- Sub-heading h4: `font-serif text-2xl md:text-3xl lg:text-4xl tracking-wide text-neutral-300`
-- Content h3: `text-2xl font-bold`
-
-Body text:
-- Long-form: `font-serif text-lg leading-loose text-neutral-100 md:text-xl md:leading-[2.5]`
-- List items: `leading-loose font-medium tracking-wide text-neutral-200`
-- Captions: `font-mono text-neutral-200` (or `font-serif` depending on context)
+Heading / text scale (from actual pages):
+- Hero name: `font-display text-5xl md:text-6xl lg:text-8xl text-foreground`
+- Section title (Experience, Education, Projects): `font-heading text-4xl font-medium mr-auto mb-16`
+- Subtitle (position): `font-heading text-2xl md:text-3xl lg:text-4xl tracking-wide text-muted-foreground`
+- Timeline item title: `font-heading text-2xl font-bold`
+- Body summary: `text-base md:text-lg lg:text-xl leading-loose md:leading-[2.5] text-foreground`
+- List items: `text-sm leading-loose font-medium tracking-wide text-foreground`
+- Dates / captions: `font-mono text-sm text-muted-foreground`
+- Config page title: `font-mono text-5xl md:text-6xl font-medium text-foreground`
+- Config description: `text-lg leading-loose text-muted-foreground max-w-2xl`
 
 ## Spacing & Layout
 
-- Page container: `container mx-auto` with `relative`
+- Page container: `container mx-auto px-8 py-16`
+- Section vertical spacing between major sections: `h-10` spacer divs
+- Footer spacing: `my-16` with `flex flex-col items-center gap-8`
 - Section padding: `px-8 py-16`
-- Vertical rhythm between major sections: `h-10` spacer divs or `gap-16` on flex parents
-- Footer spacing: `my-16`
-- Large vertical gaps inside sections: `gap-8`, `gap-10`, `gap-16`
+- Large vertical gaps inside sections: `gap-6`, `gap-8`, `gap-16`
 
 ## Component Patterns
 
+All interactive primitives use **@base-ui/react** (Button, Input, Separator, Accordion). Native elements for simple wrappers (Label, Field). All components use `cva` (class-variance-authority) for variant management.
+
+### `cn()` utility
+Import from `@/lib/utils` (uses `clsx` + `tailwind-merge`):
+```tsx
+import { cn } from "@/lib/utils";
+```
+
+### Buttons (`@/components/ui/button`)
+Uses `@base-ui/react/button` + `cva`. All buttons have `rounded-none`.
+
+**Variants:**
+- `default` — `bg-primary text-primary-foreground hover:bg-primary/80`
+- `secondary` — `bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)]`
+- `outline` — `border-border bg-background hover:bg-muted hover:text-foreground` (dark: `dark:border-input dark:bg-input/30 dark:hover:bg-input/50`)
+- `ghost` — `hover:bg-muted hover:text-foreground`
+- `destructive` — `bg-destructive/10 text-destructive hover:bg-destructive/20`
+- `link` — `text-primary underline-offset-4 hover:underline`
+
+**Sizes:** `default` (h-8), `xs` (h-6), `sm` (h-7), `lg` (h-9), `xl` (h-11), `icon` (size-8), `icon-xs` (size-6), `icon-sm` (size-7), `icon-lg` (size-9)
+
+Use the `render` prop for links:
+```tsx
+<Button render={<a href="/resume.pdf" target="_blank" rel="noreferrer" />}>
+  Resume
+</Button>
+<Button variant="ghost" size="icon-sm" render={<Link to="/" />}>
+  <ArrowLeftIcon />
+</Button>
+```
+
 ### Cards
+Sharp-edged (`rounded-none`), with glass effect and hover interaction:
 ```tsx
-<div className="flex flex-col rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6 shadow-xl backdrop-blur transition-colors hover:border-neutral-700 hover:bg-neutral-900/60 md:p-8">
+<div className="flex flex-col rounded-none border border-border bg-card p-6 shadow-xl backdrop-blur transition-all hover:border-ring/40 hover:bg-card hover:ring-1 hover:ring-ring/40 md:p-8">
 ```
-- Always `rounded-2xl` for cards, `rounded` for small controls
-- Hover state: lighten both border and background
-- `shadow-xl` for elevation, `backdrop-blur` for glass effect
+- Cards use `rounded-none` (not rounded-2xl)
+- `shadow-xl` + `backdrop-blur` for glass effect
+- Hover: subtle border/ring highlight via `hover:border-ring/40 hover:ring-1 hover:ring-ring/40`
 
-### Tags / Chips
+### Badges (`@/components/ui/badge`)
+Uses `@base-ui/react/use-render` + `cva`. Sharp-edged (`rounded-none`), compact:
 ```tsx
-<span className="inline-flex rounded-full border border-neutral-800 bg-neutral-900 px-4 py-2 text-xs font-bold text-neutral-300">
-  {label}
-</span>
+<Badge variant="secondary">{label}</Badge>
+```
+**Variants:** `default`, `secondary`, `destructive`, `outline`, `ghost`, `link` — same naming as button.
+
+### Inputs (`@/components/ui/input`)
+Uses `@base-ui/react/input`. Sharp-edged with focus ring:
+```tsx
+<Input
+  id="password"
+  name="password"
+  type="password"
+  placeholder="Enter password"
+  className="h-auto rounded border border-input bg-background px-4 py-3 text-sm tracking-wide text-foreground"
+/>
 ```
 
-### Buttons (via `buttonStyles` from `src/components/button`)
-Three variants defined in `button.shared.styles.ts`:
-- `primary` — indigo-900 bg with indigo border/hover
-- `secondary` — neutral-900/40 bg with neutral border
-- `tertiary` — transparent, border appears on hover only
+### Field Components (`@/components/ui/field`)
+Compound group of components for forms: `Field`, `FieldLabel`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldSet`, `FieldLegend`, `FieldSeparator`, `FieldTitle`.
 
-Always use the existing `Button` component from `#/components/button` rather than raw `<button>`. For link-styled buttons use `AriaLink` with `buttonStyles()` applied.
+Use `FieldGroup` > `Field` > `FieldLabel` + `<Input/>` + `FieldError` pattern:
+```tsx
+<FieldGroup>
+  <Field>
+    <FieldLabel htmlFor="password" className="text-sm tracking-wide text-foreground">
+      Password
+    </FieldLabel>
+    <Input id="password" name="password" type="password" />
+    <FieldError />
+  </Field>
+</FieldGroup>
+```
 
-### Ambient Background
-The animated glow background (`src/components/background.tsx`) uses multiple `blur-3xl` blobs with `animate-grow`. When adding a background to a new page, reuse `<Background />`. Don't recreate individual blobs unless intentionally scoping them to a section.
+### Separator (`@/components/ui/separator`)
+Uses `@base-ui/react/separator`:
+```tsx
+<Separator />  {/* horizontal (default) */}
+<Separator orientation="vertical" />
+```
 
-### Transitions
-All interactive elements use `transition-all duration-500` for a slow, premium feel. Don't use shorter durations unless animating something that must feel snappy (e.g. a toggle flip).
+### Accordion (`@/components/ui/accordion`)
+Uses `@base-ui/react/accordion` with `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`. Chevron icons for expand/collapse.
+
+### Spinner (`@/components/ui/spinner`)
+Simple loading indicator using `Loader2` from lucide-react with `animate-spin`.
+
+### Ambient Background (`@/components/background.tsx`)
+Fixed full-screen layer with multiple `blur-3xl` blobs. Reuse `<Background />` in root layout (`__root.tsx:48`). Don't recreate individual blobs.
+
+Blob colors: fuchsia, indigo, emerald, blue, rose at 10–50% opacity with `animate-grow` and staggered `animation-delay-*` utilities.
 
 ### Focus Rings
-Always include accessible focus-visible styles:
+All interactive elements use consistent focus-visible styles:
 ```tsx
-"focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+"focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
 ```
-Ring color should match the accent: `focus-visible:ring-indigo-400/70` for primary, `focus-visible:ring-neutral-400` for secondary.
-
-### Animated Dots (timeline / status indicators)
+Destructive variants add:
 ```tsx
-<div className="relative h-3 w-3">
-  <span className="absolute h-full w-full animate-ping rounded-full bg-neutral-400/50" />
-  <span className="absolute h-full w-full rounded-full bg-neutral-50" />
+"aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20"
+```
+
+### Animated Dots (timeline status indicators)
+```tsx
+<div className="flex h-3 w-3">
+  <span className="absolute -z-10 h-full w-full animate-ping rounded-full bg-muted-foreground/50" />
+  <span className="absolute h-full w-full rounded-full bg-foreground" />
 </div>
 ```
+Used in `timeline.tsx` with `sticky` positioning for the active dot.
+
+### Timelines (`src/routes/(public)/-components/timeline.tsx`)
+Vertical timeline with sticky dots, left date column (hidden on mobile), collapsible content sections. Uses `<Badge>` for technology tags and card-style containers for detail lists.
 
 ## Content Style
 
@@ -110,12 +193,26 @@ Section headings are left-aligned with `mr-auto` when inside a centered containe
 
 ## Checklist Before Finishing Any UI Task
 
-- [ ] Background: dark neutral (`bg-neutral-900` or `bg-neutral-900/40 backdrop-blur`)
-- [ ] Text: correct neutral shade for hierarchy (50 → 100 → 200 → 300 → 400)
-- [ ] Font: `font-mono` for display/brand, `font-serif` for prose, `font-code` for technical
-- [ ] Borders: `border-neutral-800` default, lighter on hover
-- [ ] Interactive elements: `transition-all duration-500`, focus-visible ring
-- [ ] Cards: `rounded-2xl shadow-xl backdrop-blur`
-- [ ] Tags: `rounded-full px-4 py-2 text-xs font-bold`
-- [ ] Used existing `Button` / `IconButton` components rather than raw elements
-- [ ] No large solid neon fills — neon only as accents, glows, or borders
+- [ ] Using semantic tokens (`text-foreground`, `text-muted-foreground`, `bg-card`, `border-border`, `text-primary`, `bg-primary`)
+- [ ] Font: `font-mono` for body, `font-heading` for headings, `font-display` for hero/brand text
+- [ ] All interactive: `focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50`
+- [ ] Cards: `rounded-none shadow-xl backdrop-blur` with hover border/ring highlight
+- [ ] Badges: use `<Badge>` from `@/components/ui/badge` with `variant="secondary"`
+- [ ] Buttons: use `<Button>` from `@/components/ui/button` with `render` prop for link behavior
+- [ ] Forms: use `@/components/ui/field` compound pattern (FieldGroup > Field > FieldLabel + Input + FieldError)
+- [ ] `cn()` imported from `@/lib/utils` (not `#/lib/cn`)
+- [ ] No large solid neon fills — neon only as blur-3xl blobs in background
+
+## Scaffolding
+
+The following directories exist under `src/components/` as empty stubs awaiting implementation:
+- `badge/` — unlikely needed; use `@/components/ui/badge`
+- `card/` — repeatable card variant wrappers
+- `heading/` — polymorphic heading components
+- `text/` — polymorphic text with body/lead/caption variants
+- `separator/` — unlikely needed; use `@/components/ui/separator`
+- `text-field/` — unlikely needed; use `@/components/ui/field`
+
+Existing component implementations live in `src/components/ui/` (button, badge, separator, input, label, field, accordion, spinner).
+
+Route-level components live in `src/routes/(public)/-components/` (fade-in, link-buttons, scroll-button, timeline) and `src/routes/(public)/-sections/` (introduction, summary, info, projects). All use the `-` prefix convention to prevent TanStack Router from treating them as routes.
