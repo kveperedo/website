@@ -39,12 +39,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html
       lang="en"
       suppressHydrationWarning
-      className="scroll-smooth bg-black font-serif tracking-wider text-neutral-50 selection:bg-pink-600/40 selection:text-neutral-100"
+      className="dark scroll-smooth bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground"
     >
       <head>
         <HeadContent />
       </head>
-      <body className="relative font-serif wrap-anywhere antialiased">
+      <body className="relative wrap-anywhere antialiased">
         <Background />
         {children}
         <TanStackDevtools

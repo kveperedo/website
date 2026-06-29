@@ -7,7 +7,7 @@ export const WindowsSetup = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="mb-2 font-mono text-2xl font-medium text-neutral-50">windows setup</h2>
+        <h2 className="mb-2 font-mono text-2xl font-medium text-foreground">windows setup</h2>
       </div>
 
       <div className="space-y-12">

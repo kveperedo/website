@@ -10,7 +10,7 @@ export const SummarySection = () => {
       id={SECTION_IDS.SUMMARY}
       className="relative flex flex-col items-center justify-center gap-16 px-8 py-16 md:h-screen"
     >
-      <h1 className="text-center font-serif text-lg leading-loose text-neutral-100 md:text-xl md:leading-[2.5] lg:text-2xl lg:leading-[2.5]">
+      <h1 className="text-center text-base leading-loose text-foreground md:text-lg md:leading-[2.5] lg:text-xl lg:leading-[2.5]">
         {SUMMARY}
       </h1>
 

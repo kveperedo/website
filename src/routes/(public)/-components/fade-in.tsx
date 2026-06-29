@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { cn } from "#/lib/cn";
+import { cn } from "@/lib/utils";
 
 export const FadeIn = () => {
   const [loadingState, setLoadingState] = useState<"visible" | "fading" | "hidden">("visible");
@@ -39,7 +39,7 @@ export const FadeIn = () => {
       id="loading"
       aria-hidden="true"
       className={cn(
-        "fixed inset-0 z-50 flex h-screen w-screen items-start justify-center bg-black transition-opacity duration-500",
+        "fixed inset-0 z-50 flex h-screen w-screen items-start justify-center bg-background transition-opacity duration-500",
         loadingState === "visible" ? "opacity-100" : "pointer-events-none opacity-0",
       )}
       onTransitionEnd={() => {
