@@ -2,6 +2,7 @@ import { ExternalLink } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 import { SECTION_IDS } from "../-constants";
 import { GithubIcon } from "../-icons/github-icon";
@@ -64,10 +65,7 @@ export const ProjectsSection = () => {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {PROJECTS.map(({ name, summary, date, githubLink, technologies, link }) => (
-          <div
-            key={name}
-            className="flex w-full flex-col rounded-none border border-border bg-card p-6 shadow-xl backdrop-blur transition-all hover:border-ring/40 hover:bg-card hover:ring-1 hover:ring-ring/40 md:p-8"
-          >
+          <Card key={name} className="w-full p-6 md:p-8">
             <div className="flex items-center justify-between">
               <h4 className="mb-1 font-heading text-2xl font-semibold text-foreground">{name}</h4>
 
@@ -100,7 +98,7 @@ export const ProjectsSection = () => {
             </div>
 
             <p className="mt-auto text-sm text-muted-foreground">{summary}</p>
-          </div>
+          </Card>
         ))}
       </div>
     </section>

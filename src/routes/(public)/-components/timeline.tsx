@@ -3,6 +3,7 @@ import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 type Date = {
@@ -137,20 +138,22 @@ export const Timeline = ({
         )}
 
         {content && !collapsible && (
-          <ul className="mt-6 list-inside list-disc flex-col gap-3 rounded-none border border-border bg-card p-6 shadow-xl backdrop-blur md:list-outside">
-            {content.map((detail) => (
-              <li
-                key={detail}
-                className="text-sm leading-loose font-medium tracking-wide text-foreground md:ml-6"
-              >
-                {detail}
-              </li>
-            ))}
-          </ul>
+          <Card className="mt-6 py-0">
+            <ul className="list-inside list-disc flex-col gap-3 p-6 md:list-outside">
+              {content.map((detail) => (
+                <li
+                  key={detail}
+                  className="text-sm leading-loose font-medium tracking-wide text-foreground md:ml-6"
+                >
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </Card>
         )}
 
         {content && collapsible && (
-          <div className="mt-6 rounded-none border border-border bg-card shadow-xl backdrop-blur">
+          <Card className="mt-6 gap-0 py-0">
             <ul className="flex list-inside list-disc flex-col gap-3 p-6 pb-0 md:list-outside">
               {content.slice(0, 2).map((detail) => (
                 <li
@@ -190,7 +193,7 @@ export const Timeline = ({
                 />
               </ButtonPrimitive>
             )}
-          </div>
+          </Card>
         )}
       </div>
     </div>

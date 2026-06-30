@@ -9,6 +9,7 @@ import type { ParsedTransaction } from "#/utils/transactions.server";
 import { TransactionCategorySchema } from "#/generated/zod/schemas/enums/TransactionCategory.schema";
 import { TransactionTypeSchema } from "#/generated/zod/schemas/enums/TransactionType.schema";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -57,7 +58,7 @@ function TransactionCard({
   });
 
   return (
-    <div className="flex flex-col gap-5 rounded border border-border bg-card p-5">
+    <Card className="flex flex-col gap-5 p-5">
       {totalCount > 1 && (
         <p className="text-xs text-muted-foreground">
           transaction {index + 1} of {totalCount}
@@ -179,7 +180,7 @@ function TransactionCard({
           />
         </Field>
       )}
-    </div>
+    </Card>
   );
 }
 

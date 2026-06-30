@@ -1,14 +1,14 @@
 "use client";
 
-import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeftIcon } from "lucide-react";
 import { useState } from "react";
 
 import type { ParsedTransaction } from "#/utils/transactions.server";
 
 import { parseTransactionWithAIFn } from "#/utils/transactions.function";
+import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,21 +41,12 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        render={<Link to="/finances" />}
-        aria-label="Go back to finances"
-        className="self-start"
-      >
-        <ArrowLeftIcon />
-        Back
-      </Button>
+      <BackButton to="/finances" />
       <p className="text-sm text-muted-foreground">
         Describe transactions in natural language — AI will parse amounts, dates, and categories.
       </p>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <div className="flex flex-col gap-5 rounded border border-border bg-card p-6 shadow-xl backdrop-blur">
+      <Card className="flex flex-col gap-5 p-6">
         <FieldGroup>
           <Field>
             <FieldLabel className="text-sm tracking-wide text-foreground">
@@ -80,7 +71,7 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
           {isParsing && <Spinner data-icon="inline-start" />}
           Generate transactions
         </Button>
-      </div>
+      </Card>
     </div>
   );
 }
