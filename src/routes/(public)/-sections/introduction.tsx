@@ -1,5 +1,5 @@
 import { getRouteApi, Link } from "@tanstack/react-router";
-import { BanknoteIcon, SettingsIcon } from "lucide-react";
+import { BanknoteIcon, LogInIcon, SettingsIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -25,10 +25,15 @@ export const IntroductionSection = () => {
           <SettingsIcon className="size-4" />
           Config
         </Button>
-        {isUserLoggedIn && (
+        {isUserLoggedIn ? (
           <Button variant="ghost" size="sm" render={<Link to="/finances" />}>
             <BanknoteIcon className="size-4" />
             Finances
+          </Button>
+        ) : (
+          <Button variant="ghost" size="sm" render={<Link to="/login" />}>
+            <LogInIcon className="size-4" />
+            Login
           </Button>
         )}
       </div>
