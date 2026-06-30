@@ -5,6 +5,16 @@ description: Generate a git commit message for staged changes. Trigger whenever 
 
 # Commit Message Skill
 
+## Non-Negotiable Rules
+
+These MUST be followed for every commit message. No exceptions.
+
+- **Subject line**: maximum 50 characters. Hard limit — count character by character
+- **Body lines**: maximum 72 characters each. Hard wrap every line, no line may exceed 72
+- **Body format**: dash-prefixed list (`- Change description`), nothing else
+- **Validation**: before presenting any message or asking for approval, verify both limits. If either fails, rewrite until compliant
+- **Every non-trivial change gets a body** — no commit with more than a single-line fix gets subject-only
+
 ## Steps
 
 1. Run `git diff --staged` to see exactly what changed
@@ -12,8 +22,8 @@ description: Generate a git commit message for staged changes. Trigger whenever 
 3. Analyze the diff to determine if it contains **logically distinct changes** (see "When to Split" below)
 4. If the diff is atomic (one logical change), write a single commit message following the format below
 5. If the diff should be split, propose a split plan and execute each commit sequentially (see "Splitting into Multiple Commits")
-6. Output the message in a fenced code block so the user can copy it directly
-7. **Before outputting, validate:** subject ≤ 50 chars, every body line ≤ 72 chars. If either fails, rewrite until compliant
+6. **Validate** the message against the Non-Negotiable Rules above before showing it to the user
+7. Output the validated message in a fenced code block so the user can copy it directly
 8. Ask the user: "Commit with this message?" — use AskUserQuestion with Yes/No options
 9. If approved, run `git commit -m "<subject>" -m "<body>"` (omit `-m "<body>"` when there is no body)
 
@@ -83,21 +93,21 @@ If the user wants manual control over which changes go together:
 - Change C
 ```
 
-### Subject line (strict)
+### Subject line (NON-NEGOTIABLE)
 
-- **Max 50 characters.** Count carefully. If it exceeds 50, shorten it.
+- **MUST be ≤ 50 characters.** Count character by character. If it exceeds 50, shorten it.
 - Imperative mood: "Add", "Fix", "Remove", "Update" — never "Added", "Fixes", "Updating"
 - No trailing period
 - No conventional-commits prefix (`feat:`, `fix:`, etc.) unless the project already uses them
 - If you cannot describe the change in under 50 characters, the subject should be a higher-level summary and the details go in the body
 
-### Body (strict)
+### Body (NON-NEGOTIABLE)
 
-- **Max 72 characters per line.** Wrap every line at 72 chars. No line may exceed 72 characters.
+- **MUST be dash-prefixed list** — each line starts with `- ` followed by a description
+- **MUST be ≤ 72 characters per line.** Hard wrap every line at 72 chars. No line may exceed 72.
 - Separated from the subject by exactly one blank line
-- Use a dash (`-`) followed by a space to list each distinct change
 - Keep each dash item short and concrete — describe *what* changed, not *why* (the why belongs in the subject or a separate line above the list)
-- No more than 6 dash items. If more changes exist, group related ones or summarize
+- MUST NOT exceed 6 dash items. If more changes exist, group related ones or summarize
 - No nested lists, no numbering, no sub-bullets
 
 ## Examples
@@ -176,8 +186,9 @@ Update session cookie max age configuration
 
 ## What to avoid
 
-- Lines in the body exceeding 72 characters
-- Subject lines exceeding 50 characters
+- Lines in the body exceeding 72 characters (NON-NEGOTIABLE)
+- Subject lines exceeding 50 characters (NON-NEGOTIABLE)
+- Non-dash body format (NON-NEGOTIABLE — body MUST be `- ` list)
 - Restating what the diff already shows (when explaining why)
 - Phrases like "This commit…", "This PR…", "Changes include…"
 - More than one blank line between subject and body
