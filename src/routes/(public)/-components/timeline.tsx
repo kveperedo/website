@@ -153,7 +153,7 @@ export const Timeline = ({
         )}
 
         {content && collapsible && (
-          <Card className="mt-6 py-0">
+          <Card className="mt-6 gap-0 py-0">
             <ul className="flex list-inside list-disc flex-col gap-3 p-6 pb-0 md:list-outside">
               {content.slice(0, 2).map((detail) => (
                 <li
