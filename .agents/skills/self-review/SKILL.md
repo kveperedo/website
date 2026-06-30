@@ -46,24 +46,51 @@ This context is what separates a generic review from a useful one. Don't rely so
 
 ---
 
-## Step 4 — Review the changes
+## Step 4 — Delegate to specialized subagents
 
-Look for:
+Launch three subagents **in parallel** to get focused reviews. Pass each agent the full diff and any relevant file context.
 
-- **Bugs** — logic errors, incorrect conditions, off-by-one issues, missing null/undefined guards, incorrect assumptions about data shape
-- **Security** — unvalidated input, injection risks, exposed secrets, missing auth checks, unsafe use of user-controlled data
-- **Performance** — unnecessary re-renders, N+1 queries, inefficient loops, missing memoization where it matters
-- **Conventions** — does the code follow the patterns already in this codebase? Check surrounding code before flagging style issues — don't enforce a personal preference if the codebase doesn't follow it
-- **Test coverage** — are the changes tested? Are error states, edge cases, and empty states covered?
-- **Missing cases** — error handling, loading states, race conditions, cleanup on unmount
+### 4a. Clean Code Reviewer
 
-Be specific — tie every finding to a file and a code reference. Don't flag nits unless they're genuinely inconsistent with the rest of the codebase. If the change is clean and correct, say so — a positive review is a useful outcome too.
+Use the `clean-code-reviewer` subagent for code quality:
+
+```
+Task: Review these code changes for cleanliness, readability, and maintainability.
+
+<diff and file context here>
+
+Focus on: logic errors, bugs, performance issues, conventions, test coverage, missing cases, naming, code structure. Flag only issues that are genuinely inconsistent with the codebase patterns.
+```
+
+### 4b. Design System Auditor
+
+Use the `design-system-auditor` subagent for UI/UX consistency:
+
+```
+Task: Review these code changes for design system compliance.
+
+<diff and file context here>
+
+Focus on: component usage consistency, styling patterns, dark theme adherence, typography, spacing, animation conventions. Check against the project's Tailwind v4 theme tokens and shadcn component patterns.
+```
+
+### 4c. Security Vulnerability Scanner
+
+Use the `security-vulnerability-scanner` subagent for security:
+
+```
+Task: Review these code changes for security vulnerabilities.
+
+<diff and file context here>
+
+Focus on: unvalidated input, injection risks, exposed secrets, missing auth checks, unsafe use of user-controlled data, session handling, database query safety.
+```
 
 ---
 
-## Step 5 — Output the review
+## Step 5 — Consolidate and output the review
 
-Print the review as formatted markdown to the CLI. Use this template:
+Merge findings from all three subagents into a single structured review. Deduplicate any overlapping findings — keep the most detailed version. Use this template:
 
 ```
 ## Code Review
@@ -76,15 +103,7 @@ Print the review as formatted markdown to the CLI. Use this template:
 
 ### `path/to/changed/file.ts`
 
-**[Short issue title]** — <Bug | Suggestion | Nit>
-
-\`relevant code snippet\`
-
-Explanation of the problem and a concrete suggestion for how to fix or improve it.
-
-━━━━━━━━━━━━━━━━━━━━━━
-
-**[Another issue in the same file]** — <Bug | Suggestion | Nit>
+**[Short issue title]** — <Bug | Suggestion | Nit | Security | Design>
 
 \`relevant code snippet\`
 
@@ -106,7 +125,7 @@ Any observations that span multiple files, or a positive note if the overall qua
 **Tips:**
 
 - Group findings by file — one `###` section per file with findings
-- Use `Bug` for things that could cause incorrect behavior, `Suggestion` for improvements worth making, `Nit` for minor style/readability issues
+- Use `Bug` for logic errors, `Suggestion` for improvements, `Nit` for minor style issues, `Security` for vulnerabilities, `Design` for UI/UX deviations
 - If a file has no issues, skip it — only include files with something to say
 - Keep each finding concise: what's wrong and what to do about it, in 2–4 sentences
 - If there are no issues at all, say so clearly
