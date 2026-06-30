@@ -17,8 +17,8 @@ type TimelineProps = {
   title: string;
   titleExtension?: string;
   subtitle: string;
-  tags?: string[];
-  content?: string[];
+  tags?: Array<string>;
+  content?: Array<string>;
   stickyDots?: boolean;
   collapsible?: boolean;
 };

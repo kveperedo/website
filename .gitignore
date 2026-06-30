@@ -12,5 +12,5 @@ dist-ssr
 __unconfig*
 todos.json
 
-/src/generated/prisma
+/src/generated/**
 .vercel

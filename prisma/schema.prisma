@@ -3,11 +3,16 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+generator zod {
+  provider = "prisma-zod-generator"
+  output   = "../src/generated/zod"
+}
+
 datasource db {
   provider = "postgresql"
 }
 
-enum ExpensesCategory {
+enum TransactionCategory {
   food_drinks
   groceries_household
   transportation
@@ -16,16 +21,24 @@ enum ExpensesCategory {
   hobbies_lifestyle
   financial
 
-  @@map("expenses_categories")
+  @@map("transaction_categories")
 }
 
-model Expense {
-  id          String           @id @default(uuid()) @db.Uuid
-  description String
-  amount      Decimal          @db.Decimal(10, 2)
-  category    ExpensesCategory
-  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamp(6)
+enum TransactionType {
+  expense
+  income
 
-  @@map("expenses")
+  @@map("transaction_types")
+}
+
+model Transaction {
+  id          String               @id @default(uuid()) @db.Uuid
+  description String
+  amount      Decimal              @db.Decimal(10, 2)
+  type        TransactionType      @default(expense)
+  category    TransactionCategory?
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@map("transactions")
 }
