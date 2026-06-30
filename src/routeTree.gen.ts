@@ -14,6 +14,7 @@ import { Route as publicLoginRouteImport } from './routes/(public)/login'
 import { Route as authedAuthRouteImport } from './routes/(authed)/_auth'
 import { Route as publicConfigIndexRouteImport } from './routes/(public)/config/index'
 import { Route as authedAuthFinancesIndexRouteImport } from './routes/(authed)/_auth/finances/index'
+import { Route as authedAuthFinancesNewRouteImport } from './routes/(authed)/_auth/finances/new'
 
 const publicIndexRoute = publicIndexRouteImport.update({
   id: '/(public)/',
@@ -39,17 +40,24 @@ const authedAuthFinancesIndexRoute = authedAuthFinancesIndexRouteImport.update({
   path: '/finances/',
   getParentRoute: () => authedAuthRoute,
 } as any)
+const authedAuthFinancesNewRoute = authedAuthFinancesNewRouteImport.update({
+  id: '/finances/new',
+  path: '/finances/new',
+  getParentRoute: () => authedAuthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
   '/config/': typeof publicConfigIndexRoute
+  '/finances/new': typeof authedAuthFinancesNewRoute
   '/finances/': typeof authedAuthFinancesIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
   '/config': typeof publicConfigIndexRoute
+  '/finances/new': typeof authedAuthFinancesNewRoute
   '/finances': typeof authedAuthFinancesIndexRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,21 @@ export interface FileRoutesById {
   '/(public)/login': typeof publicLoginRoute
   '/(public)/': typeof publicIndexRoute
   '/(public)/config/': typeof publicConfigIndexRoute
+  '/(authed)/_auth/finances/new': typeof authedAuthFinancesNewRoute
   '/(authed)/_auth/finances/': typeof authedAuthFinancesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/login' | '/' | '/config/' | '/finances/'
+  fullPaths: '/login' | '/' | '/config/' | '/finances/new' | '/finances/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/' | '/config' | '/finances'
+  to: '/login' | '/' | '/config' | '/finances/new' | '/finances'
   id:
     | '__root__'
     | '/(authed)/_auth'
     | '/(public)/login'
     | '/(public)/'
     | '/(public)/config/'
+    | '/(authed)/_auth/finances/new'
     | '/(authed)/_auth/finances/'
   fileRoutesById: FileRoutesById
 }
@@ -118,14 +128,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authedAuthFinancesIndexRouteImport
       parentRoute: typeof authedAuthRoute
     }
+    '/(authed)/_auth/finances/new': {
+      id: '/(authed)/_auth/finances/new'
+      path: '/finances/new'
+      fullPath: '/finances/new'
+      preLoaderRoute: typeof authedAuthFinancesNewRouteImport
+      parentRoute: typeof authedAuthRoute
+    }
   }
 }
 
 interface authedAuthRouteChildren {
+  authedAuthFinancesNewRoute: typeof authedAuthFinancesNewRoute
   authedAuthFinancesIndexRoute: typeof authedAuthFinancesIndexRoute
 }
 
 const authedAuthRouteChildren: authedAuthRouteChildren = {
+  authedAuthFinancesNewRoute: authedAuthFinancesNewRoute,
   authedAuthFinancesIndexRoute: authedAuthFinancesIndexRoute,
 }
 

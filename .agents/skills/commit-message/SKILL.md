@@ -13,8 +13,9 @@ description: Generate a git commit message for staged changes. Trigger whenever 
 4. If the diff is atomic (one logical change), write a single commit message following the format below
 5. If the diff should be split, propose a split plan and execute each commit sequentially (see "Splitting into Multiple Commits")
 6. Output the message in a fenced code block so the user can copy it directly
-7. Ask the user: "Commit with this message?" — use AskUserQuestion with Yes/No options
-8. If approved, run `git commit -m "<subject>" -m "<body>"` (omit `-m "<body>"` when there is no body)
+7. **Before outputting, validate:** subject ≤ 50 chars, every body line ≤ 72 chars. If either fails, rewrite until compliant
+8. Ask the user: "Commit with this message?" — use AskUserQuestion with Yes/No options
+9. If approved, run `git commit -m "<subject>" -m "<body>"` (omit `-m "<body>"` when there is no body)
 
 ## When to Split
 
@@ -77,21 +78,27 @@ If the user wants manual control over which changes go together:
 ```
 <subject line>
 
-<body>
+- Change A
+- Change B
+- Change C
 ```
 
-Follow the **50/72 rule**:
+### Subject line (strict)
 
-**Subject line** — 50 characters max, required, always:
-- Imperative mood: "Add", "Fix", "Remove", "Update", not "Added" / "Fixes"
+- **Max 50 characters.** Count carefully. If it exceeds 50, shorten it.
+- Imperative mood: "Add", "Fix", "Remove", "Update" — never "Added", "Fixes", "Updating"
 - No trailing period
-- No conventional-commits prefix (no `feat:`, `fix:`, etc.) unless the project already uses them
+- No conventional-commits prefix (`feat:`, `fix:`, etc.) unless the project already uses them
+- If you cannot describe the change in under 50 characters, the subject should be a higher-level summary and the details go in the body
 
-**Body** — 72 character wrap, always include; one or two sentences max:
-- Separated from the subject by one blank line
-- For complex or large diffs: explain the motivation or constraint (the *why*), not what the code does
-- For simple or mechanical changes (rename, move, format): briefly state what changed and why in plain terms
-- No bullet points or numbered lists
+### Body (strict)
+
+- **Max 72 characters per line.** Wrap every line at 72 chars. No line may exceed 72 characters.
+- Separated from the subject by exactly one blank line
+- Use a dash (`-`) followed by a space to list each distinct change
+- Keep each dash item short and concrete — describe *what* changed, not *why* (the why belongs in the subject or a separate line above the list)
+- No more than 6 dash items. If more changes exist, group related ones or summarize
+- No nested lists, no numbering, no sub-bullets
 
 ## Examples
 
@@ -99,14 +106,16 @@ Follow the **50/72 rule**:
 ```
 Reorganize routes into (public) and (authed) groups
 
-Separates public and authenticated routes into named groups for clarity.
+- Renamed route groups for clarity
+- Separated public and authenticated route trees
 ```
 
 **Good — non-obvious motivation:**
 ```
 Lazy-load finance route bundle
 
-Route was included in the initial chunk, adding 40 kB to first load.
+- Route was included in the initial 40 kB chunk
+- Moved to dynamic import to reduce first load
 ```
 
 **Bad — subject only for a complex diff (missing context):**
@@ -114,13 +123,23 @@ Route was included in the initial chunk, adding 40 kB to first load.
 Refactor route structure
 ```
 
-**Bad — bullet list in body:**
+**Bad — bullet list in body (not concise):**
 ```
 Refactor route structure
 
 - Moved files from (index) to (public) and (authed)
 - Deleted old layout files
 - Updated routeTree.gen.ts
+- Added new layout wrapper
+```
+
+**Good — concise dash items:**
+```
+Refactor route structure
+
+- Move routes into (public) and (authed) groups
+- Remove unused layout wrappers
+- Regenerate route tree
 ```
 
 **Bad — describes what, not why:**
@@ -136,8 +155,7 @@ Commit 1 of 3:
 
 Fix session expiry not redirecting to login
 
-Session check was comparing timestamps in different timezones,
-causing valid sessions to appear expired.
+- Session check compared timestamps in different timezones
 
 ---
 
@@ -145,7 +163,7 @@ Commit 2 of 3:
 
 Add remember-me checkbox to login form
 
-Lets users opt into longer session duration (30 days vs 1 day).
+- Lets users opt into 30-day session duration
 
 ---
 
@@ -153,13 +171,15 @@ Commit 3 of 3:
 
 Update session cookie max age configuration
 
-Aligns cookie expiry with the new remember-me feature options.
+- Aligns cookie expiry with remember-me feature
 ```
 
 ## What to avoid
 
-- Bullet points or numbered lists in the message body
+- Lines in the body exceeding 72 characters
+- Subject lines exceeding 50 characters
 - Restating what the diff already shows (when explaining why)
 - Phrases like "This commit…", "This PR…", "Changes include…"
 - More than one blank line between subject and body
 - Skipping the body entirely for non-trivial changes
+- Vague dash items like "Updated code" or "Fixed stuff"
