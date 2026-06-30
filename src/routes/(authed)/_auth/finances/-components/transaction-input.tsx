@@ -9,6 +9,7 @@ import type { ParsedTransaction } from "#/utils/transactions.server";
 
 import { parseTransactionWithAIFn } from "#/utils/transactions.function";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,7 +56,7 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
         Describe transactions in natural language — AI will parse amounts, dates, and categories.
       </p>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <div className="flex flex-col gap-5 rounded border border-border bg-card p-6 shadow-xl backdrop-blur">
+      <Card className="flex flex-col gap-5 p-6">
         <FieldGroup>
           <Field>
             <FieldLabel className="text-sm tracking-wide text-foreground">
@@ -80,7 +81,7 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
           {isParsing && <Spinner data-icon="inline-start" />}
           Generate transactions
         </Button>
-      </div>
+      </Card>
     </div>
   );
 }

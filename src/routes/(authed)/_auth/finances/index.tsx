@@ -3,6 +3,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { getTransactionsFn } from "#/utils/transactions.function";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 import { CATEGORY_LABELS, CATEGORY_COLORS } from "./-constants";
@@ -31,9 +32,9 @@ function RouteComponent() {
             <p className="text-sm text-muted-foreground">No transactions yet.</p>
           ) : (
             transactions.map((t) => (
-              <div
+              <Card
                 key={t.id}
-                className="flex items-center justify-between rounded border border-border bg-card px-4 py-3"
+                className="flex items-center justify-between px-4 py-3 shadow-none backdrop-blur-none"
               >
                 <div className="flex flex-col gap-1">
                   <span className="text-sm text-foreground">{t.description}</span>
@@ -58,7 +59,7 @@ function RouteComponent() {
                   {t.type === "income" ? "+" : "-"}₱
                   {t.amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
                 </span>
-              </div>
+              </Card>
             ))
           )}
         </div>

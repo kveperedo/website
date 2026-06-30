@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 type SetupRootProps = {
   id?: string;
@@ -8,15 +9,12 @@ type SetupRootProps = {
 
 const SetupRoot = ({ id, title, children }: SetupRootProps) => {
   return (
-    <div
-      id={id}
-      className="flex w-full flex-col rounded-none border border-border bg-card p-6 shadow-xl backdrop-blur md:p-7"
-    >
+    <Card id={id} className="w-full p-6 md:p-7">
       <Badge variant="secondary" className="mb-4 self-start lowercase">
         {title}
       </Badge>
       <div className="space-y-2.5">{children}</div>
-    </div>
+    </Card>
   );
 };
 

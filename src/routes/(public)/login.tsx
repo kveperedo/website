@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { loginFn } from "#/utils/auth.functions";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -19,10 +20,10 @@ function RouteComponent() {
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative min-h-screen overflow-hidden bg-background bg-scanlines">
       <section className="relative container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
-        <div className="w-full max-w-md border border-border bg-card p-8 shadow-xl backdrop-blur transition-all hover:border-ring/40 hover:ring-1 hover:ring-ring/40 md:p-10">
-          <div className="mb-8 flex items-center gap-3">
+        <Card className="w-full max-w-md p-8 md:p-10">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon-sm"
@@ -35,7 +36,7 @@ function RouteComponent() {
           </div>
 
           <form
-            className="mt-7"
+            className="mt-4"
             onSubmit={async (event) => {
               event.preventDefault();
 
@@ -82,7 +83,7 @@ function RouteComponent() {
               Continue
             </Button>
           </form>
-        </div>
+        </Card>
       </section>
     </main>
   );
