@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeftIcon } from "lucide-react";
 import { useState } from "react";
 
 import { loginFn } from "#/utils/auth.functions";
 import { Button } from "@/components/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -20,11 +21,18 @@ function RouteComponent() {
   return (
     <main className="relative min-h-screen overflow-hidden">
       <section className="relative container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
-        <div className="w-full max-w-md rounded border border-border bg-card p-8 md:p-10">
-          <h1 className="mt-3 font-mono text-4xl text-foreground md:text-5xl">login</h1>
-          <p className="mt-3  text-sm leading-relaxed text-muted-foreground">
-            Enter your password to continue.
-          </p>
+        <div className="w-full max-w-md border border-border bg-card p-8 shadow-xl backdrop-blur transition-all hover:border-ring/40 hover:ring-1 hover:ring-ring/40 md:p-10">
+          <div className="mb-8 flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              render={<Link to="/" />}
+              aria-label="Go back to home"
+            >
+              <ArrowLeftIcon />
+            </Button>
+            <h1 className="font-heading text-4xl font-medium text-foreground md:text-5xl">Login</h1>
+          </div>
 
           <form
             className="mt-7"
@@ -33,13 +41,17 @@ function RouteComponent() {
 
               const formData = new FormData(event.currentTarget);
               const password = formData.get("password")?.toString() ?? "";
+              if (!password.trim()) {
+                setError("Please enter a password.");
+                return;
+              }
 
               setIsLoading(true);
 
               try {
                 await login({ data: password });
-              } catch (error) {
-                console.error(error);
+              } catch (err) {
+                console.error(err);
                 setError("Invalid password. Please try again.");
               } finally {
                 setIsLoading(false);
@@ -49,7 +61,7 @@ function RouteComponent() {
             <input hidden name="username" defaultValue="username" autoComplete="username" />
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="password" className=" text-sm tracking-wide text-foreground">
+                <FieldLabel htmlFor="password" className="text-sm tracking-wide text-foreground">
                   Password
                 </FieldLabel>
                 <Input
@@ -58,14 +70,14 @@ function RouteComponent() {
                   type="password"
                   autoComplete="current-password"
                   placeholder="Enter password"
-                  className="h-auto rounded border border-input bg-background px-4 py-3  text-sm tracking-wide text-foreground"
+                  autoFocus
                   onChange={() => setError(null)}
                 />
-                {error && <p className="mt-2  text-sm text-destructive">{error}</p>}
+                <FieldError>{error}</FieldError>
               </Field>
             </FieldGroup>
 
-            <Button variant="secondary" type="submit" disabled={isLoading} className="mt-5 w-full ">
+            <Button type="submit" disabled={isLoading} className="mt-7 w-full">
               {isLoading && <Spinner data-icon="inline-start" />}
               Continue
             </Button>
