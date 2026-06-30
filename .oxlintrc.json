@@ -4,7 +4,10 @@
   "categories": {
     "correctness": "error"
   },
-  "rules": {},
+  "rules": {
+    "curly": ["error", "all"],
+    "typescript/array-type": ["error", { "default": "generic" }]
+  },
   "env": {
     "builtin": true
   },
