@@ -1,7 +1,6 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowLeftIcon } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/back-button";
 
 import { MacSetup } from "./-sections/mac-setup";
 
@@ -38,21 +37,9 @@ function ConfigRoute() {
     <main className="relative min-h-screen">
       <div className="relative container mx-auto px-8 py-12">
         <div className="mb-10">
-          <div className="mb-2 flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              render={<Link to="/" />}
-              aria-label="Go back to home"
-            >
-              <ArrowLeftIcon />
-            </Button>
-            <h1 className="font-display text-3xl font-medium text-foreground md:text-4xl">
-              mac setup guide
-            </h1>
-          </div>
+          <BackButton to="/" />
 
-          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             My personal reference for setting up a new macOS machine, including apps, tools, and
             system preferences I rely on.
           </p>

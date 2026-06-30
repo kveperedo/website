@@ -1,13 +1,12 @@
 "use client";
 
-import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeftIcon } from "lucide-react";
 import { useState } from "react";
 
 import type { ParsedTransaction } from "#/utils/transactions.server";
 
 import { parseTransactionWithAIFn } from "#/utils/transactions.function";
+import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -42,16 +41,7 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        render={<Link to="/finances" />}
-        aria-label="Go back to finances"
-        className="self-start"
-      >
-        <ArrowLeftIcon />
-        Back
-      </Button>
+      <BackButton to="/finances" />
       <p className="text-sm text-muted-foreground">
         Describe transactions in natural language — AI will parse amounts, dates, and categories.
       </p>
