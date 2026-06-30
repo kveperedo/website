@@ -86,7 +86,7 @@ Examples:
 
   const agent = new Agent({
     name: "transaction_parser",
-    model: "gpt-4o-mini",
+    model: "gpt-5.4-nano",
     instructions: `You are a transaction parser. Today's date is ${today}. Parse the user's input into structured transactions by calling the parse_transactions tool. Always call the tool even for a single transaction.`,
     tools: [parseTransactionsTool],
   });

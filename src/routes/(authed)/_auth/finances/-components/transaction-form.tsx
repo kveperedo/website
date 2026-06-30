@@ -172,9 +172,6 @@ function TransactionCard({
                     </CategoryToggleGroupItem>
                   );
                 })}
-                <CategoryToggleGroupItem value="" colors={CATEGORY_COLORS[""]}>
-                  None
-                </CategoryToggleGroupItem>
               </ToggleGroup>
             )}
           />
