@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button";
 import { RecentTransactionsCard } from "./-components/recent-transactions-card";
 import { SummaryNetCard } from "./-components/summary-net-card";
 
+const META: Array<React.JSX.IntrinsicElements["meta"]> = [
+  { title: "Finances | Kevin Von Erich Peredo" },
+];
+
 export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
+  head: () => ({ meta: META }),
   loader: async () => {
     const [transactions, summary] = await Promise.all([
       getRecentTransactionsFn(),

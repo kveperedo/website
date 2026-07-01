@@ -11,7 +11,12 @@ import { TransactionInput } from "./-components/transaction-input";
 
 type Mode = "idle" | "parsing" | "reviewing" | "saving";
 
+const META: Array<React.JSX.IntrinsicElements["meta"]> = [
+  { title: "Finances | Kevin Von Erich Peredo" },
+];
+
 export const Route = createFileRoute("/(authed)/_auth/finances/new")({
+  head: () => ({ meta: META }),
   component: RouteComponent,
 });
 

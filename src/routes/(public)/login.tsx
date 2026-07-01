@@ -10,7 +10,12 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 
+const META: Array<React.JSX.IntrinsicElements["meta"]> = [
+  { title: "Login | Kevin Von Erich Peredo" },
+];
+
 export const Route = createFileRoute("/(public)/login")({
+  head: () => ({ meta: META }),
   component: RouteComponent,
 });
 
