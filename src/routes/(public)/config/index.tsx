@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { BackButton } from "@/components/back-button";
 
-import { MacSetup } from "./-sections/mac-setup";
+import { MacSetup } from "./-common/sections/mac-setup";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
   { title: "Config | Kevin Von Erich Peredo" },

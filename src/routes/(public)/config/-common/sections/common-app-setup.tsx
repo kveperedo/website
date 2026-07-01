@@ -1,4 +1,4 @@
-import { Setup } from "../-components/setup";
+import { Setup } from "../components/setup";
 
 export const VSCodeSetup = () => (
   <Setup.Item

@@ -8,7 +8,7 @@ import type { TransactionInputType } from "#/generated/zod/schemas";
 import { TransactionItemAISchema } from "#/schema/transaction";
 import { createTransactionsFn } from "#/utils/transactions.function";
 
-import { TransactionForm } from "./-components/transaction-form";
+import { TransactionForm } from "./-common/components/transaction-form";
 
 type Mode = "idle" | "saving";
 

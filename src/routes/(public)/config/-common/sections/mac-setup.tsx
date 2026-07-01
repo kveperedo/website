@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 
-import { Setup } from "../-components/setup";
+import { Setup } from "../components/setup";
 import { ChromeSetup, VSCodeSetup } from "./common-app-setup";
 import { JetbrainsFontSetup, NVMSetup, ZshSetup } from "./common-config-setup";
 

@@ -1,8 +1,8 @@
 import { Card, CardContent } from "#/components/ui/card";
 import { cn } from "#/lib/utils";
 
-import { Route } from "..";
-import { TRANSACTION_TYPE_COLORS } from "../../-constants";
+import { Route } from "../..";
+import { TRANSACTION_TYPE_COLORS } from "../../../-common/constants";
 
 export const SummaryNetCard = () => {
   const { summary } = Route.useLoaderData();

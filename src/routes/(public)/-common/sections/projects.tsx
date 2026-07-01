@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-import { SECTION_IDS } from "../-constants";
-import { GithubIcon } from "../-icons/github-icon";
+import { SECTION_IDS } from "../constants";
+import { GithubIcon } from "../icons/github-icon";
 
 const PROJECTS: Array<{
   name: string;

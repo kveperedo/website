@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { GithubIcon } from "../-icons/github-icon";
+import { GithubIcon } from "../icons/github-icon";
 
 type LinkButtonsProps = {
   className?: string;

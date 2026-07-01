@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { getCurrentUserFn } from "#/utils/auth.functions";
 
-import { FadeIn } from "./-components/fade-in";
-import { LinkButtons } from "./-components/link-buttons";
-import { ScrollButton } from "./-components/scroll-button";
-import { META, SECTION_IDS } from "./-constants";
-import { InfoSection } from "./-sections/info";
-import { IntroductionSection } from "./-sections/introduction";
-import { ProjectsSection } from "./-sections/projects";
-import { SummarySection } from "./-sections/summary";
+import { FadeIn } from "./-common/components/fade-in";
+import { LinkButtons } from "./-common/components/link-buttons";
+import { ScrollButton } from "./-common/components/scroll-button";
+import { META, SECTION_IDS } from "./-common/constants";
+import { InfoSection } from "./-common/sections/info";
+import { IntroductionSection } from "./-common/sections/introduction";
+import { ProjectsSection } from "./-common/sections/projects";
+import { SummarySection } from "./-common/sections/summary";
 
 export const Route = createFileRoute("/(public)/")({
   head: () => ({ meta: META }),

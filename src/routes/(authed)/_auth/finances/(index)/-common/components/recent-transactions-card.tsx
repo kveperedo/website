@@ -2,8 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "#/components/ui/empty";
 import { cn } from "#/lib/utils";
 
-import { Route } from "..";
-import { CATEGORY_COLORS, CATEGORY_LABELS, TRANSACTION_TYPE_COLORS } from "../../-constants";
+import { Route } from "../..";
+import {
+  CATEGORY_COLORS,
+  CATEGORY_LABELS,
+  TRANSACTION_TYPE_COLORS,
+} from "../../../-common/constants";
 
 export const RecentTransactionsCard = () => {
   const { transactions } = Route.useLoaderData();

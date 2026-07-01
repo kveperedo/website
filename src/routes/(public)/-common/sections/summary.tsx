@@ -1,5 +1,5 @@
-import { ScrollButton } from "../-components/scroll-button";
-import { SECTION_IDS } from "../-constants";
+import { ScrollButton } from "../components/scroll-button";
+import { SECTION_IDS } from "../constants";
 
 const SUMMARY =
   "Senior Frontend Engineer with 6+ years of experience building scalable, high-performance web applications using React, Next.js, and TypeScript. Strong expertise in designing reusable component libraries, optimizing frontend architecture, and improving developer experience through modern tooling and state management. Experienced in collaborating with designers and cross-functional teams to deliver accessible, responsive, and user-focused interfaces. Proven ability to mentor engineers, lead frontend initiatives, and drive complex technical projects from concept to production.";

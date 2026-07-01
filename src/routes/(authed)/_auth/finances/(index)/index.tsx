@@ -6,9 +6,9 @@ import type { TransactionItemAIType } from "#/schema/transaction";
 import { getMonthlySummaryFn, getRecentTransactionsFn } from "#/utils/transactions.function";
 import { BackButton } from "@/components/back-button";
 
-import { TransactionInput } from "../-components/transaction-input";
-import { RecentTransactionsCard } from "./-components/recent-transactions-card";
-import { SummaryNetCard } from "./-components/summary-net-card";
+import { TransactionInput } from "../-common/components/transaction-input";
+import { RecentTransactionsCard } from "./-common/components/recent-transactions-card";
+import { SummaryNetCard } from "./-common/components/summary-net-card";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
   { title: "Finances | Kevin Von Erich Peredo" },

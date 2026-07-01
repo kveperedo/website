@@ -28,7 +28,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup } from "@/components/ui/toggle-group";
 
-import { CATEGORIES, CATEGORY_COLORS } from "../-constants";
+import { CATEGORIES, CATEGORY_COLORS } from "../constants";
 import { CategoryToggleGroupItem } from "./category-toggle";
 
 const transactionFormSchema = z.object({
