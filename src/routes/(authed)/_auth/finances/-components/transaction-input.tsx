@@ -1,20 +1,18 @@
 "use client";
 
 import { useServerFn } from "@tanstack/react-start";
+import { ArrowUpIcon } from "lucide-react";
 import { useState } from "react";
 
-import type { ParsedTransaction } from "#/utils/transactions.server";
+import type { TransactionItemAIType } from "#/schema/transaction";
 
 import { parseTransactionWithAIFn } from "#/utils/transactions.function";
-import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 
 type TransactionInputProps = {
-  onParsed: (transactions: Array<ParsedTransaction>) => void;
+  onParsed: (transactions: Array<TransactionItemAIType>) => void;
 };
 
 function TransactionInput({ onParsed }: TransactionInputProps) {
@@ -40,38 +38,26 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
   };
 
   return (
-    <div className="flex w-full flex-col gap-6">
-      <BackButton to="/finances" />
-      <p className="text-sm text-muted-foreground">
-        Describe transactions in natural language — AI will parse amounts, dates, and categories.
-      </p>
+    <div className="flex w-full flex-col gap-4">
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Card className="flex flex-col gap-5 p-6">
-        <FieldGroup>
-          <Field>
-            <FieldLabel className="text-sm tracking-wide text-foreground">
-              Describe your transaction
-            </FieldLabel>
-            <Textarea
-              rows={6}
-              className="min-h-30"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="e.g. 'lunch at jollibee for 150' or 'lunch 150 and grab home 200'"
-              disabled={isParsing}
-            />
-          </Field>
-        </FieldGroup>
+      <div className="relative">
+        <Textarea
+          rows={1}
+          className="max-h-40 min-h-10 resize-none overflow-y-auto py-3.5 pr-10"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          placeholder="Describe your transaction..."
+          disabled={isParsing}
+        />
         <Button
-          size="lg"
-          className="w-full"
+          size="icon-sm"
+          className="absolute right-2.25 bottom-2.25 size-9 md:right-1.75 md:bottom-1.75 md:size-8"
           onClick={handleParse}
           disabled={!inputText.trim() || isParsing}
         >
-          {isParsing && <Spinner data-icon="inline-start" />}
-          Generate transactions
+          {isParsing ? <Spinner /> : <ArrowUpIcon />}
         </Button>
-      </Card>
+      </div>
     </div>
   );
 }
