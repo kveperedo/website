@@ -14,6 +14,7 @@ These MUST be followed for every commit message. No exceptions.
 - **Body format**: dash-prefixed list (`- Change description`), nothing else
 - **Validation**: before presenting any message or asking for approval, verify both limits. If either fails, rewrite until compliant
 - **Every non-trivial change gets a body** — no commit with more than a single-line fix gets subject-only
+- **Always display the full commit message** — show the subject and body in a fenced code block before asking for confirmation; never commit without user inspection
 
 ## Steps
 
@@ -23,7 +24,7 @@ These MUST be followed for every commit message. No exceptions.
 4. If the diff is atomic (one logical change), write a single commit message following the format below
 5. If the diff should be split, propose a split plan and execute each commit sequentially (see "Splitting into Multiple Commits")
 6. **Validate** the message against the Non-Negotiable Rules above before showing it to the user
-7. Output the validated message in a fenced code block so the user can copy it directly
+7. **Always show the full commit message and body** in a fenced code block before asking for confirmation — this is mandatory; never skip this step
 8. Ask the user: "Commit with this message?" — use AskUserQuestion with Yes/No options
 9. If approved, run `git commit -m "<subject>" -m "<body>"` (omit `-m "<body>"` when there is no body)
 
@@ -57,12 +58,14 @@ When splitting is warranted:
    I'll create 3 separate commits. Proceed?
    ```
 3. **Unstage everything** first: `git reset HEAD`
-4. **For each commit in the plan:**
+4. **For each commit in the plan, sequentially:**
    a. Stage only the relevant files: `git add <file1> <file2> ...`
    b. Generate a commit message following the format
-   c. Show the message to the user for approval
-   d. If approved, commit: `git commit -m "<subject>" -m "<body>"`
-   e. If rejected, ask for adjustments or skip that commit
+   c. **Show the full commit message and body** to the user in a fenced code block — mandatory; never skip
+   d. Ask for confirmation before proceeding (Yes/No)
+   e. If approved, commit: `git commit -m "<subject>" -m "<body>"`
+   f. If rejected, ask for adjustments or skip that commit
+   g. Only proceed to the next commit after the current one is confirmed and committed
 5. **Verify** with `git status` that all changes are committed
 
 ### Ordering Commits
@@ -81,7 +84,7 @@ If the user wants manual control over which changes go together:
 1. Show the full diff with file names clearly labeled
 2. Ask: "How would you like to group these changes?"
 3. Let the user specify file groupings
-4. Create commits based on their groupings
+4. For each user-defined group, stage the files, show the generated commit message, and ask for confirmation before committing
 
 ## Format
 

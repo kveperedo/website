@@ -30,7 +30,7 @@
 ## UI & Styling
 
 - **Tailwind CSS 4** — theme tokens in `src/styles.css`; dark base with neon accents
-- Font aliases: `font-mono` (JetBrains Mono — body), `font-heading` (Zilla Slab — headings), `font-display` (Major Mono Display — hero/brand)
+- Font aliases: `font-mono` (JetBrains Mono — body), `font-heading` (Manrope Variable — all headings, hero, brand)
 - `cn()` from `#/lib/utils` (clsx + tailwind-merge); `cva` from `class-variance-authority` for multi-variant components
 - **@base-ui/react** (not react-aria-components) for interactive primitives: Button, Input, Separator, Accordion
 - Lucide React for icons; shadcn/ui components in `src/components/ui/`

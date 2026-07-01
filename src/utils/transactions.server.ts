@@ -1,4 +1,5 @@
 import { Agent, run, tool } from "@openai/agents";
+import { addMonths, startOfMonth } from "date-fns";
 import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 
@@ -16,14 +17,20 @@ export const parsedTransactionSchema = z.object({
 
 export type ParsedTransaction = z.infer<typeof parsedTransactionSchema>;
 
-export const getTransactions = async () => {
+export const getRecentTransactions = async () => {
+  const now = new Date();
+  const monthStart = startOfMonth(now);
+  const monthEnd = startOfMonth(addMonths(now, 1));
+
   const transactions = await db.transaction.findMany({
+    where: { createdAt: { gte: monthStart, lt: monthEnd } },
     orderBy: { createdAt: "desc" },
+    take: 10,
   });
 
-  return transactions.map((transaction) => ({
-    ...transaction,
-    amount: transaction.amount.toNumber(),
+  return transactions.map((t) => ({
+    ...t,
+    amount: t.amount.toNumber(),
   }));
 };
 

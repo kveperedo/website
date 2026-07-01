@@ -103,11 +103,17 @@ Merge findings from all three subagents into a single structured review. Dedupli
 
 ### `path/to/changed/file.ts`
 
-**[Short issue title]** — <Bug | Suggestion | Nit | Security | Design>
+1. **[Short issue title]** — <Bug | Suggestion | Nit | Security | Design>
 
-\`relevant code snippet\`
+   `relevant code snippet`
 
-Explanation of the problem and a concrete suggestion for how to fix or improve it.
+   Explanation of the problem and a concrete suggestion for how to fix or improve it.
+
+2. **[Short issue title]** — <Bug | Suggestion | Nit | Security | Design>
+
+   `relevant code snippet`
+
+   Explanation of the problem and a concrete suggestion for how to fix or improve it.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
@@ -125,9 +131,10 @@ Any observations that span multiple files, or a positive note if the overall qua
 **Tips:**
 
 - Group findings by file — one `###` section per file with findings
+- Number each finding sequentially within each file section (1., 2., 3., etc.)
 - Use `Bug` for logic errors, `Suggestion` for improvements, `Nit` for minor style issues, `Security` for vulnerabilities, `Design` for UI/UX deviations
 - If a file has no issues, skip it — only include files with something to say
 - Keep each finding concise: what's wrong and what to do about it, in 2–4 sentences
 - If there are no issues at all, say so clearly
 - End with `━━━━━━━━━━━━━━━━━━━━━━` after the last section so the output looks clean
-- Use `━━━━━━━━━━━━━━━━━━━━━━` between every issue (within a file and between files) for consistent visual separation
+- Use `━━━━━━━━━━━━━━━━━━━━━━` between file sections for consistent visual separation
