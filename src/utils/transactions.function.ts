@@ -1,15 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { TransactionInputSchema } from "#/generated/zod/schemas";
+
 import { authMiddleware } from "./auth.middleware";
 import { createRateLimitMiddleware } from "./rate-limit.middleware";
 import {
-  createTransaction,
   createTransactions,
   getMonthlySummary,
   getRecentTransactions,
   parseTransactions,
-  parsedTransactionSchema,
 } from "./transactions.server";
 
 export const getRecentTransactionsFn = createServerFn()
@@ -31,16 +31,9 @@ export const parseTransactionWithAIFn = createServerFn({ method: "POST" })
     return await parseTransactions(text);
   });
 
-export const createTransactionFn = createServerFn({ method: "POST" })
-  .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(parsedTransactionSchema)
-  .handler(async ({ data }) => {
-    return await createTransaction(data);
-  });
-
 export const createTransactionsFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(z.array(parsedTransactionSchema))
+  .inputValidator(z.array(TransactionInputSchema))
   .handler(async ({ data }) => {
     return await createTransactions(data);
   });

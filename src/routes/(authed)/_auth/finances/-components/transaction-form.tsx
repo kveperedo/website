@@ -11,10 +11,14 @@ import {
 } from "react-hook-form";
 import { z } from "zod";
 
-import type { ParsedTransaction } from "#/utils/transactions.server";
+import type { TransactionCategory } from "#/generated/prisma/enums";
+import type { TransactionItemAIType } from "#/schema/transaction";
 
-import { TransactionCategorySchema } from "#/generated/zod/schemas/enums/TransactionCategory.schema";
-import { TransactionTypeSchema } from "#/generated/zod/schemas/enums/TransactionType.schema";
+import {
+  TransactionInputSchema,
+  type TransactionInputType,
+} from "#/generated/zod/schemas/variants/input/Transaction.input";
+import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -28,42 +32,22 @@ import { CATEGORIES, CATEGORY_COLORS } from "../-constants";
 import { CategoryToggleGroupItem } from "./category-toggle";
 
 const transactionFormSchema = z.object({
-  transactions: z.array(
-    z.object({
-      description: z.string().min(1, "Description is required"),
-      amount: z.number().positive("Amount must be positive"),
-      date: z.iso.datetime(),
-      type: TransactionTypeSchema,
-      category: TransactionCategorySchema.nullable(),
-    }),
-  ),
+  transactions: z.array(TransactionInputSchema.extend({ transactedAt: z.iso.datetime() })),
 });
 
 type TransactionFormData = z.infer<typeof transactionFormSchema>;
 
-type TransactionFormProps = {
-  initialTransactions?: Array<ParsedTransaction>;
-  onSave: (transactions: Array<ParsedTransaction>) => void;
-  onCancel: () => void;
-  mode: "idle" | "reviewing" | "saving";
-};
-
 const enrichDate = (dateStr: string) => {
-  if (dateStr.includes("T")) {
-    return dateStr;
-  }
   const now = new Date();
   const [y, m, d] = dateStr.split("-").map(Number);
   return new Date(
-    Date.UTC(
-      y,
-      m - 1,
-      d,
-      now.getHours(),
-      now.getMinutes(),
-      now.getSeconds(),
-      now.getMilliseconds(),
-    ),
+    y,
+    m - 1,
+    d,
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds(),
+    now.getMilliseconds(),
   ).toISOString();
 };
 
@@ -125,7 +109,7 @@ function TransactionCard({
           <FieldLabel className="text-sm tracking-wide text-foreground">Date</FieldLabel>
           <Controller
             control={control}
-            name={`transactions.${index}.date`}
+            name={`transactions.${index}.transactedAt`}
             render={({ field: dateField }) => (
               <DatePicker
                 value={dateField.value ? new Date(dateField.value) : undefined}
@@ -143,8 +127,8 @@ function TransactionCard({
               />
             )}
           />
-          {errors.transactions?.[index]?.date && (
-            <FieldError>{errors.transactions[index].date?.message}</FieldError>
+          {errors.transactions?.[index]?.transactedAt && (
+            <FieldError>{errors.transactions[index].transactedAt?.message}</FieldError>
           )}
         </Field>
       </FieldGroup>
@@ -192,9 +176,7 @@ function TransactionCard({
             render={({ field: catField }) => (
               <ToggleGroup
                 value={[catField.value ?? ""]}
-                onValueChange={(v) =>
-                  catField.onChange((v?.[0] || null) as ParsedTransaction["category"])
-                }
+                onValueChange={(v) => catField.onChange((v?.[0] || null) as TransactionCategory)}
                 variant="outline"
                 className="flex flex-wrap gap-2"
               >
@@ -215,7 +197,13 @@ function TransactionCard({
   );
 }
 
-function TransactionForm({ initialTransactions, onSave, onCancel, mode }: TransactionFormProps) {
+type TransactionFormProps = {
+  initialTransactions?: Array<TransactionItemAIType>;
+  onSave: (transactions: Array<TransactionInputType>) => void;
+  mode: "idle" | "saving";
+};
+
+function TransactionForm({ initialTransactions, onSave, mode }: TransactionFormProps) {
   const now = new Date().toISOString();
 
   const {
@@ -229,7 +217,7 @@ function TransactionForm({ initialTransactions, onSave, onCancel, mode }: Transa
         initialTransactions?.map((t) => ({
           description: t.description,
           amount: t.amount,
-          date: t.date ? enrichDate(t.date) : now,
+          transactedAt: t.transactedAt ? enrichDate(t.transactedAt) : now,
           type: t.type,
           category: t.category ?? null,
         })) ?? [],
@@ -246,6 +234,7 @@ function TransactionForm({ initialTransactions, onSave, onCancel, mode }: Transa
       data.transactions.map((t) => ({
         ...t,
         category: t.type === "income" ? null : t.category,
+        transactedAt: new Date(t.transactedAt),
       })),
     );
   };
@@ -268,15 +257,7 @@ function TransactionForm({ initialTransactions, onSave, onCancel, mode }: Transa
       </div>
 
       <div className="flex shrink-0 gap-3">
-        <Button
-          className="flex-1 sm:flex-none"
-          type="button"
-          variant="secondary"
-          onClick={onCancel}
-          disabled={mode === "saving"}
-        >
-          ← Edit input
-        </Button>
+        <BackButton to="/finances" />
         <Button className="flex-1 sm:flex-none" type="submit" disabled={mode === "saving"}>
           {mode === "saving" && <Spinner data-icon="inline-start" />}
           Save Transaction

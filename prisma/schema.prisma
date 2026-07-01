@@ -32,15 +32,15 @@ enum TransactionType {
 }
 
 model Transaction {
-  id            String               @id @default(uuid()) @db.Uuid
-  description   String
-  amount        Decimal              @db.Decimal(10, 2)
-  type          TransactionType      @default(expense)
-  category      TransactionCategory?
-  transactedAt  DateTime             @map("transacted_at") @db.Timestamp(6)
-  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamp(6)
+  id           String               @id @default(uuid()) @db.Uuid
+  description  String
+  amount       Decimal              @db.Decimal(10, 2)
+  type         TransactionType      @default(expense)
+  category     TransactionCategory?
+  transactedAt DateTime             @map("transacted_at") @db.Timestamptz(6)
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  @@map("transactions")
   @@index([transactedAt])
+  @@map("transactions")
 }

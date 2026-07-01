@@ -3,19 +3,10 @@ import { addMonths, startOfMonth } from "date-fns";
 import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 
+import type { TransactionInputType } from "#/generated/zod/schemas";
+
 import { db } from "#/db/client";
-import { TransactionCategorySchema } from "#/generated/zod/schemas/enums/TransactionCategory.schema";
-import { TransactionTypeSchema } from "#/generated/zod/schemas/enums/TransactionType.schema";
-
-export const parsedTransactionSchema = z.object({
-  description: z.string().min(1).max(200),
-  amount: z.number().positive("Amount must be positive").max(10_000_000),
-  type: TransactionTypeSchema,
-  category: TransactionCategorySchema.nullable(),
-  date: z.iso.datetime(),
-});
-
-export type ParsedTransaction = z.infer<typeof parsedTransactionSchema>;
+import { TransactionItemAISchema, type TransactionItemAIType } from "#/schema/transaction";
 
 const getCurrentMonthRange = () => {
   const now = new Date();
@@ -57,37 +48,10 @@ export const getMonthlySummary = async () => {
   return { income, expenses, net: income - expenses, transactionCount };
 };
 
-export const parseTransactions = async (text: string): Promise<Array<ParsedTransaction>> => {
-  let parsedResult: Array<ParsedTransaction> | null = null;
+export const parseTransactions = async (text: string): Promise<Array<TransactionItemAIType>> => {
+  let parsedResult: Array<TransactionItemAIType> | null = null;
 
   const today = new Date().toISOString().split("T")[0];
-
-  const transactionItemSchema = z.object({
-    description: z
-      .string()
-      .min(1)
-      .max(200)
-      .describe(
-        "Clean, concise transaction description. Remove raw numbers (amount field captures them). Keep natural but short. Preserve merchant/vendor names when present.",
-      ),
-    amount: z
-      .number()
-      .positive("Amount must be positive")
-      .max(10_000_000)
-      .describe("Transaction amount as a positive number."),
-    type: TransactionTypeSchema.describe(
-      "Whether this is an expense or income. Default to expense if unclear.",
-    ),
-    category: TransactionCategorySchema.nullable().describe(
-      "Best matching category (ONLY for expenses — always null for income). Options: food_drinks (meals, coffee, snacks, delivery), groceries_household (supermarket, toiletries, cleaning), transportation (fuel, parking, rideshare, transit), bills_utilities (electricity, water, internet, phone, rent, subscriptions), health_wellness (medicine, doctor, gym, vitamins), hobbies_lifestyle (entertainment, shopping, personal care, travel, gifts), financial (transfers, bank fees, investments, loan payments). Use null for income transactions or when completely ambiguous (e.g. 'payment 500').",
-    ),
-    date: z
-      .string()
-      .date()
-      .describe(
-        `Transaction date in YYYY-MM-DD format. Use today (${today}) if no date is mentioned. Resolve relative dates: "yesterday" → subtract 1 day, "last Monday" → most recent Monday. If a date applies to multiple transactions on different lines, use the date from that line. If no date on a line, inherit from the previous transaction.`,
-      ),
-  });
 
   const parseTransactionsTool = tool({
     name: "parse_transactions",
@@ -105,7 +69,7 @@ Examples:
 - "groceries 800, gas 500, Netflix 200" → 3 transactions`,
     parameters: z.object({
       transactions: z
-        .array(transactionItemSchema)
+        .array(TransactionItemAISchema)
         .describe("All transactions found in the input. Single transaction = array of one."),
     }),
     execute: async ({ transactions }) => {
@@ -128,7 +92,7 @@ Examples:
   }
 
   return z
-    .array(transactionItemSchema)
+    .array(TransactionItemAISchema)
     .parse(parsedResult)
     .map((tx) => ({
       ...tx,
@@ -139,31 +103,13 @@ Examples:
     }));
 };
 
-export const createTransaction = async (data: ParsedTransaction) => {
-  const transaction = await db.transaction.create({
-    data: {
-      description: data.description.slice(0, 200),
-      amount: data.amount,
-      type: data.type,
-      category: data.category ?? undefined,
-      transactedAt: new Date(data.date),
-    },
-  });
-
-  return {
-    ...transaction,
-    amount: transaction.amount.toNumber(),
-  };
-};
-
-export const createTransactions = async (data: Array<ParsedTransaction>) => {
-  return db.transaction.createMany({
+export const createTransactions = async (data: Array<TransactionInputType>) =>
+  db.transaction.createMany({
     data: data.map((item) => ({
       description: item.description.slice(0, 200),
       amount: item.amount,
       type: item.type,
       category: item.category ?? undefined,
-      transactedAt: new Date(item.date),
+      transactedAt: item.transactedAt,
     })),
   });
-};
