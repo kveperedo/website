@@ -15,6 +15,7 @@ export const LinkButtons = ({ className }: LinkButtonsProps) => {
       <Button
         variant="ghost"
         size="icon"
+        nativeButton={false}
         render={<a href="mailto:contact@kevinperedo.com" target="_blank" rel="noreferrer" />}
         aria-label="Email link"
       >
@@ -32,6 +33,7 @@ export const LinkButtons = ({ className }: LinkButtonsProps) => {
       <Button
         variant="ghost"
         size="icon"
+        nativeButton={false}
         render={<a href="https://github.com/kveperedo" target="_blank" rel="noreferrer" />}
         aria-label="Github link"
       >
@@ -41,6 +43,7 @@ export const LinkButtons = ({ className }: LinkButtonsProps) => {
       <Button
         variant="ghost"
         size="icon"
+        nativeButton={false}
         render={
           <a href="https://www.linkedin.com/in/kveperedo/" target="_blank" rel="noreferrer" />
         }

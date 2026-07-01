@@ -73,6 +73,7 @@ export const ProjectsSection = () => {
                 <Button
                   size="icon"
                   variant="ghost"
+                  nativeButton={false}
                   render={<a href={githubLink} target="_blank" rel="noreferrer" />}
                 >
                   <GithubIcon className="size-4" />
@@ -81,6 +82,7 @@ export const ProjectsSection = () => {
                   <Button
                     size="icon"
                     variant="ghost"
+                    nativeButton={false}
                     render={<a href={link} target="_blank" rel="noreferrer" />}
                   >
                     <ExternalLink className="size-4" />

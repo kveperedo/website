@@ -20,7 +20,7 @@ function RouteComponent() {
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background bg-scanlines">
+    <main className="relative min-h-screen overflow-hidden">
       <section className="relative container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
         <div className="flex w-full max-w-md flex-col gap-6">
           <BackButton to="/" />
