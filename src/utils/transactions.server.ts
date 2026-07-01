@@ -17,14 +17,20 @@ export const parsedTransactionSchema = z.object({
 
 export type ParsedTransaction = z.infer<typeof parsedTransactionSchema>;
 
-export const getRecentTransactions = async () => {
+const getCurrentMonthRange = () => {
   const now = new Date();
-  const monthStart = startOfMonth(now);
-  const monthEnd = startOfMonth(addMonths(now, 1));
+  return {
+    monthStart: startOfMonth(now),
+    monthEnd: startOfMonth(addMonths(now, 1)),
+  };
+};
+
+export const getRecentTransactions = async () => {
+  const { monthStart, monthEnd } = getCurrentMonthRange();
 
   const transactions = await db.transaction.findMany({
     where: { createdAt: { gte: monthStart, lt: monthEnd } },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: "asc" },
     take: 10,
   });
 
@@ -32,6 +38,23 @@ export const getRecentTransactions = async () => {
     ...t,
     amount: t.amount.toNumber(),
   }));
+};
+
+export const getMonthlySummary = async () => {
+  const { monthStart, monthEnd } = getCurrentMonthRange();
+
+  const grouped = await db.transaction.groupBy({
+    by: ["type"],
+    where: { createdAt: { gte: monthStart, lt: monthEnd } },
+    _sum: { amount: true },
+    _count: true,
+  });
+
+  const income = Number(grouped.find((g) => g.type === "income")?._sum.amount ?? 0);
+  const expenses = Number(grouped.find((g) => g.type === "expense")?._sum.amount ?? 0);
+  const transactionCount = grouped.reduce((sum, g) => sum + g._count, 0);
+
+  return { income, expenses, net: income - expenses, transactionCount };
 };
 
 export const parseTransactions = async (text: string): Promise<Array<ParsedTransaction>> => {

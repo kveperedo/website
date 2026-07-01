@@ -6,6 +6,7 @@ import { createRateLimitMiddleware } from "./rate-limit.middleware";
 import {
   createTransaction,
   createTransactions,
+  getMonthlySummary,
   getRecentTransactions,
   parseTransactions,
   parsedTransactionSchema,
@@ -15,6 +16,12 @@ export const getRecentTransactionsFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async () => {
     return await getRecentTransactions();
+  });
+
+export const getMonthlySummaryFn = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async () => {
+    return await getMonthlySummary();
   });
 
 export const parseTransactionWithAIFn = createServerFn({ method: "POST" })
