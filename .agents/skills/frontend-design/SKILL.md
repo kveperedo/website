@@ -5,7 +5,7 @@ description: Design guidance for this project's dark neon aesthetic. Use this sk
 
 # Design System
 
-This project uses a dark cyberpunk-minimal aesthetic: near-black backgrounds, three distinct typefaces, neon accent glows, and glassmorphism surfaces with sharp (`rounded-none`) geometry.
+This project uses a dark cyberpunk-minimal aesthetic: near-black backgrounds, two distinct typefaces, neon accent glows, and glassmorphism surfaces with sharp (`rounded-none`) geometry.
 
 ## Color Palette
 
@@ -43,16 +43,15 @@ All at low opacity (10–50%) with `blur-3xl`. Avoid neon as solid fills on UI e
 
 ## Typography
 
-Three fonts — always use the Tailwind alias, never raw font names:
+Two fonts — always use the Tailwind alias, never raw font names:
 
 | Alias | Font | Use |
 |---|---|---|
-| `font-mono` | JetBrains Mono Variable | Body text, code, monospace UI (also the base font — `src/styles.css:189`) |
-| `font-heading` | Zilla Slab | Section headings, card titles, UI labels |
-| `font-display` | Major Mono Display | Hero name, brand display text, signature |
+| `font-mono` | JetBrains Mono Variable | Body text, code, monospace UI (also the base font — `src/styles.css:197`) |
+| `font-heading` | Manrope Variable | All headings, hero name, card titles, UI labels, brand text — covers everything previously split across `font-heading` and `font-display` |
 
 Heading / text scale (from actual pages):
-- Hero name: `font-display text-5xl md:text-6xl lg:text-8xl text-foreground`
+- Hero name: `font-heading text-5xl md:text-6xl lg:text-8xl text-foreground`
 - Section title (Experience, Education, Projects): `font-heading text-4xl font-medium mr-auto mb-16`
 - Subtitle (position): `font-heading text-2xl md:text-3xl lg:text-4xl tracking-wide text-muted-foreground`
 - Timeline item title: `font-heading text-2xl font-bold`
@@ -194,7 +193,7 @@ Section headings are left-aligned with `mr-auto` when inside a centered containe
 ## Checklist Before Finishing Any UI Task
 
 - [ ] Using semantic tokens (`text-foreground`, `text-muted-foreground`, `bg-card`, `border-border`, `text-primary`, `bg-primary`)
-- [ ] Font: `font-mono` for body, `font-heading` for headings, `font-display` for hero/brand text
+- [ ] Font: `font-mono` for body, `font-heading` for all headings and hero/brand text
 - [ ] All interactive: `focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50`
 - [ ] Cards: `rounded-none shadow-xl backdrop-blur` with hover border/ring highlight
 - [ ] Badges: use `<Badge>` from `@/components/ui/badge` with `variant="secondary"`
