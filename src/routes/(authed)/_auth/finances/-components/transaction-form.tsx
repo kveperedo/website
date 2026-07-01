@@ -242,7 +242,12 @@ function TransactionForm({ initialTransactions, onSave, onCancel, mode }: Transa
   });
 
   const onSubmit = (data: TransactionFormData) => {
-    onSave(data.transactions);
+    onSave(
+      data.transactions.map((t) => ({
+        ...t,
+        category: t.type === "income" ? null : t.category,
+      })),
+    );
   };
 
   return (

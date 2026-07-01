@@ -79,7 +79,7 @@ export const parseTransactions = async (text: string): Promise<Array<ParsedTrans
       "Whether this is an expense or income. Default to expense if unclear.",
     ),
     category: TransactionCategorySchema.nullable().describe(
-      "Best matching category. Options: food_drinks (meals, coffee, snacks, delivery), groceries_household (supermarket, toiletries, cleaning), transportation (fuel, parking, rideshare, transit), bills_utilities (electricity, water, internet, phone, rent, subscriptions), health_wellness (medicine, doctor, gym, vitamins), hobbies_lifestyle (entertainment, shopping, personal care, travel, gifts), financial (transfers, bank fees, investments, loan payments). Use null only when completely ambiguous (e.g. 'payment 500').",
+      "Best matching category (ONLY for expenses — always null for income). Options: food_drinks (meals, coffee, snacks, delivery), groceries_household (supermarket, toiletries, cleaning), transportation (fuel, parking, rideshare, transit), bills_utilities (electricity, water, internet, phone, rent, subscriptions), health_wellness (medicine, doctor, gym, vitamins), hobbies_lifestyle (entertainment, shopping, personal care, travel, gifts), financial (transfers, bank fees, investments, loan payments). Use null for income transactions or when completely ambiguous (e.g. 'payment 500').",
     ),
     date: z
       .string()
