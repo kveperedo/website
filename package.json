@@ -25,8 +25,7 @@
   "dependencies": {
     "@base-ui/react": "^1.6.0",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
-    "@fontsource/major-mono-display": "^5.2.8",
-    "@fontsource/zilla-slab": "^5.2.8",
+    "@fontsource-variable/manrope": "^5.2.8",
     "@hookform/resolvers": "^5.4.0",
     "@neondatabase/serverless": "^1.1.0",
     "@openai/agents": "^0.12.0",
