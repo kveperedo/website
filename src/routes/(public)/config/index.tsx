@@ -5,7 +5,7 @@ import { BackButton } from "@/components/back-button";
 import { MacSetup } from "./-sections/mac-setup";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
-  { title: "mac setup guide | Kevin Von Erich Peredo" },
+  { title: "Config | Kevin Von Erich Peredo" },
   { property: "og:url", content: "https://www.kevinperedo.com/config" },
   { property: "og:type", content: "website" },
   { property: "og:title", content: "mac setup guide | Kevin Von Erich Peredo" },
