@@ -12,7 +12,7 @@ export const parsedTransactionSchema = z.object({
   amount: z.number().positive("Amount must be positive").max(10_000_000),
   type: TransactionTypeSchema,
   category: TransactionCategorySchema.nullable(),
-  date: z.string().date(),
+  date: z.iso.datetime(),
 });
 
 export type ParsedTransaction = z.infer<typeof parsedTransactionSchema>;
@@ -29,8 +29,8 @@ export const getRecentTransactions = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
 
   const transactions = await db.transaction.findMany({
-    where: { createdAt: { gte: monthStart, lt: monthEnd } },
-    orderBy: { createdAt: "asc" },
+    where: { transactedAt: { gte: monthStart, lt: monthEnd } },
+    orderBy: { transactedAt: "desc" },
     take: 10,
   });
 
@@ -45,7 +45,7 @@ export const getMonthlySummary = async () => {
 
   const grouped = await db.transaction.groupBy({
     by: ["type"],
-    where: { createdAt: { gte: monthStart, lt: monthEnd } },
+    where: { transactedAt: { gte: monthStart, lt: monthEnd } },
     _sum: { amount: true },
     _count: true,
   });
@@ -135,18 +135,18 @@ Examples:
       description: sanitizeHtml(tx.description, {
         allowedTags: [],
         allowedAttributes: {},
-      }).slice(0, 200),
+      }),
     }));
 };
 
 export const createTransaction = async (data: ParsedTransaction) => {
   const transaction = await db.transaction.create({
     data: {
-      description: data.description,
+      description: data.description.slice(0, 200),
       amount: data.amount,
       type: data.type,
       category: data.category ?? undefined,
-      createdAt: new Date(data.date),
+      transactedAt: new Date(data.date),
     },
   });
 
@@ -159,11 +159,11 @@ export const createTransaction = async (data: ParsedTransaction) => {
 export const createTransactions = async (data: Array<ParsedTransaction>) => {
   return db.transaction.createMany({
     data: data.map((item) => ({
-      description: item.description,
+      description: item.description.slice(0, 200),
       amount: item.amount,
       type: item.type,
       category: item.category ?? undefined,
-      createdAt: new Date(item.date),
+      transactedAt: new Date(item.date),
     })),
   });
 };
