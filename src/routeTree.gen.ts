@@ -13,8 +13,8 @@ import { Route as publicIndexRouteImport } from './routes/(public)/index'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
 import { Route as authedAuthRouteImport } from './routes/(authed)/_auth'
 import { Route as publicConfigIndexRouteImport } from './routes/(public)/config/index'
-import { Route as authedAuthFinancesIndexRouteImport } from './routes/(authed)/_auth/finances/index'
 import { Route as authedAuthFinancesNewRouteImport } from './routes/(authed)/_auth/finances/new'
+import { Route as authedAuthFinancesindexIndexRouteImport } from './routes/(authed)/_auth/finances/(index)/index'
 
 const publicIndexRoute = publicIndexRouteImport.update({
   id: '/(public)/',
@@ -35,30 +35,31 @@ const publicConfigIndexRoute = publicConfigIndexRouteImport.update({
   path: '/config/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const authedAuthFinancesIndexRoute = authedAuthFinancesIndexRouteImport.update({
-  id: '/finances/',
-  path: '/finances/',
-  getParentRoute: () => authedAuthRoute,
-} as any)
 const authedAuthFinancesNewRoute = authedAuthFinancesNewRouteImport.update({
   id: '/finances/new',
   path: '/finances/new',
   getParentRoute: () => authedAuthRoute,
 } as any)
+const authedAuthFinancesindexIndexRoute =
+  authedAuthFinancesindexIndexRouteImport.update({
+    id: '/finances/(index)/',
+    path: '/finances/',
+    getParentRoute: () => authedAuthRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
   '/config/': typeof publicConfigIndexRoute
   '/finances/new': typeof authedAuthFinancesNewRoute
-  '/finances/': typeof authedAuthFinancesIndexRoute
+  '/finances/': typeof authedAuthFinancesindexIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
   '/config': typeof publicConfigIndexRoute
   '/finances/new': typeof authedAuthFinancesNewRoute
-  '/finances': typeof authedAuthFinancesIndexRoute
+  '/finances': typeof authedAuthFinancesindexIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -67,7 +68,7 @@ export interface FileRoutesById {
   '/(public)/': typeof publicIndexRoute
   '/(public)/config/': typeof publicConfigIndexRoute
   '/(authed)/_auth/finances/new': typeof authedAuthFinancesNewRoute
-  '/(authed)/_auth/finances/': typeof authedAuthFinancesIndexRoute
+  '/(authed)/_auth/finances/(index)/': typeof authedAuthFinancesindexIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,7 +82,7 @@ export interface FileRouteTypes {
     | '/(public)/'
     | '/(public)/config/'
     | '/(authed)/_auth/finances/new'
-    | '/(authed)/_auth/finances/'
+    | '/(authed)/_auth/finances/(index)/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -121,13 +122,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicConfigIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(authed)/_auth/finances/': {
-      id: '/(authed)/_auth/finances/'
-      path: '/finances'
-      fullPath: '/finances/'
-      preLoaderRoute: typeof authedAuthFinancesIndexRouteImport
-      parentRoute: typeof authedAuthRoute
-    }
     '/(authed)/_auth/finances/new': {
       id: '/(authed)/_auth/finances/new'
       path: '/finances/new'
@@ -135,17 +129,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authedAuthFinancesNewRouteImport
       parentRoute: typeof authedAuthRoute
     }
+    '/(authed)/_auth/finances/(index)/': {
+      id: '/(authed)/_auth/finances/(index)/'
+      path: '/finances'
+      fullPath: '/finances/'
+      preLoaderRoute: typeof authedAuthFinancesindexIndexRouteImport
+      parentRoute: typeof authedAuthRoute
+    }
   }
 }
 
 interface authedAuthRouteChildren {
   authedAuthFinancesNewRoute: typeof authedAuthFinancesNewRoute
-  authedAuthFinancesIndexRoute: typeof authedAuthFinancesIndexRoute
+  authedAuthFinancesindexIndexRoute: typeof authedAuthFinancesindexIndexRoute
 }
 
 const authedAuthRouteChildren: authedAuthRouteChildren = {
   authedAuthFinancesNewRoute: authedAuthFinancesNewRoute,
-  authedAuthFinancesIndexRoute: authedAuthFinancesIndexRoute,
+  authedAuthFinancesindexIndexRoute: authedAuthFinancesindexIndexRoute,
 }
 
 const authedAuthRouteWithChildren = authedAuthRoute._addFileChildren(

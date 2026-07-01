@@ -20,6 +20,7 @@
 - Prisma client outputs to `src/generated/prisma` (gitignored)
 - Validation: `zod` schema input validation on server functions (see `auth.functions.ts`)
 - **React Compiler** enabled via `@rolldown/plugin-babel`
+- Prefer `date-fns` over native `Date` APIs for date manipulation and formatting
 
 ## Routing Conventions
 

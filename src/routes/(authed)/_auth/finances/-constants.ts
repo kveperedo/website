@@ -28,6 +28,11 @@ export const CATEGORY_LABELS: Record<TransactionCategory, string> = {
   financial: "Financial",
 };
 
+export const TRANSACTION_TYPE_COLORS = {
+  income: "text-emerald-400",
+  expense: "text-destructive",
+} as const;
+
 export const CATEGORY_COLORS: Record<TransactionCategory, CategoryColor> = {
   food_drinks: {
     bg: "bg-orange-500/5",

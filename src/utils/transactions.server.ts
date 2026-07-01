@@ -12,19 +12,25 @@ export const parsedTransactionSchema = z.object({
   amount: z.number().positive("Amount must be positive").max(10_000_000),
   type: TransactionTypeSchema,
   category: TransactionCategorySchema.nullable(),
-  date: z.string().date(),
+  date: z.iso.datetime(),
 });
 
 export type ParsedTransaction = z.infer<typeof parsedTransactionSchema>;
 
-export const getRecentTransactions = async () => {
+const getCurrentMonthRange = () => {
   const now = new Date();
-  const monthStart = startOfMonth(now);
-  const monthEnd = startOfMonth(addMonths(now, 1));
+  return {
+    monthStart: startOfMonth(now),
+    monthEnd: startOfMonth(addMonths(now, 1)),
+  };
+};
+
+export const getRecentTransactions = async () => {
+  const { monthStart, monthEnd } = getCurrentMonthRange();
 
   const transactions = await db.transaction.findMany({
-    where: { createdAt: { gte: monthStart, lt: monthEnd } },
-    orderBy: { createdAt: "desc" },
+    where: { transactedAt: { gte: monthStart, lt: monthEnd } },
+    orderBy: { transactedAt: "desc" },
     take: 10,
   });
 
@@ -32,6 +38,23 @@ export const getRecentTransactions = async () => {
     ...t,
     amount: t.amount.toNumber(),
   }));
+};
+
+export const getMonthlySummary = async () => {
+  const { monthStart, monthEnd } = getCurrentMonthRange();
+
+  const grouped = await db.transaction.groupBy({
+    by: ["type"],
+    where: { transactedAt: { gte: monthStart, lt: monthEnd } },
+    _sum: { amount: true },
+    _count: true,
+  });
+
+  const income = Number(grouped.find((g) => g.type === "income")?._sum.amount ?? 0);
+  const expenses = Number(grouped.find((g) => g.type === "expense")?._sum.amount ?? 0);
+  const transactionCount = grouped.reduce((sum, g) => sum + g._count, 0);
+
+  return { income, expenses, net: income - expenses, transactionCount };
 };
 
 export const parseTransactions = async (text: string): Promise<Array<ParsedTransaction>> => {
@@ -56,7 +79,7 @@ export const parseTransactions = async (text: string): Promise<Array<ParsedTrans
       "Whether this is an expense or income. Default to expense if unclear.",
     ),
     category: TransactionCategorySchema.nullable().describe(
-      "Best matching category. Options: food_drinks (meals, coffee, snacks, delivery), groceries_household (supermarket, toiletries, cleaning), transportation (fuel, parking, rideshare, transit), bills_utilities (electricity, water, internet, phone, rent, subscriptions), health_wellness (medicine, doctor, gym, vitamins), hobbies_lifestyle (entertainment, shopping, personal care, travel, gifts), financial (transfers, bank fees, investments, loan payments). Use null only when completely ambiguous (e.g. 'payment 500').",
+      "Best matching category (ONLY for expenses — always null for income). Options: food_drinks (meals, coffee, snacks, delivery), groceries_household (supermarket, toiletries, cleaning), transportation (fuel, parking, rideshare, transit), bills_utilities (electricity, water, internet, phone, rent, subscriptions), health_wellness (medicine, doctor, gym, vitamins), hobbies_lifestyle (entertainment, shopping, personal care, travel, gifts), financial (transfers, bank fees, investments, loan payments). Use null for income transactions or when completely ambiguous (e.g. 'payment 500').",
     ),
     date: z
       .string()
@@ -112,18 +135,18 @@ Examples:
       description: sanitizeHtml(tx.description, {
         allowedTags: [],
         allowedAttributes: {},
-      }).slice(0, 200),
+      }),
     }));
 };
 
 export const createTransaction = async (data: ParsedTransaction) => {
   const transaction = await db.transaction.create({
     data: {
-      description: data.description,
+      description: data.description.slice(0, 200),
       amount: data.amount,
       type: data.type,
       category: data.category ?? undefined,
-      createdAt: new Date(data.date),
+      transactedAt: new Date(data.date),
     },
   });
 
@@ -136,11 +159,11 @@ export const createTransaction = async (data: ParsedTransaction) => {
 export const createTransactions = async (data: Array<ParsedTransaction>) => {
   return db.transaction.createMany({
     data: data.map((item) => ({
-      description: item.description,
+      description: item.description.slice(0, 200),
       amount: item.amount,
       type: item.type,
       category: item.category ?? undefined,
-      createdAt: new Date(item.date),
+      transactedAt: new Date(item.date),
     })),
   });
 };

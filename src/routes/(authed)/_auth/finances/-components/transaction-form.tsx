@@ -1,7 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useFieldArray, useForm, useWatch, type Control } from "react-hook-form";
+import {
+  Controller,
+  useFieldArray,
+  useForm,
+  useWatch,
+  type Control,
+  type FieldErrors,
+} from "react-hook-form";
 import { z } from "zod";
 
 import type { ParsedTransaction } from "#/utils/transactions.server";
@@ -25,7 +32,7 @@ const transactionFormSchema = z.object({
     z.object({
       description: z.string().min(1, "Description is required"),
       amount: z.number().positive("Amount must be positive"),
-      date: z.string().min(1, "Date is required"),
+      date: z.iso.datetime(),
       type: TransactionTypeSchema,
       category: TransactionCategorySchema.nullable(),
     }),
@@ -41,6 +48,25 @@ type TransactionFormProps = {
   mode: "idle" | "reviewing" | "saving";
 };
 
+const enrichDate = (dateStr: string) => {
+  if (dateStr.includes("T")) {
+    return dateStr;
+  }
+  const now = new Date();
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(
+    Date.UTC(
+      y,
+      m - 1,
+      d,
+      now.getHours(),
+      now.getMinutes(),
+      now.getSeconds(),
+      now.getMilliseconds(),
+    ),
+  ).toISOString();
+};
+
 function TransactionCard({
   index,
   control,
@@ -49,7 +75,7 @@ function TransactionCard({
 }: {
   index: number;
   control: Control<TransactionFormData>;
-  errors: any;
+  errors: FieldErrors<TransactionFormData>;
   totalCount: number;
 }) {
   const type = useWatch({
@@ -102,10 +128,18 @@ function TransactionCard({
             name={`transactions.${index}.date`}
             render={({ field: dateField }) => (
               <DatePicker
-                value={dateField.value ? new Date(dateField.value + "T00:00:00") : undefined}
-                onChange={(date) =>
-                  dateField.onChange(date ? date.toISOString().split("T")[0] : "")
-                }
+                value={dateField.value ? new Date(dateField.value) : undefined}
+                onChange={(date) => {
+                  if (!date) {
+                    dateField.onChange("");
+                    return;
+                  }
+                  dateField.onChange(
+                    new Date(
+                      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+                    ).toISOString(),
+                  );
+                }}
               />
             )}
           />
@@ -182,7 +216,7 @@ function TransactionCard({
 }
 
 function TransactionForm({ initialTransactions, onSave, onCancel, mode }: TransactionFormProps) {
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date().toISOString();
 
   const {
     control,
@@ -195,7 +229,7 @@ function TransactionForm({ initialTransactions, onSave, onCancel, mode }: Transa
         initialTransactions?.map((t) => ({
           description: t.description,
           amount: t.amount,
-          date: t.date || today,
+          date: t.date ? enrichDate(t.date) : now,
           type: t.type,
           category: t.category ?? null,
         })) ?? [],
@@ -208,7 +242,12 @@ function TransactionForm({ initialTransactions, onSave, onCancel, mode }: Transa
   });
 
   const onSubmit = (data: TransactionFormData) => {
-    onSave(data.transactions);
+    onSave(
+      data.transactions.map((t) => ({
+        ...t,
+        category: t.type === "income" ? null : t.category,
+      })),
+    );
   };
 
   return (
