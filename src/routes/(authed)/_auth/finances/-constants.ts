@@ -5,6 +5,7 @@ export type CategoryColor = {
   text: string;
   selectedBg: string;
   selectedText: string;
+  border: string;
 };
 
 export const CATEGORIES: Array<{ value: TransactionCategory; label: string }> = [
@@ -33,41 +34,48 @@ export const CATEGORY_COLORS: Record<TransactionCategory, CategoryColor> = {
     text: "text-orange-400/40",
     selectedBg: "bg-orange-500/30",
     selectedText: "text-orange-300",
+    border: "border-l-orange-500/30",
   },
   groceries_household: {
     bg: "bg-teal-500/5",
     text: "text-teal-400/40",
     selectedBg: "bg-teal-500/30",
     selectedText: "text-teal-300",
+    border: "border-l-teal-500/30",
   },
   transportation: {
     bg: "bg-blue-500/5",
     text: "text-blue-400/40",
     selectedBg: "bg-blue-500/30",
     selectedText: "text-blue-300",
+    border: "border-l-blue-500/30",
   },
   bills_utilities: {
     bg: "bg-rose-500/5",
     text: "text-rose-400/40",
     selectedBg: "bg-rose-500/30",
     selectedText: "text-rose-300",
+    border: "border-l-rose-500/30",
   },
   health_wellness: {
     bg: "bg-emerald-500/5",
     text: "text-emerald-400/40",
     selectedBg: "bg-emerald-500/30",
     selectedText: "text-emerald-300",
+    border: "border-l-emerald-500/30",
   },
   hobbies_lifestyle: {
     bg: "bg-violet-500/5",
     text: "text-violet-400/40",
     selectedBg: "bg-violet-500/30",
     selectedText: "text-violet-300",
+    border: "border-l-violet-500/30",
   },
   financial: {
     bg: "bg-yellow-500/5",
     text: "text-yellow-400/40",
     selectedBg: "bg-yellow-500/30",
     selectedText: "text-yellow-300",
+    border: "border-l-yellow-500/30",
   },
 };

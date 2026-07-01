@@ -5,19 +5,22 @@ import { ArrowLeftIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-type BackButtonProps = Pick<LinkProps, "params" | "to" | "search">;
+type BackButtonProps = Pick<LinkProps, "params" | "to" | "search"> & {
+  variant?: "label" | "icon";
+};
 
-function BackButton({ to, params, search }: BackButtonProps) {
+function BackButton({ variant = "label", ...props }: BackButtonProps) {
   return (
     <Button
       variant="ghost"
-      size="sm"
-      render={<Link to={to} params={params} search={search} />}
+      size={variant === "icon" ? "icon" : "sm"}
+      nativeButton={false}
+      render={<Link {...props} />}
       aria-label="Go back"
       className="self-start"
     >
       <ArrowLeftIcon />
-      Back
+      {variant === "label" && "Back"}
     </Button>
   );
 }

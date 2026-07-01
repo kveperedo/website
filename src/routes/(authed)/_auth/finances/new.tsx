@@ -44,7 +44,7 @@ function RouteComponent() {
   };
 
   return (
-    <main className="relative flex h-dvh flex-col bg-background bg-scanlines">
+    <main className="relative flex h-dvh flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="container mx-auto flex h-full max-w-lg flex-col items-center justify-center px-4 py-8 md:max-w-xl lg:max-w-2xl">
           {error && <p className="mb-4 text-sm text-destructive">{error}</p>}

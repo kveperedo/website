@@ -1,68 +1,115 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { format } from "date-fns";
 
-import { getTransactionsFn } from "#/utils/transactions.function";
-import { Badge } from "@/components/ui/badge";
+import { getRecentTransactionsFn } from "#/utils/transactions.function";
+import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
 
-import { CATEGORY_LABELS, CATEGORY_COLORS } from "./-constants";
+import { CATEGORY_COLORS, CATEGORY_LABELS } from "./-constants";
 
 export const Route = createFileRoute("/(authed)/_auth/finances/")({
   loader: async () => {
-    const transactions = await getTransactionsFn();
-    return { transactions };
+    const transactions = await getRecentTransactionsFn();
+    const monthLabel = format(new Date(), "MMMM yyyy");
+    return { transactions, monthLabel };
   },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { transactions } = Route.useLoaderData();
+  const { transactions, monthLabel } = Route.useLoaderData();
+
+  const isTransactionListEmpty = transactions.length === 0;
 
   return (
-    <main className="relative min-h-screen bg-background bg-scanlines">
-      <div className="container mx-auto max-w-2xl px-4 py-8">
+    <main className="relative flex h-screen flex-col">
+      <div className="container mx-auto max-w-2xl p-4">
         <div className="flex items-center justify-between">
-          <h1 className="font-mono text-3xl text-foreground">finances</h1>
-          <Button render={<Link to="/finances/new" />}>New Transaction</Button>
+          <div className="flex items-center gap-2">
+            <BackButton to="/" variant="icon" />
+            <h1 className="font-heading text-lg text-foreground">{monthLabel}</h1>
+          </div>
+          <Button nativeButton={false} render={<Link to="/finances/new" />}>
+            New transaction
+          </Button>
         </div>
+      </div>
 
-        <div className="mt-8 flex flex-col gap-3">
-          {transactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No transactions yet.</p>
-          ) : (
-            transactions.map((t) => (
-              <Card
-                key={t.id}
-                className="flex items-center justify-between px-4 py-3 shadow-none backdrop-blur-none"
-              >
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-foreground">{t.description}</span>
-                  {t.category && (
-                    <Badge
-                      variant="secondary"
+      <div className="container mx-auto max-w-2xl flex-1 overflow-y-auto px-4 pb-8">
+        <Card
+          className={cn("gap-0 py-0 shadow-xl backdrop-blur", isTransactionListEmpty && "pt-6")}
+        >
+          {!isTransactionListEmpty && (
+            <CardHeader className="px-4 py-4">
+              <CardTitle className="font-mono text-sm text-foreground">
+                Recent transactions
+              </CardTitle>
+            </CardHeader>
+          )}
+          <CardContent className="p-0">
+            {isTransactionListEmpty ? (
+              <div className="px-6 pt-2 pb-6 md:px-8">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyTitle>No transactions this month.</EmptyTitle>
+                    <EmptyDescription>
+                      Track your spending by adding a transaction.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </div>
+            ) : (
+              <table className="w-full font-mono text-sm">
+                <thead className="sr-only">
+                  <tr>
+                    <th scope="col">Description</th>
+                    <th scope="col">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map((t, i) => (
+                    <tr
+                      key={t.id}
                       className={cn(
-                        CATEGORY_COLORS[t.category]?.bg,
-                        CATEGORY_COLORS[t.category]?.text,
+                        "border-l-2",
+                        t.category ? CATEGORY_COLORS[t.category].border : "border-l-transparent",
+                        i % 2 === 0 && "bg-muted/30",
                       )}
                     >
-                      {CATEGORY_LABELS[t.category] ?? t.category}
-                    </Badge>
-                  )}
-                </div>
-                <span
-                  className={cn(
-                    "text-sm font-medium",
-                    t.type === "income" ? "text-emerald-400" : "text-destructive",
-                  )}
-                >
-                  {t.type === "income" ? "+" : "-"}₱
-                  {t.amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-                </span>
-              </Card>
-            ))
-          )}
-        </div>
+                      <td className="px-4 text-foreground">
+                        <div
+                          className={cn(
+                            "flex min-h-10 flex-col py-1",
+                            !t.category && "justify-center",
+                          )}
+                        >
+                          <span className="leading-5">{t.description}</span>
+                          {t.category && (
+                            <span className="text-[10px]/3 text-muted-foreground">
+                              {CATEGORY_LABELS[t.category]}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td
+                        className={cn(
+                          "py-0.5 pr-4 text-right text-xs font-medium whitespace-nowrap",
+                          t.type === "income" ? "text-emerald-400" : "text-destructive",
+                        )}
+                      >
+                        {t.type === "income" ? "+" : "-"}₱
+                        {t.amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </main>
   );
