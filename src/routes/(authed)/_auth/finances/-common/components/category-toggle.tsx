@@ -4,7 +4,7 @@ import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
 
 import { cn } from "@/lib/utils";
 
-import type { CategoryColor } from "../-constants";
+import type { CategoryColor } from "../constants";
 
 function CategoryToggleGroupItem({
   className,

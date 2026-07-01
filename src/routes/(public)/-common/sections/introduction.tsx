@@ -3,9 +3,9 @@ import { BanknoteIcon, LogInIcon, SettingsIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import { LinkButtons } from "../-components/link-buttons";
-import { ScrollButton } from "../-components/scroll-button";
-import { SECTION_IDS } from "../-constants";
+import { LinkButtons } from "../components/link-buttons";
+import { ScrollButton } from "../components/scroll-button";
+import { SECTION_IDS } from "../constants";
 
 const NAME = "KEVIN VON ERICH PEREDO";
 const POSITION = "Senior Frontend Engineer";

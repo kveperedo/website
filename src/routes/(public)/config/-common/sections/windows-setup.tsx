@@ -1,5 +1,5 @@
-import { CommandBlock } from "../-components/command-block";
-import { Setup } from "../-components/setup";
+import { CommandBlock } from "../components/command-block";
+import { Setup } from "../components/setup";
 import { ChromeSetup, VSCodeSetup } from "./common-app-setup";
 import { JetbrainsFontSetup, NVMSetup, ZshSetup } from "./common-config-setup";
 

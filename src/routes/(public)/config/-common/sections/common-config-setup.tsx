@@ -1,5 +1,5 @@
-import { CommandBlock } from "../-components/command-block";
-import { Setup } from "../-components/setup";
+import { CommandBlock } from "../components/command-block";
+import { Setup } from "../components/setup";
 
 export const JetbrainsFontSetup = () => {
   return (

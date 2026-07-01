@@ -24,7 +24,7 @@
 
 ## Routing Conventions
 
-- `-components/`, `-sections/`, `-constants.ts`, `-icons/` — `-` prefix prevents TanStack Router from treating them as routes
+- `-common/` directory at each route group level contains all non-route assets: `components/`, `sections/`, `icons/`, and `constants.ts` — `-` prefix prevents TanStack Router from treating them as routes
 - `_auth.tsx` — layout-only route; children redirect to `/login` when unauthenticated
 - `__root.tsx` — HTML shell, global providers; never edit `routeTree.gen.ts` (auto-generated)
 
