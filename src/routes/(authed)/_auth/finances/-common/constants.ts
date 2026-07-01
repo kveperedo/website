@@ -33,6 +33,16 @@ export const TRANSACTION_TYPE_COLORS = {
   expense: "text-destructive",
 } as const;
 
+export const CATEGORY_CHART_COLORS: Record<TransactionCategory, string> = {
+  food_drinks: "#f97316",
+  groceries_household: "#14b8a6",
+  transportation: "#3b82f6",
+  bills_utilities: "#f43f5e",
+  health_wellness: "#10b981",
+  hobbies_lifestyle: "#8b5cf6",
+  financial: "#eab308",
+};
+
 export const CATEGORY_COLORS: Record<TransactionCategory, CategoryColor> = {
   food_drinks: {
     bg: "bg-orange-500/5",

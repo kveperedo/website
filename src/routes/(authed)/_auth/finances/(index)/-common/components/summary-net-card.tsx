@@ -13,7 +13,7 @@ export const SummaryNetCard = () => {
   }
 
   return (
-    <Card className="mb-4 w-1/2 p-2">
+    <Card className="w-1/2 p-2">
       <CardContent className="flex flex-col gap-1 p-2">
         <p className="font-mono text-xs text-muted-foreground">
           {summary.transactionCount} transactions
