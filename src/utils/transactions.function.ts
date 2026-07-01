@@ -7,6 +7,7 @@ import { authMiddleware } from "./auth.middleware";
 import { createRateLimitMiddleware } from "./rate-limit.middleware";
 import {
   createTransactions,
+  getCategorySummary,
   getMonthlySummary,
   getRecentTransactions,
   parseTransactions,
@@ -22,6 +23,12 @@ export const getMonthlySummaryFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async () => {
     return await getMonthlySummary();
+  });
+
+export const getCategorySummaryFn = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async () => {
+    return await getCategorySummary();
   });
 
 export const parseTransactionWithAIFn = createServerFn({ method: "POST" })

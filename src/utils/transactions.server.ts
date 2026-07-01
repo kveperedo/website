@@ -48,6 +48,24 @@ export const getMonthlySummary = async () => {
   return { income, expenses, net: income - expenses, transactionCount };
 };
 
+export const getCategorySummary = async () => {
+  const { monthStart, monthEnd } = getCurrentMonthRange();
+
+  const grouped = await db.transaction.groupBy({
+    by: ["category"],
+    where: {
+      type: "expense",
+      category: { not: null },
+      transactedAt: { gte: monthStart, lt: monthEnd },
+    },
+    _sum: { amount: true },
+  });
+
+  return grouped
+    .map((g) => ({ category: g.category!, total: g._sum.amount!.toNumber() }))
+    .sort((a, b) => b.total - a.total);
+};
+
 export const parseTransactions = async (text: string): Promise<Array<TransactionItemAIType>> => {
   let parsedResult: Array<TransactionItemAIType> | null = null;
 

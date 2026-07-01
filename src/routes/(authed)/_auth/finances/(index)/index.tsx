@@ -3,10 +3,15 @@ import { format } from "date-fns";
 
 import type { TransactionItemAIType } from "#/schema/transaction";
 
-import { getMonthlySummaryFn, getRecentTransactionsFn } from "#/utils/transactions.function";
+import {
+  getCategorySummaryFn,
+  getMonthlySummaryFn,
+  getRecentTransactionsFn,
+} from "#/utils/transactions.function";
 import { BackButton } from "@/components/back-button";
 
 import { TransactionInput } from "../-common/components/transaction-input";
+import { CategorySummaryCard } from "./-common/components/category-summary-card";
 import { RecentTransactionsCard } from "./-common/components/recent-transactions-card";
 import { SummaryNetCard } from "./-common/components/summary-net-card";
 
@@ -17,12 +22,13 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
   head: () => ({ meta: META }),
   loader: async () => {
-    const [transactions, summary] = await Promise.all([
+    const [transactions, summary, categorySummary] = await Promise.all([
       getRecentTransactionsFn(),
       getMonthlySummaryFn(),
+      getCategorySummaryFn(),
     ]);
     const monthLabel = format(new Date(), "MMMM yyyy");
-    return { transactions, summary, monthLabel };
+    return { transactions, summary, categorySummary, monthLabel };
   },
   component: RouteComponent,
 });
@@ -47,9 +53,10 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div className="container mx-auto my-4 max-w-2xl flex-1 overflow-y-auto px-4 pb-8">
+      <div className="container mx-auto my-4 flex max-w-2xl flex-1 flex-col gap-4 overflow-y-auto px-4 pb-8">
         <SummaryNetCard />
         <RecentTransactionsCard />
+        <CategorySummaryCard />
       </div>
 
       <div className="container mx-auto max-w-2xl px-4 pb-6">
