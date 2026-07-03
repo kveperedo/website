@@ -13,6 +13,7 @@ import { Route as publicIndexRouteImport } from './routes/(public)/index'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
 import { Route as authedAuthRouteImport } from './routes/(authed)/_auth'
 import { Route as publicConfigIndexRouteImport } from './routes/(public)/config/index'
+import { Route as authedAuthE2eIndexRouteImport } from './routes/(authed)/_auth/e2e/index'
 import { Route as authedAuthFinancesindexIndexRouteImport } from './routes/(authed)/_auth/finances/(index)/index'
 import { Route as authedAuthFinancesTransactionsNewIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/new/index'
 import { Route as authedAuthFinancesTransactionsindexIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/(index)/index'
@@ -36,6 +37,11 @@ const publicConfigIndexRoute = publicConfigIndexRouteImport.update({
   id: '/(public)/config/',
   path: '/config/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const authedAuthE2eIndexRoute = authedAuthE2eIndexRouteImport.update({
+  id: '/e2e/',
+  path: '/e2e/',
+  getParentRoute: () => authedAuthRoute,
 } as any)
 const authedAuthFinancesindexIndexRoute =
   authedAuthFinancesindexIndexRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
   '/config/': typeof publicConfigIndexRoute
+  '/e2e/': typeof authedAuthE2eIndexRoute
   '/finances/': typeof authedAuthFinancesindexIndexRoute
   '/finances/transactions/$id/': typeof authedAuthFinancesTransactionsIdIndexRoute
   '/finances/transactions/': typeof authedAuthFinancesTransactionsindexIndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
   '/config': typeof publicConfigIndexRoute
+  '/e2e': typeof authedAuthE2eIndexRoute
   '/finances': typeof authedAuthFinancesindexIndexRoute
   '/finances/transactions/$id': typeof authedAuthFinancesTransactionsIdIndexRoute
   '/finances/transactions': typeof authedAuthFinancesTransactionsindexIndexRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/(public)/login': typeof publicLoginRoute
   '/(public)/': typeof publicIndexRoute
   '/(public)/config/': typeof publicConfigIndexRoute
+  '/(authed)/_auth/e2e/': typeof authedAuthE2eIndexRoute
   '/(authed)/_auth/finances/(index)/': typeof authedAuthFinancesindexIndexRoute
   '/(authed)/_auth/finances/transactions/$id/': typeof authedAuthFinancesTransactionsIdIndexRoute
   '/(authed)/_auth/finances/transactions/(index)/': typeof authedAuthFinancesTransactionsindexIndexRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/'
     | '/config/'
+    | '/e2e/'
     | '/finances/'
     | '/finances/transactions/$id/'
     | '/finances/transactions/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/'
     | '/config'
+    | '/e2e'
     | '/finances'
     | '/finances/transactions/$id'
     | '/finances/transactions'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/(public)/login'
     | '/(public)/'
     | '/(public)/config/'
+    | '/(authed)/_auth/e2e/'
     | '/(authed)/_auth/finances/(index)/'
     | '/(authed)/_auth/finances/transactions/$id/'
     | '/(authed)/_auth/finances/transactions/(index)/'
@@ -159,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicConfigIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(authed)/_auth/e2e/': {
+      id: '/(authed)/_auth/e2e/'
+      path: '/e2e'
+      fullPath: '/e2e/'
+      preLoaderRoute: typeof authedAuthE2eIndexRouteImport
+      parentRoute: typeof authedAuthRoute
+    }
     '/(authed)/_auth/finances/(index)/': {
       id: '/(authed)/_auth/finances/(index)/'
       path: '/finances'
@@ -191,6 +210,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface authedAuthRouteChildren {
+  authedAuthE2eIndexRoute: typeof authedAuthE2eIndexRoute
   authedAuthFinancesindexIndexRoute: typeof authedAuthFinancesindexIndexRoute
   authedAuthFinancesTransactionsIdIndexRoute: typeof authedAuthFinancesTransactionsIdIndexRoute
   authedAuthFinancesTransactionsindexIndexRoute: typeof authedAuthFinancesTransactionsindexIndexRoute
@@ -198,6 +218,7 @@ interface authedAuthRouteChildren {
 }
 
 const authedAuthRouteChildren: authedAuthRouteChildren = {
+  authedAuthE2eIndexRoute: authedAuthE2eIndexRoute,
   authedAuthFinancesindexIndexRoute: authedAuthFinancesindexIndexRoute,
   authedAuthFinancesTransactionsIdIndexRoute:
     authedAuthFinancesTransactionsIdIndexRoute,

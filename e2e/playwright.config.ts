@@ -36,6 +36,10 @@ export default defineConfig({
       name: "finance.seed",
       testMatch: /seed\.spec\.ts$/,
       dependencies: ["finance.empty-state"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+      },
     },
     {
       name: "public",

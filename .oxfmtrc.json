@@ -16,5 +16,11 @@
     "functions": ["cn"],
     "preserveWhitespace": true
   },
-  "ignorePatterns": ["src/routeTree.gen.ts", ".agents/*", "CLAUDE.md", ".claude/skills/*"]
+  "ignorePatterns": [
+    "src/routeTree.gen.ts",
+    ".agents/*",
+    "CLAUDE.md",
+    ".claude/skills/*",
+    "worker-configuration.d.ts"
+  ]
 }

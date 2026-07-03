@@ -5,7 +5,12 @@ import { gotoAndWaitForHydration } from "../helpers/auth";
 import { resetDatabase } from "../helpers/database";
 
 test.describe("empty states", () => {
-  test.beforeAll(resetDatabase);
+  test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await resetDatabase(page);
+    await context.close();
+  });
 
   test("dashboard shows empty recent transactions and category summaries", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances");

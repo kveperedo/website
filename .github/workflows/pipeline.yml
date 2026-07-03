@@ -12,6 +12,10 @@ concurrency:
   group: deploy-pipeline-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
 jobs:
   checks:
     name: Checks
@@ -58,9 +62,6 @@ jobs:
     environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
     permissions:
       pull-requests: write
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -68,24 +69,29 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install -g vercel
-
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=${{ github.event_name == 'pull_request' && 'preview' || 'production' }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Generate Prisma client
         run: npm run db:generate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Build
-        run: vercel build ${{ github.event_name == 'push' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          NITRO_PRESET: vercel
+      - name: Build Worker
+        run: npm run build
 
-      - name: Deploy
+      - name: Deploy to production
+        if: github.event_name == 'push'
+        run: npx wrangler deploy
+
+      - name: Deploy to preview
         id: deploy
-        run: echo "url=$(vercel deploy --prebuilt ${{ github.event_name == 'push' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})" >> $GITHUB_OUTPUT
+        if: github.event_name == 'pull_request'
+        run: |
+          npx wrangler versions upload \
+            --name website-preview \
+            --preview-alias "pr-${{ github.event.number }}" \
+            --message "Preview for PR #${{ github.event.number }}"
+
+          echo "url=https://pr-${{ github.event.number }}-website-preview.kevinperedo.workers.dev" >> $GITHUB_OUTPUT
 
       - name: Comment preview URL
         if: github.event_name == 'pull_request'

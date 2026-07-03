@@ -7,7 +7,11 @@
 - `npm run lint` / `npm run format:check` — pre-commit runs both
 - `npm run db:generate` → `npm run db:deploy` — required before build if schema changed
 - `npm run test` — Vitest (no tests exist yet)
-- `npm run build` — outputs to `.output`; Vercel expects `NITRO_PRESET=vercel`
+- `npm run build` — outputs a Cloudflare Workers bundle (via `@cloudflare/vite-plugin`)
+- `npm run deploy` — runs `npm run build && wrangler deploy` (production → `kevinperedo.com`)
+- **Preview deploy**: `npm run deploy:preview -- "pr-<slug>"` — uploads a version with an aliased preview URL at `pr-<slug>-website-preview.kveperedo.workers.dev`
+- `npm run deploy:preview` is equivalent to `npm run build && npx wrangler versions upload --name website-preview --preview-alias`
+- `npm run cf-typegen` — regenerates `worker-configuration.d.ts` from `wrangler.jsonc`
 
 ## Architecture
 
@@ -40,24 +44,27 @@
 
 ## Key Files
 
-| File                                            | Purpose                                               |
-| ----------------------------------------------- | ----------------------------------------------------- |
-| `src/db/client.ts`                              | Prisma client singleton (Neon adapter)                |
-| `src/utils/auth.server.ts`                      | Session read/login/logout                             |
-| `src/utils/auth.functions.ts`                   | `createServerFn` wrappers for auth                    |
-| `src/utils/auth.middleware.ts`                  | Composable auth middleware for server functions       |
-| `src/utils/expenses.server.ts` / `.function.ts` | Example server function pattern                       |
-| `prisma/schema.prisma`                          | Single model: `Expense`                               |
-| `src/styles.css`                                | Tailwind v4 theme, fonts, keyframes, CSS variables    |
-| `src/components/ui/`                            | shadcn components (button, badge, input, field, etc.) |
-| `src/lib/env.ts`                                | `requireEnv()` helper for env vars                    |
-| `components.json`                               | shadcn registry config                                |
+| File                                            | Purpose                                                |
+| ----------------------------------------------- | ------------------------------------------------------ |
+| `src/db/client.ts`                              | Prisma client singleton (Neon adapter)                 |
+| `src/utils/auth.server.ts`                      | Session read/login/logout                              |
+| `src/utils/auth.functions.ts`                   | `createServerFn` wrappers for auth                     |
+| `src/utils/auth.middleware.ts`                  | Composable auth middleware for server functions        |
+| `src/utils/expenses.server.ts` / `.function.ts` | Example server function pattern                        |
+| `prisma/schema.prisma`                          | Single model: `Expense`                                |
+| `src/styles.css`                                | Tailwind v4 theme, fonts, keyframes, CSS variables     |
+| `src/components/ui/`                            | shadcn components (button, badge, input, field, etc.)  |
+| `src/lib/env.ts`                                | `requireEnv()` helper for env vars                     |
+| `wrangler.jsonc`                                | Cloudflare Workers config (KV, routes, bindings)       |
+| `worker-configuration.d.ts`                     | Auto-generated Worker types (run `npm run cf-typegen`) |
+| `components.json`                               | shadcn registry config                                 |
 
 ## Gotchas
 
-- Build artifacts (`.nitro`, `.output`, `.tanstack`) are all gitignored
+- Build artifacts (`.output`, `.tanstack`) are all gitignored
 - Oxlint ignores `src/routeTree.gen.ts`; oxfmt ignores it plus `.agents/*` and skill files
 - Skills in `.agents/skills/`; remotely-sourced skills mirrored in `skills-lock.json`
+- Prisma `*Many` operations (`createMany`, `updateMany`, `deleteMany`) are unsupported with `@prisma/adapter-neon` (HTTP mode); use individual calls batched with `Promise.all` instead
 - `.env.example` documents required env vars; use `tsx` to run TypeScript scripts locally
 - `"use client"` directive needed in any file that uses browser APIs (e.g., `label.tsx`)
 - Detailed styling/component patterns live in the `frontend-design` skill at `.agents/skills/frontend-design/SKILL.md`
