@@ -31,6 +31,24 @@ export const getRecentTransactions = async () => {
   }));
 };
 
+export const getTransactionsByMonth = async (year: number, month: number, q?: string) => {
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = addMonths(monthStart, 1);
+
+  const transactions = await db.transaction.findMany({
+    where: {
+      transactedAt: { gte: monthStart, lt: monthEnd },
+      ...(q ? { description: { contains: q, mode: "insensitive" } } : {}),
+    },
+    orderBy: { transactedAt: "desc" },
+  });
+
+  return transactions.map((t) => ({
+    ...t,
+    amount: t.amount.toNumber(),
+  }));
+};
+
 export const getMonthlySummary = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
 

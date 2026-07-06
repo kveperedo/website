@@ -10,6 +10,7 @@ import {
   getCategorySummary,
   getMonthlySummary,
   getRecentTransactions,
+  getTransactionsByMonth,
   parseTransactions,
 } from "./transactions.server";
 
@@ -29,6 +30,19 @@ export const getCategorySummaryFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async () => {
     return await getCategorySummary();
+  });
+
+export const getTransactionsByMonthFn = createServerFn()
+  .middleware([authMiddleware])
+  .inputValidator(
+    z.object({
+      year: z.number().int().min(2020).max(2100),
+      month: z.number().int().min(1).max(12),
+      q: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    return await getTransactionsByMonth(data.year, data.month, data.q);
   });
 
 export const parseTransactionWithAIFn = createServerFn({ method: "POST" })
