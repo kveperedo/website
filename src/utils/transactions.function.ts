@@ -7,11 +7,14 @@ import { authMiddleware } from "./auth.middleware";
 import { createRateLimitMiddleware } from "./rate-limit.middleware";
 import {
   createTransactions,
+  deleteTransaction,
   getCategorySummary,
   getMonthlySummary,
   getRecentTransactions,
+  getTransactionById,
   getTransactionsByMonth,
   parseTransactions,
+  updateTransaction,
 } from "./transactions.server";
 
 export const getRecentTransactionsFn = createServerFn()
@@ -57,4 +60,30 @@ export const createTransactionsFn = createServerFn({ method: "POST" })
   .inputValidator(z.array(TransactionInputSchema))
   .handler(async ({ data }) => {
     return await createTransactions(data);
+  });
+
+export const getTransactionByIdFn = createServerFn()
+  .middleware([authMiddleware])
+  .inputValidator(z.uuid())
+  .handler(async ({ data }) => {
+    return await getTransactionById(data);
+  });
+
+export const updateTransactionFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware, createRateLimitMiddleware()])
+  .inputValidator(
+    z.object({
+      id: z.uuid(),
+      data: TransactionInputSchema,
+    }),
+  )
+  .handler(async ({ data }) => {
+    return await updateTransaction(data.id, data.data);
+  });
+
+export const deleteTransactionFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware, createRateLimitMiddleware()])
+  .inputValidator(z.uuid())
+  .handler(async ({ data }) => {
+    return await deleteTransaction(data);
   });

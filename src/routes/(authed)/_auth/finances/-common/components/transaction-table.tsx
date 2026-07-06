@@ -13,9 +13,10 @@ export type TransactionRow = {
 type TransactionTableProps = {
   transactions: Array<TransactionRow>;
   label: string;
+  onRowClick?: (transaction: TransactionRow) => void;
 };
 
-export const TransactionTable = ({ transactions, label }: TransactionTableProps) => (
+export const TransactionTable = ({ transactions, label, onRowClick }: TransactionTableProps) => (
   <table className="w-full font-mono text-sm" aria-label={label}>
     <thead className="sr-only">
       <tr>
@@ -33,7 +34,17 @@ export const TransactionTable = ({ transactions, label }: TransactionTableProps)
               ? CATEGORY_COLORS[t.category as keyof typeof CATEGORY_COLORS]?.border
               : "border-l-transparent",
             i % 2 === 0 && "bg-muted/30",
+            onRowClick && "cursor-pointer hover:bg-muted/50",
           )}
+          onClick={() => onRowClick?.(t)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onRowClick?.(t);
+            }
+          }}
+          tabIndex={onRowClick ? 0 : undefined}
+          role={onRowClick ? "link" : undefined}
         >
           <td className="px-4 text-foreground">
             <div className={cn("flex min-h-10 flex-col py-1", !t.category && "justify-center")}>

@@ -1,3 +1,5 @@
+const DESCRIPTION_MAX_LENGTH = 200;
+
 import { Agent, run, tool } from "@openai/agents";
 import { addMonths, startOfMonth } from "date-fns";
 import sanitizeHtml from "sanitize-html";
@@ -142,10 +144,35 @@ Examples:
 export const createTransactions = async (data: Array<TransactionInputType>) =>
   db.transaction.createMany({
     data: data.map((item) => ({
-      description: item.description.slice(0, 200),
+      description: item.description.slice(0, DESCRIPTION_MAX_LENGTH),
       amount: item.amount,
       type: item.type,
       category: item.category ?? undefined,
       transactedAt: item.transactedAt,
     })),
   });
+
+export const getTransactionById = async (id: string) => {
+  const transaction = await db.transaction.findUniqueOrThrow({
+    where: { id },
+  });
+  return { ...transaction, amount: transaction.amount.toNumber() };
+};
+
+export const updateTransaction = async (id: string, data: TransactionInputType) => {
+  const transaction = await db.transaction.update({
+    where: { id },
+    data: {
+      description: data.description.slice(0, DESCRIPTION_MAX_LENGTH),
+      amount: data.amount,
+      type: data.type,
+      category: data.type === "income" ? null : (data.category ?? null),
+      transactedAt: data.transactedAt,
+    },
+  });
+  return { ...transaction, amount: transaction.amount.toNumber() };
+};
+
+export const deleteTransaction = async (id: string) => {
+  await db.transaction.delete({ where: { id } });
+};
