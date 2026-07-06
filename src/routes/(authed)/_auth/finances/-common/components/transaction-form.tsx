@@ -1,17 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Controller,
-  useFieldArray,
-  useForm,
-  useWatch,
-  type Control,
-  type FieldErrors,
-} from "react-hook-form";
+import { useFieldArray, useForm, useWatch, type Control } from "react-hook-form";
 import { z } from "zod";
 
-import type { TransactionCategory } from "#/generated/prisma/enums";
 import type { TransactionItemAIType } from "#/schema/transaction";
 
 import {
@@ -21,15 +13,16 @@ import {
 import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
-import { ToggleGroup } from "@/components/ui/toggle-group";
 
-import { CATEGORIES, CATEGORY_COLORS } from "../constants";
-import { CategoryToggleGroupItem } from "./category-toggle";
+import {
+  AmountField,
+  CategoryField,
+  DateField,
+  DescriptionField,
+  TypeField,
+} from "./transaction-fields";
 
 const transactionFormSchema = z.object({
   transactions: z.array(TransactionInputSchema.extend({ transactedAt: z.iso.datetime() })),
@@ -52,14 +45,12 @@ const enrichDate = (dateStr: string) => {
 };
 
 function TransactionCard({
-  index,
   control,
-  errors,
+  index,
   totalCount,
 }: {
-  index: number;
   control: Control<TransactionFormData>;
-  errors: FieldErrors<TransactionFormData>;
+  index: number;
   totalCount: number;
 }) {
   const type = useWatch({
@@ -76,122 +67,15 @@ function TransactionCard({
       )}
 
       <FieldGroup>
-        <Field>
-          <FieldLabel className="text-sm tracking-wide text-foreground">Description</FieldLabel>
-          <Input {...control.register(`transactions.${index}.description`)} />
-          {errors.transactions?.[index]?.description && (
-            <FieldError>{errors.transactions[index].description?.message}</FieldError>
-          )}
-        </Field>
-
-        <Field>
-          <FieldLabel className="text-sm tracking-wide text-foreground">Amount</FieldLabel>
-          <Controller
-            control={control}
-            name={`transactions.${index}.amount`}
-            render={({ field: amountField }) => (
-              <Input
-                type="number"
-                inputMode="decimal"
-                value={amountField.value || ""}
-                onChange={(e) => amountField.onChange(parseFloat(e.target.value) || 0)}
-                onBlur={amountField.onBlur}
-                ref={amountField.ref}
-              />
-            )}
-          />
-          {errors.transactions?.[index]?.amount && (
-            <FieldError>{errors.transactions[index].amount?.message}</FieldError>
-          )}
-        </Field>
-
-        <Field>
-          <FieldLabel className="text-sm tracking-wide text-foreground">Date</FieldLabel>
-          <Controller
-            control={control}
-            name={`transactions.${index}.transactedAt`}
-            render={({ field: dateField }) => (
-              <DatePicker
-                value={dateField.value ? new Date(dateField.value) : undefined}
-                onChange={(date) => {
-                  if (!date) {
-                    dateField.onChange("");
-                    return;
-                  }
-                  dateField.onChange(
-                    new Date(
-                      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
-                    ).toISOString(),
-                  );
-                }}
-              />
-            )}
-          />
-          {errors.transactions?.[index]?.transactedAt && (
-            <FieldError>{errors.transactions[index].transactedAt?.message}</FieldError>
-          )}
-        </Field>
+        <DescriptionField control={control} name={`transactions.${index}.description`} />
+        <AmountField control={control} name={`transactions.${index}.amount`} />
+        <DateField control={control} name={`transactions.${index}.transactedAt`} />
       </FieldGroup>
 
-      <Field>
-        <FieldLabel className="text-sm tracking-wide text-foreground">Type</FieldLabel>
-        <Controller
-          control={control}
-          name={`transactions.${index}.type`}
-          render={({ field: typeField }) => (
-            <RadioGroup
-              value={typeField.value}
-              onValueChange={typeField.onChange}
-              className="flex gap-4"
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="expense" id={`type-expense-${index}`} />
-                <FieldLabel
-                  htmlFor={`type-expense-${index}`}
-                  className="text-sm tracking-wide text-foreground"
-                >
-                  Expense
-                </FieldLabel>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="income" id={`type-income-${index}`} />
-                <FieldLabel
-                  htmlFor={`type-income-${index}`}
-                  className="text-sm tracking-wide text-foreground"
-                >
-                  Income
-                </FieldLabel>
-              </div>
-            </RadioGroup>
-          )}
-        />
-      </Field>
+      <TypeField control={control} name={`transactions.${index}.type`} />
 
       {type === "expense" && (
-        <Field>
-          <FieldLabel className="text-sm tracking-wide text-foreground">Category</FieldLabel>
-          <Controller
-            control={control}
-            name={`transactions.${index}.category`}
-            render={({ field: catField }) => (
-              <ToggleGroup
-                value={[catField.value ?? ""]}
-                onValueChange={(v) => catField.onChange((v?.[0] || null) as TransactionCategory)}
-                variant="outline"
-                className="flex flex-wrap gap-2"
-              >
-                {CATEGORIES.map(({ value, label }) => {
-                  const colors = CATEGORY_COLORS[value];
-                  return (
-                    <CategoryToggleGroupItem key={value} value={value} colors={colors}>
-                      {label}
-                    </CategoryToggleGroupItem>
-                  );
-                })}
-              </ToggleGroup>
-            )}
-          />
-        </Field>
+        <CategoryField control={control} name={`transactions.${index}.category`} />
       )}
     </Card>
   );
@@ -206,11 +90,7 @@ type TransactionFormProps = {
 function TransactionForm({ initialTransactions, onSave, mode }: TransactionFormProps) {
   const now = new Date().toISOString();
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<TransactionFormData>({
+  const { control, handleSubmit } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
       transactions:
@@ -250,7 +130,6 @@ function TransactionForm({ initialTransactions, onSave, mode }: TransactionFormP
             key={field.id}
             index={index}
             control={control}
-            errors={errors}
             totalCount={fields.length}
           />
         ))}

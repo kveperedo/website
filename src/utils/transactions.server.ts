@@ -1,3 +1,5 @@
+const DESCRIPTION_MAX_LENGTH = 200;
+
 import { Agent, run, tool } from "@openai/agents";
 import { addMonths, startOfMonth } from "date-fns";
 import sanitizeHtml from "sanitize-html";
@@ -23,6 +25,24 @@ export const getRecentTransactions = async () => {
     where: { transactedAt: { gte: monthStart, lt: monthEnd } },
     orderBy: { transactedAt: "desc" },
     take: 10,
+  });
+
+  return transactions.map((t) => ({
+    ...t,
+    amount: t.amount.toNumber(),
+  }));
+};
+
+export const getTransactionsByMonth = async (year: number, month: number, q?: string) => {
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = addMonths(monthStart, 1);
+
+  const transactions = await db.transaction.findMany({
+    where: {
+      transactedAt: { gte: monthStart, lt: monthEnd },
+      ...(q ? { description: { contains: q, mode: "insensitive" } } : {}),
+    },
+    orderBy: { transactedAt: "desc" },
   });
 
   return transactions.map((t) => ({
@@ -124,10 +144,35 @@ Examples:
 export const createTransactions = async (data: Array<TransactionInputType>) =>
   db.transaction.createMany({
     data: data.map((item) => ({
-      description: item.description.slice(0, 200),
+      description: item.description.slice(0, DESCRIPTION_MAX_LENGTH),
       amount: item.amount,
       type: item.type,
       category: item.category ?? undefined,
       transactedAt: item.transactedAt,
     })),
   });
+
+export const getTransactionById = async (id: string) => {
+  const transaction = await db.transaction.findUniqueOrThrow({
+    where: { id },
+  });
+  return { ...transaction, amount: transaction.amount.toNumber() };
+};
+
+export const updateTransaction = async (id: string, data: TransactionInputType) => {
+  const transaction = await db.transaction.update({
+    where: { id },
+    data: {
+      description: data.description.slice(0, DESCRIPTION_MAX_LENGTH),
+      amount: data.amount,
+      type: data.type,
+      category: data.type === "income" ? null : (data.category ?? null),
+      transactedAt: data.transactedAt,
+    },
+  });
+  return { ...transaction, amount: transaction.amount.toNumber() };
+};
+
+export const deleteTransaction = async (id: string) => {
+  await db.transaction.delete({ where: { id } });
+};

@@ -13,7 +13,7 @@ function BackButton({ variant = "label", ...props }: BackButtonProps) {
   return (
     <Button
       variant="ghost"
-      size={variant === "icon" ? "icon" : "sm"}
+      size={variant === "icon" ? "icon" : "default"}
       nativeButton={false}
       render={<Link {...props} />}
       aria-label="Go back"
