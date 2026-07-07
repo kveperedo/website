@@ -4,12 +4,14 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type BackButtonProps = Pick<LinkProps, "params" | "to" | "search"> & {
   variant?: "label" | "icon";
+  className?: string;
 };
 
-function BackButton({ variant = "label", ...props }: BackButtonProps) {
+function BackButton({ variant = "label", className, ...props }: BackButtonProps) {
   return (
     <Button
       variant="ghost"
@@ -17,7 +19,7 @@ function BackButton({ variant = "label", ...props }: BackButtonProps) {
       nativeButton={false}
       render={<Link {...props} />}
       aria-label="Go back"
-      className="self-start"
+      className={cn("self-start", className)}
     >
       <ArrowLeftIcon />
       {variant === "label" && "Back"}

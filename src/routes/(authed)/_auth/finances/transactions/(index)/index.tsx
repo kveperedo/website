@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { addMonths, format, subMonths } from "date-fns";
-import { ChevronLeft, ChevronRight, SearchIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, SearchIcon, X } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
+import type { TransactionItemAIType } from "#/schema/transaction";
+
 import { Card, CardContent } from "#/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "#/components/ui/empty";
+import { TransactionInput } from "#/routes/(authed)/_auth/finances/-common/components/transaction-input";
 import { TransactionTable } from "#/routes/(authed)/_auth/finances/-common/components/transaction-table";
 import { getTransactionsByMonthFn } from "#/utils/transactions.function";
 import { BackButton } from "@/components/back-button";
@@ -53,10 +56,12 @@ function RouteComponent() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       const nextQ = inputValue.trim() || undefined;
-      router.navigate({
-        to: "/finances/transactions",
-        search: { year, month, q: nextQ },
-      });
+      if (nextQ !== (search.q ?? undefined)) {
+        router.navigate({
+          to: "/finances/transactions",
+          search: { year, month, q: nextQ },
+        });
+      }
     }
   };
 
@@ -71,16 +76,51 @@ function RouteComponent() {
     }
   };
 
+  const handleClear = () => {
+    setInputValue("");
+    router.navigate({
+      to: "/finances/transactions",
+      search: { year, month, q: undefined },
+    });
+  };
+
+  const handleParsed = (transactions: Array<TransactionItemAIType>) => {
+    router.navigate({
+      to: "/finances/new",
+      search: { transactions },
+    });
+  };
+
   const hasNoTransactions = transactions.length === 0;
   const hasNoResults = hasNoTransactions && search.q;
 
   return (
     <main className="relative flex h-dvh flex-col overflow-hidden">
       <div className="container mx-auto max-w-2xl p-4 pb-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BackButton to="/finances" variant="icon" />
-            <h1 className="font-heading text-lg text-foreground">{monthLabel}</h1>
+        <div className="flex items-center gap-2">
+          <BackButton to="/finances" variant="icon" className="self-center" />
+          <div className="relative flex-1">
+            <Input
+              className="pr-10"
+              value={inputValue}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              placeholder={`Search ${monthLabel} transactions`}
+              aria-label={`Search ${monthLabel} transactions`}
+            />
+            {inputValue ? (
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={handleClear}
+                className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground"
+                aria-label="Clear search"
+              >
+                <X className="size-4" />
+              </Button>
+            ) : (
+              <SearchIcon className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            )}
           </div>
           <div className="flex items-center gap-0.5">
             <Button
@@ -102,13 +142,7 @@ function RouteComponent() {
               <ChevronLeft />
             </Button>
             {isCurrentMonth ? (
-              <Button
-                variant="secondary"
-                size="icon"
-                disabled
-                aria-label="Next month"
-                className="opacity-30"
-              >
+              <Button variant="secondary" size="icon" disabled aria-label="Next month">
                 <ChevronRight />
               </Button>
             ) : (
@@ -173,17 +207,8 @@ function RouteComponent() {
         )}
       </div>
 
-      <div className="container mx-auto w-full max-w-2xl px-4 pb-6">
-        <div className="relative">
-          <Input
-            className="h-10 pr-10"
-            value={inputValue}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Search transactions..."
-          />
-          <SearchIcon className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        </div>
+      <div className="container mx-auto max-w-2xl px-4 pb-6">
+        <TransactionInput onParsed={handleParsed} />
       </div>
     </main>
   );
