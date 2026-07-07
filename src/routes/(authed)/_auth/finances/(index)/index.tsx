@@ -48,7 +48,7 @@ function RouteComponent() {
     <main className="relative flex h-dvh flex-col overflow-hidden">
       <div className="container mx-auto max-w-2xl p-4 pb-0">
         <div className="flex items-center gap-2">
-          <BackButton to="/" variant="icon" />
+          <BackButton variant="icon" />
           <h1 className="font-heading text-lg text-foreground">{monthLabel}</h1>
         </div>
       </div>

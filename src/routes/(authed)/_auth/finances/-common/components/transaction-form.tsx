@@ -136,7 +136,7 @@ function TransactionForm({ initialTransactions, onSave, mode }: TransactionFormP
       </div>
 
       <div className="flex shrink-0 gap-3">
-        <BackButton to="/finances" />
+        <BackButton />
         <Button className="flex-1 sm:flex-none" type="submit" disabled={mode === "saving"}>
           {mode === "saving" && <Spinner data-icon="inline-start" />}
           Save Transaction
