@@ -1,5 +1,5 @@
-import { Card, CardContent } from "#/components/ui/card";
-import { cn } from "#/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
 import { TRANSACTION_TYPE_COLORS } from "../../../-common/constants";

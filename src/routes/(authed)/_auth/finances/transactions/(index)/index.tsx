@@ -4,16 +4,16 @@ import { ChevronLeft, ChevronRight, SearchIcon, X } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
-import type { TransactionItemAIType } from "#/schema/transaction";
+import type { TransactionItemAIType } from "@/schema/transaction";
 
-import { Card, CardContent } from "#/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "#/components/ui/empty";
-import { TransactionInput } from "#/routes/(authed)/_auth/finances/-common/components/transaction-input";
-import { TransactionTable } from "#/routes/(authed)/_auth/finances/-common/components/transaction-table";
-import { getTransactionsByMonthFn } from "#/utils/transactions.function";
 import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
+import { TransactionInput } from "@/routes/(authed)/_auth/finances/-common/components/transaction-input";
+import { TransactionTable } from "@/routes/(authed)/_auth/finances/-common/components/transaction-table";
+import { getTransactionsByMonthFn } from "@/utils/transactions.function";
 
 const searchSchema = z.object({
   year: z.coerce.number().int().min(2020).max(2100).optional(),

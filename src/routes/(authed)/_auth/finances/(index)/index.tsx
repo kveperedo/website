@@ -1,14 +1,14 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { format } from "date-fns";
 
-import type { TransactionItemAIType } from "#/schema/transaction";
+import type { TransactionItemAIType } from "@/schema/transaction";
 
+import { BackButton } from "@/components/back-button";
 import {
   getCategorySummaryFn,
   getMonthlySummaryFn,
   getRecentTransactionsFn,
-} from "#/utils/transactions.function";
-import { BackButton } from "@/components/back-button";
+} from "@/utils/transactions.function";
 
 import { TransactionInput } from "../-common/components/transaction-input";
 import { CategorySummaryCard } from "./-common/components/category-summary-card";

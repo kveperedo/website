@@ -2,7 +2,7 @@ import { redirect } from "@tanstack/react-router";
 import { useSession } from "@tanstack/react-start/server";
 import bcrypt from "bcrypt";
 
-import { requireEnv } from "#/lib/env";
+import { requireEnv } from "@/lib/env";
 
 type SessionData = {
   isLoggedIn: boolean;

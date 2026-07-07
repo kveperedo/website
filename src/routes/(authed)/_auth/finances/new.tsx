@@ -3,10 +3,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 
-import type { TransactionInputType } from "#/generated/zod/schemas";
+import type { TransactionInputType } from "@/generated/zod/schemas";
 
-import { TransactionItemAISchema } from "#/schema/transaction";
-import { createTransactionsFn } from "#/utils/transactions.function";
+import { TransactionItemAISchema } from "@/schema/transaction";
+import { createTransactionsFn } from "@/utils/transactions.function";
 
 import { TransactionForm } from "./-common/components/transaction-form";
 

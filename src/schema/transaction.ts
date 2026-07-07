@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { TransactionCategorySchema } from "#/generated/zod/schemas/enums/TransactionCategory.schema";
-import { TransactionTypeSchema } from "#/generated/zod/schemas/enums/TransactionType.schema";
-import { TransactionInputSchema } from "#/generated/zod/schemas/variants/input/Transaction.input";
+import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
+import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
+import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
 const today = new Date().toISOString().split("T")[0];
 

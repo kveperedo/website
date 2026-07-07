@@ -6,10 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch, type Control } from "react-hook-form";
 import { z } from "zod";
 
-import type { TransactionInputType } from "#/generated/zod/schemas";
-import type { TransactionCategory } from "#/generated/zod/schemas/enums/TransactionCategory.schema";
+import type { TransactionInputType } from "@/generated/zod/schemas";
+import type { TransactionCategory } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
 
-import { TransactionInputSchema } from "#/generated/zod/schemas/variants/input/Transaction.input";
 import { BackButton } from "@/components/back-button";
 import {
   AlertDialog,
@@ -26,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
+import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
 import {
   AmountField,

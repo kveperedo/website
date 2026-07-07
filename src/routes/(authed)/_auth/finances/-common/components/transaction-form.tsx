@@ -4,17 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch, type Control } from "react-hook-form";
 import { z } from "zod";
 
-import type { TransactionItemAIType } from "#/schema/transaction";
+import type { TransactionItemAIType } from "@/schema/transaction";
 
-import {
-  TransactionInputSchema,
-  type TransactionInputType,
-} from "#/generated/zod/schemas/variants/input/Transaction.input";
 import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  TransactionInputSchema,
+  type TransactionInputType,
+} from "@/generated/zod/schemas/variants/input/Transaction.input";
 
 import {
   AmountField,

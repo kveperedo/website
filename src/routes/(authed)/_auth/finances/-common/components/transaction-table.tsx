@@ -1,4 +1,4 @@
-import { cn } from "#/lib/utils";
+import { cn } from "@/lib/utils";
 
 import { CATEGORY_COLORS, CATEGORY_LABELS, TRANSACTION_TYPE_COLORS } from "../constants";
 

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { TransactionInputSchema } from "#/generated/zod/schemas";
+import { TransactionInputSchema } from "@/generated/zod/schemas";
 
 import { authMiddleware } from "./auth.middleware";
 import { createRateLimitMiddleware } from "./rate-limit.middleware";

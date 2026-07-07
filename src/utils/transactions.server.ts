@@ -5,10 +5,10 @@ import { addMonths, startOfMonth } from "date-fns";
 import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 
-import type { TransactionInputType } from "#/generated/zod/schemas";
+import type { TransactionInputType } from "@/generated/zod/schemas";
 
-import { db } from "#/db/client";
-import { TransactionItemAISchema, type TransactionItemAIType } from "#/schema/transaction";
+import { db } from "@/db/client";
+import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/transaction";
 
 const getCurrentMonthRange = () => {
   const now = new Date();

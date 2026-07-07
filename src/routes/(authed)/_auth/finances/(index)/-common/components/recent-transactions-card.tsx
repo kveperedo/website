@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "#/components/ui/empty";
-import { cn } from "#/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
 import { TransactionTable } from "../../../-common/components/transaction-table";
