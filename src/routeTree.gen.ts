@@ -13,8 +13,8 @@ import { Route as publicIndexRouteImport } from './routes/(public)/index'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
 import { Route as authedAuthRouteImport } from './routes/(authed)/_auth'
 import { Route as publicConfigIndexRouteImport } from './routes/(public)/config/index'
-import { Route as authedAuthFinancesNewRouteImport } from './routes/(authed)/_auth/finances/new'
 import { Route as authedAuthFinancesindexIndexRouteImport } from './routes/(authed)/_auth/finances/(index)/index'
+import { Route as authedAuthFinancesTransactionsNewIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/new/index'
 import { Route as authedAuthFinancesTransactionsindexIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/(index)/index'
 import { Route as authedAuthFinancesTransactionsIdIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/$id/index'
 
@@ -37,15 +37,16 @@ const publicConfigIndexRoute = publicConfigIndexRouteImport.update({
   path: '/config/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const authedAuthFinancesNewRoute = authedAuthFinancesNewRouteImport.update({
-  id: '/finances/new',
-  path: '/finances/new',
-  getParentRoute: () => authedAuthRoute,
-} as any)
 const authedAuthFinancesindexIndexRoute =
   authedAuthFinancesindexIndexRouteImport.update({
     id: '/finances/(index)/',
     path: '/finances/',
+    getParentRoute: () => authedAuthRoute,
+  } as any)
+const authedAuthFinancesTransactionsNewIndexRoute =
+  authedAuthFinancesTransactionsNewIndexRouteImport.update({
+    id: '/finances/transactions/new/',
+    path: '/finances/transactions/new/',
     getParentRoute: () => authedAuthRoute,
   } as any)
 const authedAuthFinancesTransactionsindexIndexRoute =
@@ -65,19 +66,19 @@ export interface FileRoutesByFullPath {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
   '/config/': typeof publicConfigIndexRoute
-  '/finances/new': typeof authedAuthFinancesNewRoute
   '/finances/': typeof authedAuthFinancesindexIndexRoute
   '/finances/transactions/$id/': typeof authedAuthFinancesTransactionsIdIndexRoute
   '/finances/transactions/': typeof authedAuthFinancesTransactionsindexIndexRoute
+  '/finances/transactions/new/': typeof authedAuthFinancesTransactionsNewIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
   '/config': typeof publicConfigIndexRoute
-  '/finances/new': typeof authedAuthFinancesNewRoute
   '/finances': typeof authedAuthFinancesindexIndexRoute
   '/finances/transactions/$id': typeof authedAuthFinancesTransactionsIdIndexRoute
   '/finances/transactions': typeof authedAuthFinancesTransactionsindexIndexRoute
+  '/finances/transactions/new': typeof authedAuthFinancesTransactionsNewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -85,10 +86,10 @@ export interface FileRoutesById {
   '/(public)/login': typeof publicLoginRoute
   '/(public)/': typeof publicIndexRoute
   '/(public)/config/': typeof publicConfigIndexRoute
-  '/(authed)/_auth/finances/new': typeof authedAuthFinancesNewRoute
   '/(authed)/_auth/finances/(index)/': typeof authedAuthFinancesindexIndexRoute
   '/(authed)/_auth/finances/transactions/$id/': typeof authedAuthFinancesTransactionsIdIndexRoute
   '/(authed)/_auth/finances/transactions/(index)/': typeof authedAuthFinancesTransactionsindexIndexRoute
+  '/(authed)/_auth/finances/transactions/new/': typeof authedAuthFinancesTransactionsNewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,29 +97,29 @@ export interface FileRouteTypes {
     | '/login'
     | '/'
     | '/config/'
-    | '/finances/new'
     | '/finances/'
     | '/finances/transactions/$id/'
     | '/finances/transactions/'
+    | '/finances/transactions/new/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/'
     | '/config'
-    | '/finances/new'
     | '/finances'
     | '/finances/transactions/$id'
     | '/finances/transactions'
+    | '/finances/transactions/new'
   id:
     | '__root__'
     | '/(authed)/_auth'
     | '/(public)/login'
     | '/(public)/'
     | '/(public)/config/'
-    | '/(authed)/_auth/finances/new'
     | '/(authed)/_auth/finances/(index)/'
     | '/(authed)/_auth/finances/transactions/$id/'
     | '/(authed)/_auth/finances/transactions/(index)/'
+    | '/(authed)/_auth/finances/transactions/new/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,18 +159,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicConfigIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(authed)/_auth/finances/new': {
-      id: '/(authed)/_auth/finances/new'
-      path: '/finances/new'
-      fullPath: '/finances/new'
-      preLoaderRoute: typeof authedAuthFinancesNewRouteImport
-      parentRoute: typeof authedAuthRoute
-    }
     '/(authed)/_auth/finances/(index)/': {
       id: '/(authed)/_auth/finances/(index)/'
       path: '/finances'
       fullPath: '/finances/'
       preLoaderRoute: typeof authedAuthFinancesindexIndexRouteImport
+      parentRoute: typeof authedAuthRoute
+    }
+    '/(authed)/_auth/finances/transactions/new/': {
+      id: '/(authed)/_auth/finances/transactions/new/'
+      path: '/finances/transactions/new'
+      fullPath: '/finances/transactions/new/'
+      preLoaderRoute: typeof authedAuthFinancesTransactionsNewIndexRouteImport
       parentRoute: typeof authedAuthRoute
     }
     '/(authed)/_auth/finances/transactions/(index)/': {
@@ -190,19 +191,20 @@ declare module '@tanstack/react-router' {
 }
 
 interface authedAuthRouteChildren {
-  authedAuthFinancesNewRoute: typeof authedAuthFinancesNewRoute
   authedAuthFinancesindexIndexRoute: typeof authedAuthFinancesindexIndexRoute
   authedAuthFinancesTransactionsIdIndexRoute: typeof authedAuthFinancesTransactionsIdIndexRoute
   authedAuthFinancesTransactionsindexIndexRoute: typeof authedAuthFinancesTransactionsindexIndexRoute
+  authedAuthFinancesTransactionsNewIndexRoute: typeof authedAuthFinancesTransactionsNewIndexRoute
 }
 
 const authedAuthRouteChildren: authedAuthRouteChildren = {
-  authedAuthFinancesNewRoute: authedAuthFinancesNewRoute,
   authedAuthFinancesindexIndexRoute: authedAuthFinancesindexIndexRoute,
   authedAuthFinancesTransactionsIdIndexRoute:
     authedAuthFinancesTransactionsIdIndexRoute,
   authedAuthFinancesTransactionsindexIndexRoute:
     authedAuthFinancesTransactionsindexIndexRoute,
+  authedAuthFinancesTransactionsNewIndexRoute:
+    authedAuthFinancesTransactionsNewIndexRoute,
 }
 
 const authedAuthRouteWithChildren = authedAuthRoute._addFileChildren(

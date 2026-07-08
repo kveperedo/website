@@ -15,14 +15,13 @@ import {
   TransactionInputSchema,
   type TransactionInputType,
 } from "@/generated/zod/schemas/variants/input/Transaction.input";
-
 import {
   AmountField,
   CategoryField,
   DateField,
   DescriptionField,
   TypeField,
-} from "./transaction-fields";
+} from "@/routes/(authed)/_auth/finances/-common/components/transaction-fields";
 
 const transactionFormSchema = z.object({
   transactions: z.array(TransactionInputSchema.extend({ transactedAt: z.iso.datetime() })),

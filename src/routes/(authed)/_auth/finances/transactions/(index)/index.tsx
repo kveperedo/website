@@ -86,7 +86,7 @@ function RouteComponent() {
 
   const handleParsed = (transactions: Array<TransactionItemAIType>) => {
     router.navigate({
-      to: "/finances/new",
+      to: "/finances/transactions/new",
       search: { transactions, returnTo: "/finances/transactions" },
     });
   };
