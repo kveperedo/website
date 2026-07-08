@@ -1,4 +1,5 @@
 import { useRouter } from "@tanstack/react-router";
+import { format } from "date-fns";
 
 import { cn } from "@/lib/utils";
 
@@ -10,6 +11,7 @@ export type TransactionRow = {
   amount: number;
   type: "expense" | "income";
   category: string | null;
+  transactedAt: Date;
 };
 
 type TransactionTableProps = {
@@ -54,14 +56,19 @@ export const TransactionTable = ({ transactions, label }: TransactionTableProps)
             tabIndex={0}
             role="link"
           >
-            <td className="px-4 text-foreground">
-              <div className={cn("flex min-h-10 flex-col py-1", !t.category && "justify-center")}>
-                <span className="leading-5">{t.description}</span>
-                {t.category && (
-                  <span className="text-[10px]/3 text-muted-foreground">
-                    {CATEGORY_LABELS[t.category as keyof typeof CATEGORY_LABELS]}
-                  </span>
-                )}
+            <td className="pr-4 pl-2 text-foreground">
+              <div className="flex min-h-10 items-center gap-3 py-1">
+                <span className="w-5 shrink-0 text-right text-xs text-muted-foreground">
+                  {format(t.transactedAt, "dd")}
+                </span>
+                <div className={cn("flex flex-col", !t.category && "justify-center")}>
+                  <span className="leading-5">{t.description}</span>
+                  {t.category && (
+                    <span className="text-[10px]/3 text-muted-foreground">
+                      {CATEGORY_LABELS[t.category as keyof typeof CATEGORY_LABELS]}
+                    </span>
+                  )}
+                </div>
               </div>
             </td>
             <td
