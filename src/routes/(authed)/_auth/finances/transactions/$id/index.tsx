@@ -5,12 +5,13 @@ import { z } from "zod";
 
 import type { TransactionInputType } from "@/generated/zod/schemas";
 
-import { EditTransactionForm } from "@/routes/(authed)/_auth/finances/-common/components/edit-transaction-form";
 import {
   deleteTransactionFn,
   getTransactionByIdFn,
   updateTransactionFn,
 } from "@/utils/transactions.function";
+
+import { EditTransactionForm } from "./-common/components/edit-transaction-form";
 
 const searchSchema = z.object({
   year: z.coerce.number().int().min(2020).max(2100).optional(),

@@ -26,14 +26,13 @@ import { Card } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
-
 import {
   AmountField,
   CategoryField,
   DateField,
   DescriptionField,
   TypeField,
-} from "./transaction-fields";
+} from "@/routes/(authed)/_auth/finances/-common/components/transaction-fields";
 
 const editFormSchema = z.object({
   transactions: z.array(TransactionInputSchema.extend({ transactedAt: z.iso.datetime() })),
