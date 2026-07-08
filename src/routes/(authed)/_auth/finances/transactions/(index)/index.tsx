@@ -194,13 +194,6 @@ function RouteComponent() {
               <TransactionTable
                 transactions={transactions}
                 label={`Transactions for ${monthLabel}`}
-                onRowClick={(t) =>
-                  router.navigate({
-                    to: "/finances/transactions/$id",
-                    params: { id: t.id },
-                    search: { year, month, q: search.q || undefined },
-                  })
-                }
               />
             </CardContent>
           </Card>
