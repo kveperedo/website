@@ -28,7 +28,7 @@ function RouteComponent() {
     <main className="relative min-h-screen overflow-hidden">
       <section className="relative container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
         <div className="flex w-full max-w-md flex-col gap-6">
-          <BackButton />
+          <BackButton to="/" />
           <p className="text-sm text-muted-foreground">
             Enter the admin password to manage the site.
           </p>

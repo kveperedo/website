@@ -85,8 +85,8 @@ function RouteComponent() {
             onSave={handleSave}
             onDelete={handleDelete}
             mode={mode}
-            fallbackTo="/finances/transactions"
-            fallbackSearch={{ year: search.year, month: search.month, q: search.q || undefined }}
+            backTo="/finances/transactions"
+            backSearch={{ year: search.year, month: search.month, q: search.q || undefined }}
           />
         </div>
       </div>
