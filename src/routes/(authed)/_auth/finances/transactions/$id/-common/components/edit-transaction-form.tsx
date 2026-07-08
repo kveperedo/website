@@ -26,14 +26,13 @@ import { Card } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
-
 import {
   AmountField,
   CategoryField,
   DateField,
   DescriptionField,
   TypeField,
-} from "./transaction-fields";
+} from "@/routes/(authed)/_auth/finances/-common/components/transaction-fields";
 
 const editFormSchema = z.object({
   transactions: z.array(TransactionInputSchema.extend({ transactedAt: z.iso.datetime() })),
@@ -53,8 +52,8 @@ type EditTransactionFormProps = {
   onSave: (data: TransactionInputType) => Promise<void>;
   onDelete: () => Promise<void>;
   mode: "idle" | "saving" | "deleting";
-  fallbackTo: LinkProps["to"];
-  fallbackSearch?: LinkProps["search"];
+  backTo?: LinkProps["to"];
+  backSearch?: LinkProps["search"];
 };
 
 function EditContent({ control }: { control: Control<EditFormData> }) {
@@ -83,8 +82,8 @@ function EditTransactionForm({
   onSave,
   onDelete,
   mode,
-  fallbackTo,
-  fallbackSearch,
+  backTo,
+  backSearch,
 }: EditTransactionFormProps) {
   const { control, handleSubmit } = useForm<EditFormData>({
     resolver: zodResolver(editFormSchema),
@@ -120,7 +119,7 @@ function EditTransactionForm({
       </div>
 
       <div className="flex shrink-0 gap-3">
-        <BackButton fallbackTo={fallbackTo} fallbackSearch={fallbackSearch} />
+        <BackButton to={backTo} search={backSearch} />
         <Button className="flex-1 sm:flex-none" type="submit" disabled={mode === "saving"}>
           {mode === "saving" && <Spinner data-icon="inline-start" />}
           Save Changes

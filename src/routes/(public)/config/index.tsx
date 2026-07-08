@@ -37,7 +37,7 @@ function ConfigRoute() {
     <main className="relative min-h-screen">
       <div className="relative container mx-auto px-8 py-12">
         <div className="mb-10">
-          <BackButton />
+          <BackButton to="/" />
 
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             My personal reference for setting up a new macOS machine, including apps, tools, and

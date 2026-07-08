@@ -86,7 +86,7 @@ function RouteComponent() {
 
   const handleParsed = (transactions: Array<TransactionItemAIType>) => {
     router.navigate({
-      to: "/finances/new",
+      to: "/finances/transactions/new",
       search: { transactions, returnTo: "/finances/transactions" },
     });
   };
@@ -98,7 +98,7 @@ function RouteComponent() {
     <main className="relative flex h-dvh flex-col overflow-hidden">
       <div className="container mx-auto max-w-2xl p-4 pb-0">
         <div className="flex items-center gap-2">
-          <BackButton variant="icon" className="self-center" />
+          <BackButton variant="icon" className="self-center" to="/finances" />
           <div className="relative flex-1">
             <Input
               className="pr-10"

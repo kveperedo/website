@@ -21,7 +21,7 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
   { title: "Finances | Kevin Von Erich Peredo" },
 ];
 
-export const Route = createFileRoute("/(authed)/_auth/finances/new")({
+export const Route = createFileRoute("/(authed)/_auth/finances/transactions/new/")({
   head: () => ({ meta: META }),
   validateSearch: z.object({
     transactions: z.array(TransactionItemAISchema),
