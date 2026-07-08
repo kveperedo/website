@@ -1,14 +1,14 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { format } from "date-fns";
 
-import type { TransactionItemAIType } from "#/schema/transaction";
+import type { TransactionItemAIType } from "@/schema/transaction";
 
+import { BackButton } from "@/components/back-button";
 import {
   getCategorySummaryFn,
   getMonthlySummaryFn,
   getRecentTransactionsFn,
-} from "#/utils/transactions.function";
-import { BackButton } from "@/components/back-button";
+} from "@/utils/transactions.function";
 
 import { TransactionInput } from "../-common/components/transaction-input";
 import { CategorySummaryCard } from "./-common/components/category-summary-card";
@@ -40,7 +40,7 @@ function RouteComponent() {
   const handleParsed = (transactions: Array<TransactionItemAIType>) => {
     router.navigate({
       to: "/finances/new",
-      search: { transactions },
+      search: { transactions, returnTo: "/finances" },
     });
   };
 
@@ -48,7 +48,7 @@ function RouteComponent() {
     <main className="relative flex h-dvh flex-col overflow-hidden">
       <div className="container mx-auto max-w-2xl p-4 pb-0">
         <div className="flex items-center gap-2">
-          <BackButton to="/" variant="icon" />
+          <BackButton variant="icon" />
           <h1 className="font-heading text-lg text-foreground">{monthLabel}</h1>
         </div>
       </div>

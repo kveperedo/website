@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { getCurrentUserFn } from "#/utils/auth.functions";
+import { getCurrentUserFn } from "@/utils/auth.functions";
 
 import { FadeIn } from "./-common/components/fade-in";
 import { LinkButtons } from "./-common/components/link-buttons";

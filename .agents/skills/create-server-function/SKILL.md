@@ -28,12 +28,12 @@ All exports should be named exports.
 
 Contains raw async functions that interact with the database or other server-only resources. No `createServerFn` here.
 
-- Import the Prisma client from `#/db/client`
+- Import the Prisma client from `@/db/client`
 - Prisma `Decimal` fields must be converted with `.toNumber()` before returning
-- Import env vars via `requireEnv` from `#/lib/env`
+- Import env vars via `requireEnv` from `@/lib/env`
 
 ```ts
-import { db } from "#/db/client";
+import { db } from "@/db/client";
 
 export const getTransactions = async () => {
   const transactions = await db.transaction.findMany();

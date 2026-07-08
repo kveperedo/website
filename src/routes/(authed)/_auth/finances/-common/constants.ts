@@ -1,4 +1,4 @@
-import type { TransactionCategory } from "#/generated/prisma/enums";
+import type { TransactionCategory } from "@/generated/prisma/enums";
 
 export type CategoryColor = {
   bg: string;

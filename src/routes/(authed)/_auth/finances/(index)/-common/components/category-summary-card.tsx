@@ -1,11 +1,11 @@
 import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
 
-import type { ChartConfig } from "#/components/ui/chart";
+import type { ChartConfig } from "@/components/ui/chart";
 
-import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "#/components/ui/chart";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "#/components/ui/empty";
-import { cn } from "#/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
 import { CATEGORY_CHART_COLORS, CATEGORY_LABELS } from "../../../-common/constants";

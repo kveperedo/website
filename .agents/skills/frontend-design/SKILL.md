@@ -199,7 +199,7 @@ Section headings are left-aligned with `mr-auto` when inside a centered containe
 - [ ] Badges: use `<Badge>` from `@/components/ui/badge` with `variant="secondary"`
 - [ ] Buttons: use `<Button>` from `@/components/ui/button` with `render` prop for link behavior
 - [ ] Forms: use `@/components/ui/field` compound pattern (FieldGroup > Field > FieldLabel + Input + FieldError)
-- [ ] `cn()` imported from `@/lib/utils` (not `#/lib/cn`)
+- [ ] `cn()` imported from `@/lib/utils`
 - [ ] No large solid neon fills — neon only as blur-3xl blobs in background
 
 ## Scaffolding

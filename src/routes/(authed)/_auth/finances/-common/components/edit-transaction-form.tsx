@@ -6,10 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch, type Control } from "react-hook-form";
 import { z } from "zod";
 
-import type { TransactionInputType } from "#/generated/zod/schemas";
-import type { TransactionCategory } from "#/generated/zod/schemas/enums/TransactionCategory.schema";
+import type { TransactionInputType } from "@/generated/zod/schemas";
+import type { TransactionCategory } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
 
-import { TransactionInputSchema } from "#/generated/zod/schemas/variants/input/Transaction.input";
 import { BackButton } from "@/components/back-button";
 import {
   AlertDialog,
@@ -26,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
+import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
 import {
   AmountField,
@@ -53,8 +53,8 @@ type EditTransactionFormProps = {
   onSave: (data: TransactionInputType) => Promise<void>;
   onDelete: () => Promise<void>;
   mode: "idle" | "saving" | "deleting";
-  backTo: LinkProps["to"];
-  backSearch?: LinkProps["search"];
+  fallbackTo: LinkProps["to"];
+  fallbackSearch?: LinkProps["search"];
 };
 
 function EditContent({ control }: { control: Control<EditFormData> }) {
@@ -83,8 +83,8 @@ function EditTransactionForm({
   onSave,
   onDelete,
   mode,
-  backTo,
-  backSearch,
+  fallbackTo,
+  fallbackSearch,
 }: EditTransactionFormProps) {
   const { control, handleSubmit } = useForm<EditFormData>({
     resolver: zodResolver(editFormSchema),
@@ -120,7 +120,7 @@ function EditTransactionForm({
       </div>
 
       <div className="flex shrink-0 gap-3">
-        <BackButton to={backTo} search={backSearch} />
+        <BackButton fallbackTo={fallbackTo} fallbackSearch={fallbackSearch} />
         <Button className="flex-1 sm:flex-none" type="submit" disabled={mode === "saving"}>
           {mode === "saving" && <Spinner data-icon="inline-start" />}
           Save Changes

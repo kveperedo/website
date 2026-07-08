@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { TransactionCategorySchema } from "#/generated/zod/schemas/enums/TransactionCategory.schema";
-import { TransactionTypeSchema } from "#/generated/zod/schemas/enums/TransactionType.schema";
-import { TransactionInputSchema } from "#/generated/zod/schemas/variants/input/Transaction.input";
+import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
+import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
+import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -11,7 +11,7 @@ export const TransactionItemAISchema = z.object({
     .min(1)
     .max(200)
     .describe(
-      "Clean, concise transaction description. Remove raw numbers (amount field captures them). Keep natural but short. Preserve merchant/vendor names when present. Always start with a capital letter.",
+      "Clean, concise transaction description. Remove raw numbers (amount field captures them). Keep natural but short. Preserve merchant/vendor names when present. Only capitalize the first letter — preserve the original casing of everything else (brand names, abbreviations, etc.).",
     ),
   amount: TransactionInputSchema.shape.amount
     .positive("Amount must be positive")

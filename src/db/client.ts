@@ -1,7 +1,7 @@
 import { PrismaNeon } from "@prisma/adapter-neon";
 
-import { PrismaClient } from "#/generated/prisma/client";
-import { requireEnv } from "#/lib/env";
+import { PrismaClient } from "@/generated/prisma/client";
+import { requireEnv } from "@/lib/env";
 
 const connectionString = requireEnv("DATABASE_URL");
 

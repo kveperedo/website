@@ -2,7 +2,7 @@
 
 import { Controller, type Control, type FieldPath, type FieldValues } from "react-hook-form";
 
-import type { TransactionCategory } from "#/generated/prisma/enums";
+import type { TransactionCategory } from "@/generated/prisma/enums";
 
 import { DatePicker } from "@/components/ui/date-picker";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";

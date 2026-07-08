@@ -3,14 +3,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 
-import type { TransactionInputType } from "#/generated/zod/schemas";
+import type { TransactionInputType } from "@/generated/zod/schemas";
 
-import { EditTransactionForm } from "#/routes/(authed)/_auth/finances/-common/components/edit-transaction-form";
+import { EditTransactionForm } from "@/routes/(authed)/_auth/finances/-common/components/edit-transaction-form";
 import {
   deleteTransactionFn,
   getTransactionByIdFn,
   updateTransactionFn,
-} from "#/utils/transactions.function";
+} from "@/utils/transactions.function";
 
 const searchSchema = z.object({
   year: z.coerce.number().int().min(2020).max(2100).optional(),
@@ -85,8 +85,8 @@ function RouteComponent() {
             onSave={handleSave}
             onDelete={handleDelete}
             mode={mode}
-            backTo="/finances/transactions"
-            backSearch={{ year: search.year, month: search.month, q: search.q || undefined }}
+            fallbackTo="/finances/transactions"
+            fallbackSearch={{ year: search.year, month: search.month, q: search.q || undefined }}
           />
         </div>
       </div>

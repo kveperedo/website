@@ -14,7 +14,7 @@
 - **TanStack Start** SSR app, file-based routing in `src/routes/`
 - Route groups: `(public)/` (homepage, login, config/mac setup) and `(authed)/_auth` (protected)
 - Server functions: `*.server.ts` (raw db/auth) + `*.functions.ts` (`createServerFn` wrappers); use `authMiddleware` for protected endpoints
-- Import aliases: `#/*` and `@/*` both → `src/*`
+- Import alias: `@/*` → `src/*`
 - Auth: session cookie (15-day max age), env vars `SESSION_SECRET` + `ADMIN_PASSWORD_HASH`
 - DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-neon`; config in `prisma.config.ts` (not `schema.prisma` datasource)
 - Prisma client outputs to `src/generated/prisma` (gitignored)
@@ -32,7 +32,7 @@
 
 - **Tailwind CSS 4** — theme tokens in `src/styles.css`; dark base with neon accents
 - Font aliases: `font-mono` (JetBrains Mono — body), `font-heading` (Manrope Variable — all headings, hero, brand)
-- `cn()` from `#/lib/utils` (clsx + tailwind-merge); `cva` from `class-variance-authority` for multi-variant components
+- `cn()` from `@/lib/utils` (clsx + tailwind-merge); `cva` from `class-variance-authority` for multi-variant components
 - **@base-ui/react** (not react-aria-components) for interactive primitives: Button, Input, Separator, Accordion
 - Lucide React for icons; shadcn/ui components in `src/components/ui/`
 - `components.json` configures the shadcn registry

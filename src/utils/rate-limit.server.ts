@@ -1,6 +1,6 @@
 import { getRequestIP } from "@tanstack/react-start/server";
 
-import { requireEnv } from "#/lib/env";
+import { requireEnv } from "@/lib/env";
 
 const API_TOKEN = requireEnv("CLOUDFLARE_API_TOKEN");
 const ACCOUNT_ID = requireEnv("CLOUDFLARE_ACCOUNT_ID");

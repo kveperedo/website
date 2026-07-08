@@ -4,12 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowUpIcon } from "lucide-react";
 import { useState } from "react";
 
-import type { TransactionItemAIType } from "#/schema/transaction";
+import type { TransactionItemAIType } from "@/schema/transaction";
 
-import { parseTransactionWithAIFn } from "#/utils/transactions.function";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { parseTransactionWithAIFn } from "@/utils/transactions.function";
 
 type TransactionInputProps = {
   onParsed: (transactions: Array<TransactionItemAIType>) => void;

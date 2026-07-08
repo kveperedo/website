@@ -1,14 +1,19 @@
+import type { RegisteredRouter } from "@tanstack/react-router";
+import type { RouteToPath } from "@tanstack/router-core";
+
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 
-import type { TransactionInputType } from "#/generated/zod/schemas";
+import type { TransactionInputType } from "@/generated/zod/schemas";
 
-import { TransactionItemAISchema } from "#/schema/transaction";
-import { createTransactionsFn } from "#/utils/transactions.function";
+import { TransactionItemAISchema } from "@/schema/transaction";
+import { createTransactionsFn } from "@/utils/transactions.function";
 
 import { TransactionForm } from "./-common/components/transaction-form";
+
+type AppRoutePath = RouteToPath<RegisteredRouter>;
 
 type Mode = "idle" | "saving";
 
@@ -20,13 +25,14 @@ export const Route = createFileRoute("/(authed)/_auth/finances/new")({
   head: () => ({ meta: META }),
   validateSearch: z.object({
     transactions: z.array(TransactionItemAISchema),
+    returnTo: z.string().optional() as z.ZodType<AppRoutePath | undefined>,
   }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const router = useRouter();
-  const { transactions } = Route.useSearch();
+  const { transactions, returnTo } = Route.useSearch();
   const createTransactions = useServerFn(createTransactionsFn);
 
   const [mode, setMode] = useState<Mode>("idle");
@@ -40,7 +46,7 @@ function RouteComponent() {
     setError(null);
     try {
       await createTransactions({ data: toSave });
-      router.navigate({ to: "/finances" });
+      router.navigate({ to: returnTo ?? "/finances" });
     } catch {
       setError("Failed to save transactions. Please try again.");
       setMode("idle");

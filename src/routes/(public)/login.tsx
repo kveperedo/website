@@ -2,13 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { loginFn } from "#/utils/auth.functions";
 import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { loginFn } from "@/utils/auth.functions";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
   { title: "Login | Kevin Von Erich Peredo" },
@@ -28,7 +28,7 @@ function RouteComponent() {
     <main className="relative min-h-screen overflow-hidden">
       <section className="relative container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
         <div className="flex w-full max-w-md flex-col gap-6">
-          <BackButton to="/" />
+          <BackButton />
           <p className="text-sm text-muted-foreground">
             Enter the admin password to manage the site.
           </p>
