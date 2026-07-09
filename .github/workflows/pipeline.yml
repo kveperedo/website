@@ -123,6 +123,7 @@ jobs:
           BASE_URL: ${{ needs.deploy.outputs.url }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Upload Playwright report
         if: always()
@@ -130,10 +131,3 @@ jobs:
         with:
           name: playwright-report
           path: e2e/playwright-report/
-
-      - name: Comment test results
-        if: always() && github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          recreate: true
-          message: "**E2E Tests:** ${{ job.status }}"
