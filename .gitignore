@@ -14,3 +14,10 @@ todos.json
 
 /src/generated/**
 .vercel
+
+# Playwright
+e2e/playwright-report/
+test-results/
+
+# Playwright saved auth session
+e2e/.auth/

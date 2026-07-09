@@ -61,3 +61,12 @@
 - `.env.example` documents required env vars; use `tsx` to run TypeScript scripts locally
 - `"use client"` directive needed in any file that uses browser APIs (e.g., `label.tsx`)
 - Detailed styling/component patterns live in the `frontend-design` skill at `.agents/skills/frontend-design/SKILL.md`
+
+## Testing
+
+- **Vitest** for unit tests (`npm run test`): `environment: "node"`, runs in `checks` CI job
+- **Playwright** for E2E tests (`npm run test:e2e`): runs against the deployed Vercel preview URL in CI
+- E2E tests live in `e2e/tests/`; Playwright config at `e2e/playwright.config.ts`
+- Auth helper at `e2e/helpers/auth.ts` navigates to `/login`, fills password from `E2E_PASSWORD` (sourced from `.env` locally or injected as a CI secret), and waits for redirect to `/finances`
+- Vitest SSR plugins (`tanstackStart`, `nitro`, `devtools`) are disabled when `VITEST=true` to avoid transform conflicts
+- For local E2E: start `npm run dev`, then `npm run test:e2e`. `BASE_URL` and `E2E_PASSWORD` are loaded from `.env` (see `.env.example`); the standalone `e2e/.env.test` file no longer exists
