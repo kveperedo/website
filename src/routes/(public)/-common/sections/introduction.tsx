@@ -16,7 +16,7 @@ export const IntroductionSection = () => {
   const { isUserLoggedIn } = routeApi.useLoaderData();
 
   return (
-    <main
+    <section
       id={SECTION_IDS.INTRO}
       className="relative m-auto flex h-screen flex-col items-center justify-center gap-4"
     >
@@ -65,6 +65,6 @@ export const IntroductionSection = () => {
         className="mt-8 md:absolute md:bottom-0 md:mb-9"
         href={`#${SECTION_IDS.SUMMARY}`}
       />
-    </main>
+    </section>
   );
 };

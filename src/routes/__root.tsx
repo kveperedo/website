@@ -1,6 +1,7 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { useEffect } from "react";
 
 import { Background } from "../components/background";
 import { LoadingDots } from "../components/loading-dots";
@@ -36,6 +37,10 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    document.documentElement.dataset.hydrated = "true";
+  }, []);
+
   return (
     <html
       lang="en"
