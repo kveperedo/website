@@ -11,7 +11,7 @@ export const TransactionItemAISchema = z.object({
     .min(1)
     .max(200)
     .describe(
-      "Clean, concise transaction description. Remove raw numbers (amount field captures them). Keep natural but short. Preserve merchant/vendor names when present. Only capitalize the first letter — preserve the original casing of everything else (brand names, abbreviations, etc.).",
+      "Clean, concise transaction description. Preserve the original text — do not paraphrase or reword. Only fix typos (and only if you're highly confident). Remove raw numbers (amount field captures them). Preserve merchant/vendor names when present.",
     ),
   amount: TransactionInputSchema.shape.amount
     .positive("Amount must be positive")
