@@ -27,7 +27,7 @@ function DescriptionField<TFieldValues extends FieldValues>({
       render={({ field, fieldState }) => (
         <Field>
           <FieldLabel className="text-sm tracking-wide text-foreground">Description</FieldLabel>
-          <Input {...field} />
+          <Input data-testid="description-input" {...field} />
           {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
         </Field>
       )}

@@ -38,6 +38,7 @@ export const TransactionTable = ({ transactions, label }: TransactionTableProps)
         {transactions.map((t, i) => (
           <tr
             key={t.id}
+            data-transaction-id={t.id}
             className={cn(
               "border-l-2",
               t.category

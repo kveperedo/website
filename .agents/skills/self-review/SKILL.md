@@ -48,7 +48,7 @@ This context is what separates a generic review from a useful one. Don't rely so
 
 ## Step 4 — Delegate to specialized subagents
 
-Launch three subagents **in parallel** to get focused reviews. Pass each agent the full diff and any relevant file context.
+Launch four subagents **in parallel** to get focused reviews. Pass each agent the full diff and any relevant file context.
 
 ### 4a. Clean Code Reviewer
 
@@ -86,11 +86,23 @@ Task: Review these code changes for security vulnerabilities.
 Focus on: unvalidated input, injection risks, exposed secrets, missing auth checks, unsafe use of user-controlled data, session handling, database query safety.
 ```
 
+### 4d. E2E Test Master
+
+Use the `e2e-test-master` subagent for test coverage and staged-spec quality:
+
+```
+Task: Review these code changes for E2E test coverage and staged-spec best practices.
+
+<diff and file context here>
+
+If any *.spec.ts files are staged, audit them against the project's Playwright conventions (accessible locators, gotoAndWaitForHydration, setup-project auth, try/finally cleanup, date-fns labels, no hardcoded secrets/test.only). If no specs are staged, assess whether the changed features (routes, server functions, UI flows) need new E2E coverage and suggest concrete test cases.
+```
+
 ---
 
 ## Step 5 — Consolidate and output the review
 
-Merge findings from all three subagents into a single structured review. Deduplicate any overlapping findings — keep the most detailed version. Use this template:
+Merge findings from all four subagents into a single structured review. Deduplicate any overlapping findings — keep the most detailed version. Use this template:
 
 ```
 ## Code Review
