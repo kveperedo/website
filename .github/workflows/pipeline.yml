@@ -129,7 +129,6 @@ jobs:
           BASE_URL: ${{ needs.deploy.outputs.url }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Upload Playwright report
         if: always()
