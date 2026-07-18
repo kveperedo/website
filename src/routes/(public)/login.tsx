@@ -75,7 +75,7 @@ function RouteComponent() {
                 </Field>
               </FieldGroup>
 
-              <Button type="submit" disabled={isLoading} className="mt-7 w-full">
+              <Button type="submit" isDisabled={isLoading} className="mt-7 w-full">
                 {isLoading && <Spinner data-icon="inline-start" />}
                 Continue
               </Button>

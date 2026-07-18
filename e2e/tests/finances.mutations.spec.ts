@@ -29,17 +29,17 @@ test.describe("transaction mutations", () => {
     await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
 
     const categoryField = page.getByText("Category", { exact: true });
-    const foodToggle = page.getByRole("button", { name: "Food & Drinks" });
+    const foodToggle = page.getByRole("radio", { name: "Food & Drinks" });
 
     await expect(categoryField).toBeVisible();
 
     await foodToggle.click();
-    await expect(foodToggle).toHaveAttribute("aria-pressed", "true");
+    await expect(foodToggle).toHaveAttribute("aria-checked", "true");
 
-    await page.getByRole("radio", { name: "Income" }).click();
+    await page.getByTestId("income-radio-item").click();
     await expect(categoryField).toHaveCount(0);
 
-    await page.getByRole("radio", { name: "Expense" }).click();
+    await page.getByTestId("expense-radio-item").click();
     await expect(categoryField).toBeVisible();
   });
 

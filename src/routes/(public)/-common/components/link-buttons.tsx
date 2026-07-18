@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { LinkButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { GithubIcon } from "../icons/github-icon";
@@ -12,11 +12,12 @@ const iconClassName = "h-6 w-6 text-foreground opacity-50 transition-opacity hov
 export const LinkButtons = ({ className }: LinkButtonsProps) => {
   return (
     <div className={cn("flex gap-2", className)}>
-      <Button
+      <LinkButton
         variant="ghost"
         size="icon"
-        nativeButton={false}
-        render={<a href="mailto:contact@kevinperedo.com" target="_blank" rel="noreferrer" />}
+        href="mailto:contact@kevinperedo.com"
+        target="_blank"
+        rel="noreferrer"
         aria-label="Email link"
       >
         <svg
@@ -28,25 +29,25 @@ export const LinkButtons = ({ className }: LinkButtonsProps) => {
           <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
           <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
         </svg>
-      </Button>
+      </LinkButton>
 
-      <Button
+      <LinkButton
         variant="ghost"
         size="icon"
-        nativeButton={false}
-        render={<a href="https://github.com/kveperedo" target="_blank" rel="noreferrer" />}
+        href="https://github.com/kveperedo"
+        target="_blank"
+        rel="noreferrer"
         aria-label="Github link"
       >
         <GithubIcon className={iconClassName} />
-      </Button>
+      </LinkButton>
 
-      <Button
+      <LinkButton
         variant="ghost"
         size="icon"
-        nativeButton={false}
-        render={
-          <a href="https://www.linkedin.com/in/kveperedo/" target="_blank" rel="noreferrer" />
-        }
+        href="https://www.linkedin.com/in/kveperedo/"
+        target="_blank"
+        rel="noreferrer"
         aria-label="LinkedIn link"
       >
         <svg
@@ -64,7 +65,7 @@ export const LinkButtons = ({ className }: LinkButtonsProps) => {
             fill="currentColor"
           />
         </svg>
-      </Button>
+      </LinkButton>
     </div>
   );
 };

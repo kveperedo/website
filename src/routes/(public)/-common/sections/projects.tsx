@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 import { SECTION_IDS } from "../constants";
@@ -70,23 +70,25 @@ export const ProjectsSection = () => {
               <h4 className="mb-1 font-heading text-2xl font-semibold text-foreground">{name}</h4>
 
               <div className="flex items-center gap-2">
-                <Button
+                <LinkButton
                   size="icon"
                   variant="ghost"
-                  nativeButton={false}
-                  render={<a href={githubLink} target="_blank" rel="noreferrer" />}
+                  href={githubLink}
+                  target="_blank"
+                  rel="noreferrer"
                 >
                   <GithubIcon className="size-4" />
-                </Button>
+                </LinkButton>
                 {link && (
-                  <Button
+                  <LinkButton
                     size="icon"
                     variant="ghost"
-                    nativeButton={false}
-                    render={<a href={link} target="_blank" rel="noreferrer" />}
+                    href={link}
+                    target="_blank"
+                    rel="noreferrer"
                   >
                     <ExternalLink className="size-4" />
-                  </Button>
+                  </LinkButton>
                 )}
               </div>
             </div>

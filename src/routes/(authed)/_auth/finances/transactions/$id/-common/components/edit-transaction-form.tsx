@@ -14,7 +14,6 @@ import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
-  AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
@@ -120,14 +119,14 @@ function EditTransactionForm({
 
       <div className="flex shrink-0 gap-3">
         <BackButton to={backTo} search={backSearch} />
-        <Button className="flex-1 sm:flex-none" type="submit" disabled={mode === "saving"}>
+        <Button className="flex-1 sm:flex-none" type="submit" isDisabled={mode === "saving"}>
           {mode === "saving" && <Spinner data-icon="inline-start" />}
           Save Changes
         </Button>
 
-        <AlertDialog>
-          <AlertDialogTrigger render={<Button variant="destructive">Delete Transaction</Button>} />
-          <AlertDialogContent>
+        <AlertDialogTrigger>
+          <Button variant="destructive">Delete Transaction</Button>
+          <AlertDialog>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this transaction?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -138,15 +137,15 @@ function EditTransactionForm({
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
-                disabled={mode === "deleting"}
-                onClick={onDelete}
+                isDisabled={mode === "deleting"}
+                onPress={onDelete}
               >
                 {mode === "deleting" && <Spinner data-icon="inline-start" />}
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          </AlertDialog>
+        </AlertDialogTrigger>
       </div>
     </form>
   );

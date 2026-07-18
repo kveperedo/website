@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Link } from "@/components/link";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
@@ -18,15 +18,13 @@ export const RecentTransactionsCard = () => {
       {!isTransactionListEmpty && (
         <CardHeader className="flex flex-row items-center justify-between px-4 py-4">
           <CardTitle className="font-mono text-sm text-foreground">Recent transactions</CardTitle>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            nativeButton={false}
-            render={<Link to="/finances/transactions" />}
+          <Link
+            to="/finances/transactions"
+            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
             aria-label="View all transactions"
           >
             <ArrowUpRight />
-          </Button>
+          </Link>
         </CardHeader>
       )}
       <CardContent className="p-0">

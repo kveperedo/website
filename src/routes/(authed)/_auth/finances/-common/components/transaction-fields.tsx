@@ -113,13 +113,13 @@ function TypeField<TFieldValues extends FieldValues>({
       render={({ field: typeField, fieldState }) => (
         <Field>
           <FieldLabel className="text-sm tracking-wide text-foreground">Type</FieldLabel>
-          <RadioGroup
-            value={typeField.value}
-            onValueChange={typeField.onChange}
-            className="flex gap-4"
-          >
+          <RadioGroup value={typeField.value} onChange={typeField.onChange} className="flex gap-4">
             <div className="flex items-center gap-2">
-              <RadioGroupItem value="expense" id={`${name}-expense`} />
+              <RadioGroupItem
+                value="expense"
+                id={`${name}-expense`}
+                data-testid="expense-radio-item"
+              ></RadioGroupItem>
               <FieldLabel
                 htmlFor={`${name}-expense`}
                 className="text-sm tracking-wide text-foreground"
@@ -128,7 +128,11 @@ function TypeField<TFieldValues extends FieldValues>({
               </FieldLabel>
             </div>
             <div className="flex items-center gap-2">
-              <RadioGroupItem value="income" id={`${name}-income`} />
+              <RadioGroupItem
+                value="income"
+                id={`${name}-income`}
+                data-testid="income-radio-item"
+              />
               <FieldLabel
                 htmlFor={`${name}-income`}
                 className="text-sm tracking-wide text-foreground"
@@ -159,15 +163,15 @@ function CategoryField<TFieldValues extends FieldValues>({
         <Field>
           <FieldLabel className="text-sm tracking-wide text-foreground">Category</FieldLabel>
           <ToggleGroup
-            value={[catField.value ?? ""]}
-            onValueChange={(v) => catField.onChange((v?.[0] || null) as TransactionCategory)}
+            selectedKeys={catField.value ? [catField.value] : []}
+            onSelectionChange={(v) => catField.onChange(([...v][0] || null) as TransactionCategory)}
             variant="outline"
             className="flex flex-wrap gap-2"
           >
             {CATEGORIES.map(({ value, label }) => {
               const colors = CATEGORY_COLORS[value];
               return (
-                <CategoryToggleGroupItem key={value} value={value} colors={colors}>
+                <CategoryToggleGroupItem key={value} id={value} colors={colors}>
                   {label}
                 </CategoryToggleGroupItem>
               );
