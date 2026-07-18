@@ -1,9 +1,9 @@
+import { cloudflare } from "@cloudflare/vite-plugin";
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
-import { nitro } from "nitro/vite";
 import { defineConfig } from "vitest/config";
 
 const isTest = process.env.VITEST === "true";
@@ -13,7 +13,7 @@ const config = defineConfig({
   plugins: [
     ...(isTest
       ? []
-      : [devtools(), nitro({ rollupConfig: { external: [/^@sentry\//] } }), tanstackStart()]),
+      : [devtools(), cloudflare({ viteEnvironment: { name: "ssr" } }), tanstackStart()]),
     tailwindcss(),
     viteReact(),
     babel({ presets: [reactCompilerPreset()] }),

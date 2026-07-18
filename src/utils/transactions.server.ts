@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import type { TransactionInputType } from "@/generated/zod/schemas";
 
-import { db } from "@/db/client";
+import { getDb } from "@/db/client";
 import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/transaction";
 
 const getCurrentMonthRange = () => {
@@ -21,7 +21,7 @@ const getCurrentMonthRange = () => {
 export const getRecentTransactions = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
 
-  const transactions = await db.transaction.findMany({
+  const transactions = await getDb().transaction.findMany({
     where: { transactedAt: { gte: monthStart, lt: monthEnd } },
     orderBy: { transactedAt: "desc" },
     take: 10,
@@ -37,7 +37,7 @@ export const getTransactionsByMonth = async (year: number, month: number, q?: st
   const monthStart = new Date(year, month - 1, 1);
   const monthEnd = addMonths(monthStart, 1);
 
-  const transactions = await db.transaction.findMany({
+  const transactions = await getDb().transaction.findMany({
     where: {
       transactedAt: { gte: monthStart, lt: monthEnd },
       ...(q ? { description: { contains: q, mode: "insensitive" } } : {}),
@@ -54,7 +54,7 @@ export const getTransactionsByMonth = async (year: number, month: number, q?: st
 export const getMonthlySummary = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
 
-  const grouped = await db.transaction.groupBy({
+  const grouped = await getDb().transaction.groupBy({
     by: ["type"],
     where: { transactedAt: { gte: monthStart, lt: monthEnd } },
     _sum: { amount: true },
@@ -71,7 +71,7 @@ export const getMonthlySummary = async () => {
 export const getCategorySummary = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
 
-  const grouped = await db.transaction.groupBy({
+  const grouped = await getDb().transaction.groupBy({
     by: ["category"],
     where: {
       type: "expense",
@@ -123,7 +123,12 @@ Examples:
     tools: [parseTransactionsTool],
   });
 
-  await run(agent, text);
+  try {
+    await run(agent, text);
+  } catch (err) {
+    console.error("OpenAI parsing failed:", err);
+    throw new Error("Failed to parse transactions with AI. Please try again.");
+  }
 
   if (!parsedResult) {
     throw new Error("Failed to parse transactions");
@@ -141,26 +146,35 @@ Examples:
     }));
 };
 
-export const createTransactions = async (data: Array<TransactionInputType>) =>
-  db.transaction.createMany({
-    data: data.map((item) => ({
-      description: item.description.slice(0, DESCRIPTION_MAX_LENGTH),
-      amount: item.amount,
-      type: item.type,
-      category: item.category ?? undefined,
-      transactedAt: item.transactedAt,
-    })),
-  });
+export const createTransactions = async (data: Array<TransactionInputType>) => {
+  const transactions = await Promise.all(
+    data.map((transaction) =>
+      getDb().transaction.create({
+        data: {
+          description: transaction.description.slice(0, DESCRIPTION_MAX_LENGTH),
+          amount: transaction.amount,
+          type: transaction.type,
+          category: transaction.category ?? undefined,
+          transactedAt: transaction.transactedAt,
+        },
+      }),
+    ),
+  );
+
+  return {
+    count: transactions.length,
+  };
+};
 
 export const getTransactionById = async (id: string) => {
-  const transaction = await db.transaction.findUniqueOrThrow({
+  const transaction = await getDb().transaction.findUniqueOrThrow({
     where: { id },
   });
   return { ...transaction, amount: transaction.amount.toNumber() };
 };
 
 export const updateTransaction = async (id: string, data: TransactionInputType) => {
-  const transaction = await db.transaction.update({
+  const transaction = await getDb().transaction.update({
     where: { id },
     data: {
       description: data.description.slice(0, DESCRIPTION_MAX_LENGTH),
@@ -174,5 +188,5 @@ export const updateTransaction = async (id: string, data: TransactionInputType) 
 };
 
 export const deleteTransaction = async (id: string) => {
-  await db.transaction.delete({ where: { id } });
+  await getDb().transaction.delete({ where: { id } });
 };

@@ -1,6 +1,6 @@
 import { redirect } from "@tanstack/react-router";
 import { useSession } from "@tanstack/react-start/server";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 import { requireEnv } from "@/lib/env";
 
@@ -8,13 +8,11 @@ type SessionData = {
   isLoggedIn: boolean;
 };
 
-const SESSION_SECRET = requireEnv("SESSION_SECRET");
-const ADMIN_PASSWORD_HASH = requireEnv("ADMIN_PASSWORD_HASH");
-
 const useAppSession = () => {
+  const password = requireEnv("SESSION_SECRET");
   return useSession<SessionData>({
     name: "app-session",
-    password: SESSION_SECRET,
+    password,
     cookie: {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -45,6 +43,7 @@ export const getCurrentUser = async () => {
 };
 
 export const login = async (password: string) => {
+  const ADMIN_PASSWORD_HASH = requireEnv("ADMIN_PASSWORD_HASH");
   const passwordMatch = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
 
   if (!passwordMatch) {
