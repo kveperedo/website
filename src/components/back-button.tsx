@@ -1,9 +1,10 @@
 import type { LinkProps } from "@tanstack/react-router";
 
-import { Link, useCanGoBack, useRouter } from "@tanstack/react-router";
+import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Link } from "@/components/link";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type BackButtonProps = {
@@ -17,11 +18,28 @@ function BackButton({ variant = "label", className, to, search }: BackButtonProp
   const router = useRouter();
   const canGoBack = useCanGoBack();
 
-  const handleClick = () => {
+  const handlePress = () => {
     if (canGoBack) {
       router.history.back();
     }
   };
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        search={search}
+        className={buttonVariants({
+          variant: "ghost",
+          size: variant === "icon" ? "icon" : "default",
+          className: cn("self-start", className),
+        })}
+      >
+        <ArrowLeftIcon />
+        {variant === "label" && "Back"}
+      </Link>
+    );
+  }
 
   return (
     <Button
@@ -29,9 +47,7 @@ function BackButton({ variant = "label", className, to, search }: BackButtonProp
       size={variant === "icon" ? "icon" : "default"}
       aria-label="Go back"
       className={cn("self-start", className)}
-      {...(to
-        ? { nativeButton: false, render: <Link to={to} search={search} /> }
-        : { onClick: handleClick })}
+      onPress={handlePress}
     >
       <ArrowLeftIcon />
       {variant === "label" && "Back"}

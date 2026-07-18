@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { addMonths, format, subMonths } from "date-fns";
 import { ChevronLeft, ChevronRight, SearchIcon, X } from "lucide-react";
 import { useState } from "react";
@@ -7,7 +7,8 @@ import { z } from "zod";
 import type { TransactionItemAIType } from "@/schema/transaction";
 
 import { BackButton } from "@/components/back-button";
-import { Button } from "@/components/ui/button";
+import { Link } from "@/components/link";
+import { Button, buttonVariants, LinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
@@ -112,7 +113,7 @@ function RouteComponent() {
               <Button
                 variant="ghost"
                 size="icon-xs"
-                onClick={handleClear}
+                onPress={handleClear}
                 className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground"
                 aria-label="Clear search"
               >
@@ -123,47 +124,35 @@ function RouteComponent() {
             )}
           </div>
           <div className="flex items-center gap-0.5">
-            <Button
-              variant="secondary"
-              size="icon"
-              nativeButton={false}
-              render={
-                <Link
-                  to="/finances/transactions"
-                  search={{
-                    year: prevDate.getFullYear(),
-                    month: prevDate.getMonth() + 1,
-                    q: search.q || undefined,
-                  }}
-                />
-              }
+            <Link
+              to="/finances/transactions"
+              search={{
+                year: prevDate.getFullYear(),
+                month: prevDate.getMonth() + 1,
+                q: search.q || undefined,
+              }}
+              className={buttonVariants({ variant: "secondary", size: "icon" })}
               aria-label="Previous month"
             >
               <ChevronLeft />
-            </Button>
+            </Link>
             {isCurrentMonth ? (
-              <Button variant="secondary" size="icon" disabled aria-label="Next month">
+              <LinkButton variant="secondary" size="icon" isDisabled aria-label="Next month">
                 <ChevronRight />
-              </Button>
+              </LinkButton>
             ) : (
-              <Button
-                variant="secondary"
-                size="icon"
-                nativeButton={false}
-                render={
-                  <Link
-                    to="/finances/transactions"
-                    search={{
-                      year: nextDate.getFullYear(),
-                      month: nextDate.getMonth() + 1,
-                      q: search.q || undefined,
-                    }}
-                  />
-                }
+              <Link
+                to="/finances/transactions"
+                search={{
+                  year: nextDate.getFullYear(),
+                  month: nextDate.getMonth() + 1,
+                  q: search.q || undefined,
+                }}
+                className={buttonVariants({ variant: "secondary", size: "icon" })}
                 aria-label="Next month"
               >
                 <ChevronRight />
-              </Button>
+              </Link>
             )}
           </div>
         </div>

@@ -1,54 +1,62 @@
-import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog";
+"use client";
+
 import * as React from "react";
+import {
+  Dialog as AlertDialogPrimitive,
+  DialogTrigger as AlertDialogPrimitiveTrigger,
+  Heading,
+  Modal as ModalPrimitive,
+  ModalOverlay as ModalOverlayPrimitive,
+  Text,
+  type DialogTriggerProps as AlertDialogPrimitiveTriggerProps,
+  type ModalOverlayProps as ModalOverlayPrimitiveProps,
+} from "react-aria-components";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
-  return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
-}
-
-function AlertDialogTrigger({ ...props }: AlertDialogPrimitive.Trigger.Props) {
-  return <AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />;
-}
-
-function AlertDialogPortal({ ...props }: AlertDialogPrimitive.Portal.Props) {
-  return <AlertDialogPrimitive.Portal data-slot="alert-dialog-portal" {...props} />;
-}
-
-function AlertDialogOverlay({ className, ...props }: AlertDialogPrimitive.Backdrop.Props) {
+function AlertDialogTrigger({ children, ...props }: AlertDialogPrimitiveTriggerProps) {
   return (
-    <AlertDialogPrimitive.Backdrop
-      data-slot="alert-dialog-overlay"
-      className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
-        className,
-      )}
-      {...props}
-    />
+    <AlertDialogPrimitiveTrigger data-slot="alert-dialog-trigger" {...props}>
+      {children}
+    </AlertDialogPrimitiveTrigger>
   );
 }
 
-function AlertDialogContent({
+function AlertDialog({
   className,
   size = "default",
+  children,
   ...props
-}: AlertDialogPrimitive.Popup.Props & {
+}: Omit<ModalOverlayPrimitiveProps, "children"> & {
+  className?: string;
   size?: "default" | "sm";
+  children: React.ReactNode;
 }) {
   return (
-    <AlertDialogPortal>
-      <AlertDialogOverlay />
-      <AlertDialogPrimitive.Popup
+    <ModalOverlayPrimitive
+      data-slot="alert-dialog-overlay"
+      className={cn(
+        "fixed inset-0 isolate z-50 bg-black/10 duration-100 data-entering:animate-in data-entering:fade-in-0 data-exiting:animate-out data-exiting:fade-out-0 supports-backdrop-filter:backdrop-blur-xs",
+      )}
+      {...props}
+    >
+      <ModalPrimitive
         data-slot="alert-dialog-content"
         data-size={size}
         className={cn(
-          "group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 rounded-none bg-popover p-4 text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-[size=default]:max-w-xs data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 rounded-none bg-popover p-4 text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-entering:animate-in data-entering:fade-in-0 data-entering:zoom-in-95 data-exiting:animate-out data-exiting:fade-out-0 data-exiting:zoom-out-95 data-[size=default]:max-w-xs data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-sm",
           className,
         )}
-        {...props}
-      />
-    </AlertDialogPortal>
+      >
+        <AlertDialogPrimitive
+          role="alertdialog"
+          className="[display:inherit] [gap:inherit] outline-none"
+        >
+          {children}
+        </AlertDialogPrimitive>
+      </ModalPrimitive>
+    </ModalOverlayPrimitive>
   );
 }
 
@@ -94,9 +102,10 @@ function AlertDialogMedia({ className, ...props }: React.ComponentProps<"div">) 
 function AlertDialogTitle({
   className,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Title>) {
+}: Omit<React.ComponentProps<typeof Heading>, "slot">) {
   return (
-    <AlertDialogPrimitive.Title
+    <Heading
+      slot="title"
       data-slot="alert-dialog-title"
       className={cn(
         "font-heading text-sm font-medium sm:group-data-[size=default]/alert-dialog-content:group-has-data-[slot=alert-dialog-media]/alert-dialog-content:col-start-2",
@@ -107,12 +116,10 @@ function AlertDialogTitle({
   );
 }
 
-function AlertDialogDescription({
-  className,
-  ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Description>) {
+function AlertDialogDescription({ className, ...props }: React.ComponentProps<typeof Text>) {
   return (
-    <AlertDialogPrimitive.Description
+    <Text
+      slot="description"
       data-slot="alert-dialog-description"
       className={cn(
         "text-xs/relaxed text-balance text-muted-foreground md:text-pretty *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
@@ -124,7 +131,9 @@ function AlertDialogDescription({
 }
 
 function AlertDialogAction({ className, ...props }: React.ComponentProps<typeof Button>) {
-  return <Button data-slot="alert-dialog-action" className={cn(className)} {...props} />;
+  return (
+    <Button slot="close" data-slot="alert-dialog-action" className={cn(className)} {...props} />
+  );
 }
 
 function AlertDialogCancel({
@@ -132,13 +141,14 @@ function AlertDialogCancel({
   variant = "outline",
   size = "default",
   ...props
-}: AlertDialogPrimitive.Close.Props &
-  Pick<React.ComponentProps<typeof Button>, "variant" | "size">) {
+}: React.ComponentProps<typeof Button>) {
   return (
-    <AlertDialogPrimitive.Close
+    <Button
+      slot="close"
       data-slot="alert-dialog-cancel"
       className={cn(className)}
-      render={<Button variant={variant} size={size} />}
+      variant={variant}
+      size={size}
       {...props}
     />
   );
@@ -148,13 +158,10 @@ export {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
-  AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogMedia,
-  AlertDialogOverlay,
-  AlertDialogPortal,
   AlertDialogTitle,
   AlertDialogTrigger,
 };

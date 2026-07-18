@@ -1,6 +1,6 @@
-import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
+import { Button } from "react-aria-components";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -183,15 +183,15 @@ export const Timeline = ({
             </ul>
 
             {content.length > 2 && (
-              <ButtonPrimitive
-                onClick={() => setIsOpen((prev) => !prev)}
+              <Button
+                onPress={() => setIsOpen((prev) => !prev)}
                 className="flex w-full cursor-pointer items-center justify-center gap-1 px-6 py-3 text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
               >
                 {isOpen ? "Show less" : "Show more"}
                 <ChevronDownIcon
                   className={cn("size-4 transition-transform", isOpen && "rotate-180")}
                 />
-              </ButtonPrimitive>
+              </Button>
             )}
           </Card>
         )}

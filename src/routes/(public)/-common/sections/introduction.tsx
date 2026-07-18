@@ -1,7 +1,8 @@
-import { getRouteApi, Link } from "@tanstack/react-router";
+import { getRouteApi } from "@tanstack/react-router";
 import { BanknoteIcon, LogInIcon, SettingsIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Link } from "@/components/link";
+import { LinkButton, buttonVariants } from "@/components/ui/button";
 
 import { LinkButtons } from "../components/link-buttons";
 import { ScrollButton } from "../components/scroll-button";
@@ -21,20 +22,20 @@ export const IntroductionSection = () => {
       className="relative m-auto flex h-screen flex-col items-center justify-center gap-4"
     >
       <div className="absolute top-5 right-5 flex items-center gap-2">
-        <Button variant="ghost" size="sm" nativeButton={false} render={<Link to="/config" />}>
+        <Link to="/config" className={buttonVariants({ variant: "ghost", size: "sm" })}>
           <SettingsIcon className="size-4" />
           Config
-        </Button>
+        </Link>
         {isUserLoggedIn ? (
-          <Button variant="ghost" size="sm" nativeButton={false} render={<Link to="/finances" />}>
+          <Link to="/finances" className={buttonVariants({ variant: "ghost", size: "sm" })}>
             <BanknoteIcon className="size-4" />
             Finances
-          </Button>
+          </Link>
         ) : (
-          <Button variant="ghost" size="sm" nativeButton={false} render={<Link to="/login" />}>
+          <Link to="/login" className={buttonVariants({ variant: "ghost", size: "sm" })}>
             <LogInIcon className="size-4" />
             Login
-          </Button>
+          </Link>
         )}
       </div>
 
@@ -48,14 +49,15 @@ export const IntroductionSection = () => {
         </h4>
 
         <div className="mt-2 flex items-center gap-4">
-          <Button
+          <LinkButton
             variant="default"
             size="xl"
-            nativeButton={false}
-            render={<a href="/resume.pdf" target="_blank" rel="noopener noreferrer" />}
+            href="/resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Resume
-          </Button>
+          </LinkButton>
 
           <LinkButtons />
         </div>

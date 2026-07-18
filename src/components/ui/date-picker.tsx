@@ -1,10 +1,19 @@
+import { CalendarDate } from "@internationalized/date";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
+
+function dateToCalendarDate(date: Date): CalendarDate {
+  return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+}
+
+function calendarDateToDate(calendarDate: CalendarDate): Date {
+  return new Date(calendarDate.year, calendarDate.month - 1, calendarDate.day);
+}
 
 function DatePicker({
   value,
@@ -16,22 +25,21 @@ function DatePicker({
   const [open, setOpen] = React.useState(false);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger render={<Button variant="outline" />}>
+    <PopoverTrigger isOpen={open} onOpenChange={setOpen}>
+      <Button variant="outline">
         <CalendarIcon data-icon="inline-start" />
         {value ? format(value, "PPP") : <span className="text-muted-foreground">Pick a date</span>}
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0">
+      </Button>
+      <Popover placement="bottom start" className="w-auto p-0">
         <Calendar
-          mode="single"
-          selected={value}
-          onSelect={(date) => {
-            onChange?.(date);
+          value={value ? dateToCalendarDate(value) : undefined}
+          onChange={(date) => {
+            onChange?.(date ? calendarDateToDate(date as CalendarDate) : undefined);
             setOpen(false);
           }}
         />
-      </PopoverContent>
-    </Popover>
+      </Popover>
+    </PopoverTrigger>
   );
 }
 

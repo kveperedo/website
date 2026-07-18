@@ -62,7 +62,7 @@ test.describe("transactions", () => {
   test("previous month navigation updates the URL and month label", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    await page.getByRole("button", { name: "Previous month" }).click();
+    await page.getByRole("link", { name: "Previous month" }).click();
     await expect(page).toHaveURL(/\/finances\/transactions\?.*(year|month)=/);
 
     const prevLabel = format(subMonths(new Date(), 1), "MMMM yyyy");
@@ -72,7 +72,7 @@ test.describe("transactions", () => {
   test("next month button is disabled on the current month", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    await expect(page.getByRole("button", { name: "Next month" })).toBeDisabled();
+    await expect(page.getByRole("link", { name: "Next month" })).toBeDisabled();
   });
 
   test("typing a search query updates the URL", async ({ page }) => {
@@ -103,7 +103,7 @@ test.describe("transactions", () => {
     await expect(page).toHaveURL(/\/finances\/transactions\/.+/);
 
     await expect(page.getByRole("button", { name: "Delete Transaction" })).toBeVisible();
-    await page.getByRole("button", { name: "Go back" }).click();
+    await page.getByRole("link", { name: "Back" }).click();
     await expect(page).toHaveURL(/\/finances\/transactions$/);
   });
 
@@ -135,10 +135,10 @@ test.describe("transactions", () => {
   }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    await page.getByRole("button", { name: "Previous month" }).click();
+    await page.getByRole("link", { name: "Previous month" }).click();
     await expect(page).toHaveURL(/\/finances\/transactions\?.*(year|month)=/);
 
-    const nextMonth = page.getByRole("button", { name: "Next month" });
+    const nextMonth = page.getByRole("link", { name: "Next month" });
     await expect(nextMonth).toBeEnabled();
     await nextMonth.click();
 
@@ -152,7 +152,7 @@ test.describe("dashboard with data", () => {
     page,
   }) => {
     await gotoAndWaitForHydration(page, "/finances");
-    await page.getByRole("button", { name: "View all transactions" }).click();
+    await page.getByRole("link", { name: "View all transactions" }).click();
     await expect(page).toHaveURL(/\/finances\/transactions$/);
   });
 });

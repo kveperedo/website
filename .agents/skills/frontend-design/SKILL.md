@@ -71,7 +71,7 @@ Heading / text scale (from actual pages):
 
 ## Component Patterns
 
-All interactive primitives use **@base-ui/react** (Button, Input, Separator, Accordion). Native elements for simple wrappers (Label, Field). All components use `cva` (class-variance-authority) for variant management.
+All interactive primitives use **react-aria-components** (Button, Input, Separator, Accordion, Popover, Calendar). Native elements for simple wrappers (Label, Field). All components use `cva` (class-variance-authority) for variant management.
 
 ### `cn()` utility
 Import from `@/lib/utils` (uses `clsx` + `tailwind-merge`):
@@ -80,7 +80,7 @@ import { cn } from "@/lib/utils";
 ```
 
 ### Buttons (`@/components/ui/button`)
-Uses `@base-ui/react/button` + `cva`. All buttons have `rounded-none`.
+Uses `react-aria-components` `Button` + `cva`. All buttons have `rounded-none`.
 
 **Variants:**
 - `default` — `bg-primary text-primary-foreground hover:bg-primary/80`
@@ -92,14 +92,14 @@ Uses `@base-ui/react/button` + `cva`. All buttons have `rounded-none`.
 
 **Sizes:** `default` (h-8), `xs` (h-6), `sm` (h-7), `lg` (h-9), `xl` (h-11), `icon` (size-8), `icon-xs` (size-6), `icon-sm` (size-7), `icon-lg` (size-9)
 
-Use the `render` prop for links:
+Use `LinkButton` for links (exported from `@/components/ui/button`):
 ```tsx
-<Button render={<a href="/resume.pdf" target="_blank" rel="noreferrer" />}>
+<LinkButton href="/resume.pdf" target="_blank" rel="noreferrer">
   Resume
-</Button>
-<Button variant="ghost" size="icon-sm" render={<Link to="/" />}>
+</LinkButton>
+<LinkButton variant="ghost" size="icon-sm" href="/">
   <ArrowLeftIcon />
-</Button>
+</LinkButton>
 ```
 
 ### Cards
@@ -112,14 +112,14 @@ Sharp-edged (`rounded-none`), with glass effect and hover interaction:
 - Hover: subtle border/ring highlight via `hover:border-ring/40 hover:ring-1 hover:ring-ring/40`
 
 ### Badges (`@/components/ui/badge`)
-Uses `@base-ui/react/use-render` + `cva`. Sharp-edged (`rounded-none`), compact:
+Uses `cva` with a native `<span>`. Sharp-edged (`rounded-none`), compact:
 ```tsx
 <Badge variant="secondary">{label}</Badge>
 ```
 **Variants:** `default`, `secondary`, `destructive`, `outline`, `ghost`, `link` — same naming as button.
 
 ### Inputs (`@/components/ui/input`)
-Uses `@base-ui/react/input`. Sharp-edged with focus ring:
+Uses `react-aria-components` `Input`. Sharp-edged with focus ring:
 ```tsx
 <Input
   id="password"
@@ -147,17 +147,17 @@ Use `FieldGroup` > `Field` > `FieldLabel` + `<Input/>` + `FieldError` pattern:
 ```
 
 ### Separator (`@/components/ui/separator`)
-Uses `@base-ui/react/separator`:
+Uses `react-aria-components` `Separator`:
 ```tsx
 <Separator />  {/* horizontal (default) */}
 <Separator orientation="vertical" />
 ```
 
 ### Accordion (`@/components/ui/accordion`)
-Uses `@base-ui/react/accordion` with `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`. Chevron icons for expand/collapse.
+Uses `react-aria-components` `DisclosureGroup`/`Disclosure` with `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`. Chevron icons for expand/collapse.
 
 ### Spinner (`@/components/ui/spinner`)
-Simple loading indicator using `Loader2` from lucide-react with `animate-spin`.
+Simple loading indicator using `Loader2Icon` from lucide-react with `animate-spin`.
 
 ### Ambient Background (`@/components/background.tsx`)
 Fixed full-screen layer with multiple `blur-3xl` blobs. Reuse `<Background />` in root layout (`__root.tsx:48`). Don't recreate individual blobs.

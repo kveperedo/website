@@ -22,8 +22,8 @@ test("homepage hero shows name and position", async ({ page }) => {
 test("homepage has functional navigation links", async ({ page }) => {
   await gotoAndWaitForHydration(page, "/");
 
-  await expect(page.getByRole("button", { name: "Config" })).toHaveAttribute("href", "/config");
-  await expect(page.getByRole("button", { name: "Login" })).toHaveAttribute("href", "/login");
+  await expect(page.getByRole("link", { name: "Config" })).toHaveAttribute("href", "/config");
+  await expect(page.getByRole("link", { name: "Login" })).toHaveAttribute("href", "/login");
 });
 
 test("homepage contact links point to the right destinations", async ({ page }) => {
@@ -50,7 +50,7 @@ test("homepage contact links point to the right destinations", async ({ page }) 
 test("homepage resume button opens the resume in a new tab", async ({ page }) => {
   await gotoAndWaitForHydration(page, "/");
 
-  const resume = page.getByRole("button", { name: "Resume" });
+  const resume = page.getByRole("link", { name: "Resume" });
   await expect(resume).toHaveAttribute("href", "/resume.pdf");
   await expect(resume).toHaveAttribute("target", "_blank");
   await expect(resume).toHaveAttribute("rel", /noopener|noreferrer/);

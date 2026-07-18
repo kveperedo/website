@@ -8,6 +8,7 @@
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "typecheck": "tsc --noEmit",
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy",
@@ -24,10 +25,10 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@base-ui/react": "^1.6.0",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource-variable/manrope": "^5.2.8",
     "@hookform/resolvers": "^5.4.0",
+    "@internationalized/date": "^3.12.2",
     "@neondatabase/serverless": "^1.1.0",
     "@openai/agents": "^0.12.0",
     "@prisma/adapter-neon": "^7.8.0",
@@ -47,6 +48,7 @@
     "lucide-react": "^1.22.0",
     "openai": "^6.45.0",
     "react": "^19.2.7",
+    "react-aria-components": "^1.19.0",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.7",
     "react-hook-form": "^7.80.0",

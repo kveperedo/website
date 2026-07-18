@@ -6,7 +6,6 @@ import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
-  AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
@@ -125,18 +124,19 @@ function RouteComponent() {
           )}
 
           {dialogs.map((dialog) => (
-            <AlertDialog
+            <AlertDialogTrigger
               key={dialog.id}
-              open={openDialog === dialog.id}
+              isOpen={openDialog === dialog.id}
               onOpenChange={(open) => setOpenDialog(open ? dialog.id : null)}
             >
-              <AlertDialogTrigger
+              <Button
+                variant={dialog.buttonVariant}
+                className="w-full"
                 data-testid={dialog.triggerTestId}
-                render={<Button variant={dialog.buttonVariant} className="w-full" />}
               >
                 {dialog.buttonLabel}
-              </AlertDialogTrigger>
-              <AlertDialogContent>
+              </Button>
+              <AlertDialog>
                 <AlertDialogHeader>
                   <AlertDialogTitle>{dialog.title}</AlertDialogTitle>
                   <AlertDialogDescription>{dialog.description}</AlertDialogDescription>
@@ -145,14 +145,14 @@ function RouteComponent() {
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     data-testid={dialog.confirmTestId}
-                    disabled={pending === dialog.id}
-                    onClick={() => handleAction(dialog.id)}
+                    isDisabled={pending === dialog.id}
+                    onPress={() => handleAction(dialog.id)}
                   >
                     {pending === dialog.id ? dialog.confirmingLabel : dialog.confirmLabel}
                   </AlertDialogAction>
                 </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+              </AlertDialog>
+            </AlertDialogTrigger>
           ))}
         </CardContent>
       </Card>

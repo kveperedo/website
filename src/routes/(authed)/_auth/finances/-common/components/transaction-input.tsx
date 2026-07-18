@@ -53,8 +53,8 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
           size="icon-sm"
           data-testid="parse-transaction"
           className="absolute right-2.25 bottom-2.25 size-9 md:right-1.75 md:bottom-1.75 md:size-8"
-          onClick={handleParse}
-          disabled={!inputText.trim() || isParsing}
+          onPress={handleParse}
+          isDisabled={!inputText.trim() || isParsing}
         >
           {isParsing ? <Spinner /> : <ArrowUpIcon />}
         </Button>
