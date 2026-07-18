@@ -1,5 +1,6 @@
 import type * as React from "react";
 
+import { createLink } from "@tanstack/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   Button as ButtonPrimitive,
@@ -87,4 +88,6 @@ function LinkButton({
   );
 }
 
-export { Button, LinkButton, buttonVariants };
+const TanstackLinkButton = createLink(LinkButton);
+
+export { Button, LinkButton, TanstackLinkButton, buttonVariants };

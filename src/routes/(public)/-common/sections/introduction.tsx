@@ -1,8 +1,7 @@
 import { getRouteApi } from "@tanstack/react-router";
 import { BanknoteIcon, LogInIcon, SettingsIcon } from "lucide-react";
 
-import { Link } from "@/components/link";
-import { LinkButton, buttonVariants } from "@/components/ui/button";
+import { LinkButton, TanstackLinkButton } from "@/components/ui/button";
 
 import { LinkButtons } from "../components/link-buttons";
 import { ScrollButton } from "../components/scroll-button";
@@ -22,20 +21,20 @@ export const IntroductionSection = () => {
       className="relative m-auto flex h-screen flex-col items-center justify-center gap-4"
     >
       <div className="absolute top-5 right-5 flex items-center gap-2">
-        <Link to="/config" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-          <SettingsIcon className="size-4" />
+        <TanstackLinkButton to="/config" variant="ghost" size="sm">
+          <SettingsIcon />
           Config
-        </Link>
+        </TanstackLinkButton>
         {isUserLoggedIn ? (
-          <Link to="/finances" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-            <BanknoteIcon className="size-4" />
+          <TanstackLinkButton to="/finances" variant="ghost" size="sm">
+            <BanknoteIcon />
             Finances
-          </Link>
+          </TanstackLinkButton>
         ) : (
-          <Link to="/login" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-            <LogInIcon className="size-4" />
+          <TanstackLinkButton to="/login" variant="ghost" size="sm">
+            <LogInIcon />
             Login
-          </Link>
+          </TanstackLinkButton>
         )}
       </div>
 
