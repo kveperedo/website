@@ -72,7 +72,7 @@
 ## Testing
 
 - **Vitest** for unit tests (`npm run test`): `environment: "node"`, runs in `checks` CI job
-- **Playwright** for E2E tests (`npm run test:e2e`): runs against the deployed Vercel preview URL in CI
+- **Playwright** for E2E tests (`npm run test:e2e`): runs against the deployed Cloudflare Workers preview URL in CI
 - E2E tests live in `e2e/tests/`; Playwright config at `e2e/playwright.config.ts`
 - Auth helper at `e2e/helpers/auth.ts` navigates to `/login`, fills password from `E2E_PASSWORD` (sourced from `.env` locally or injected as a CI secret), and waits for redirect to `/finances`
 - Vitest SSR plugins (`tanstackStart`, `nitro`, `devtools`) are disabled when `VITEST=true` to avoid transform conflicts

@@ -85,7 +85,7 @@ Before doing either, ground yourself in the project's actual conventions:
   `login.spec.ts`, `home.spec.ts`.
 - Check `AGENTS.md` and `.env.example` for how E2E runs (`npm run dev` then
   `npm run test:e2e`, `BASE_URL` + `E2E_PASSWORD` loaded from `.env`, run against
-  the deployed Vercel preview URL in CI).
+  the deployed Cloudflare Workers preview URL in CI).
 
 ---
 
