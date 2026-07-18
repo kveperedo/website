@@ -7,8 +7,7 @@ import { z } from "zod";
 import type { TransactionItemAIType } from "@/schema/transaction";
 
 import { BackButton } from "@/components/back-button";
-import { Link } from "@/components/link";
-import { Button, buttonVariants, LinkButton } from "@/components/ui/button";
+import { Button, LinkButton, TanstackLinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
@@ -124,35 +123,37 @@ function RouteComponent() {
             )}
           </div>
           <div className="flex items-center gap-0.5">
-            <Link
+            <TanstackLinkButton
               to="/finances/transactions"
               search={{
                 year: prevDate.getFullYear(),
                 month: prevDate.getMonth() + 1,
                 q: search.q || undefined,
               }}
-              className={buttonVariants({ variant: "secondary", size: "icon" })}
+              variant="secondary"
+              size="icon"
               aria-label="Previous month"
             >
               <ChevronLeft />
-            </Link>
+            </TanstackLinkButton>
             {isCurrentMonth ? (
               <LinkButton variant="secondary" size="icon" isDisabled aria-label="Next month">
                 <ChevronRight />
               </LinkButton>
             ) : (
-              <Link
+              <TanstackLinkButton
                 to="/finances/transactions"
                 search={{
                   year: nextDate.getFullYear(),
                   month: nextDate.getMonth() + 1,
                   q: search.q || undefined,
                 }}
-                className={buttonVariants({ variant: "secondary", size: "icon" })}
+                variant="secondary"
+                size="icon"
                 aria-label="Next month"
               >
                 <ChevronRight />
-              </Link>
+              </TanstackLinkButton>
             )}
           </div>
         </div>

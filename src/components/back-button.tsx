@@ -3,8 +3,7 @@ import type { LinkProps } from "@tanstack/react-router";
 import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { Link } from "@/components/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button, TanstackLinkButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type BackButtonProps = {
@@ -26,18 +25,17 @@ function BackButton({ variant = "label", className, to, search }: BackButtonProp
 
   if (to) {
     return (
-      <Link
+      <TanstackLinkButton
         to={to}
         search={search}
-        className={buttonVariants({
-          variant: "ghost",
-          size: variant === "icon" ? "icon" : "default",
-          className: cn("self-start", className),
-        })}
+        variant="ghost"
+        size={variant === "icon" ? "icon" : "default"}
+        aria-label="Go back"
+        className={cn("self-start", className)}
       >
         <ArrowLeftIcon />
         {variant === "label" && "Back"}
-      </Link>
+      </TanstackLinkButton>
     );
   }
 
