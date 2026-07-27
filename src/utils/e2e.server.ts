@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { setDate, setHours, startOfMonth } from "date-fns";
+import { setDate, setHours, startOfMonth, subMonths } from "date-fns";
 
 import { getDb } from "@/db/client";
 
@@ -14,7 +14,16 @@ export function requireE2EAvailable() {
 }
 
 export async function resetTestData() {
-  await getDb().transaction.deleteMany();
+  const db = getDb();
+  const [templates, transactions] = await Promise.all([
+    db.scheduledTransactionTemplate.findMany({ select: { id: true } }),
+    db.transaction.findMany({ select: { id: true } }),
+  ]);
+
+  await Promise.all(
+    templates.map(({ id }) => db.scheduledTransactionTemplate.delete({ where: { id } })),
+  );
+  await Promise.all(transactions.map(({ id }) => db.transaction.delete({ where: { id } })));
 }
 
 export async function seedTestData() {
@@ -51,4 +60,31 @@ export async function seedTestData() {
       },
     }),
   ]);
+
+  const dueScheduleDate = subMonths(now, 1);
+  const template = await db.scheduledTransactionTemplate.create({
+    data: {
+      description: "E2E due scheduled transaction",
+      amount: 750.0,
+      type: "expense",
+      category: "bills_utilities",
+      dayOfMonth: now.getDate(),
+      startDate: dueScheduleDate,
+      maxOccurrences: 3,
+    },
+  });
+  const sourceTransaction = await db.transaction.create({
+    data: {
+      description: template.description,
+      amount: 750.0,
+      type: "expense",
+      category: "bills_utilities",
+      transactedAt: dueScheduleDate,
+      templateId: template.id,
+    },
+  });
+  await db.scheduledTransactionTemplate.update({
+    where: { id: template.id },
+    data: { sourceTransactionId: sourceTransaction.id },
+  });
 }

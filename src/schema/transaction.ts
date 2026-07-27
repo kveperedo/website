@@ -4,7 +4,7 @@ import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/Transac
 import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
 import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
-const today = new Date().toISOString().split("T")[0];
+import { ScheduledTransactionInputSchema } from "./scheduled-transaction";
 
 export const TransactionItemAISchema = z.object({
   description: TransactionInputSchema.shape.description
@@ -26,8 +26,30 @@ export const TransactionItemAISchema = z.object({
   transactedAt: z.iso
     .date()
     .describe(
-      `Transaction date in YYYY-MM-DD format. Use today (${today}) if no date is mentioned. Resolve relative dates: "yesterday" → subtract 1 day, "last Monday" → most recent Monday. If a date applies to multiple transactions on different lines, use the date from that line. If no date on a line, inherit from the previous transaction.`,
+      'Transaction date in YYYY-MM-DD format. Use the user\'s local date from the parsing instructions if no date is mentioned. Resolve relative dates: "yesterday" → subtract 1 day, "last Monday" → most recent Monday. If a date applies to multiple transactions on different lines, use the date from that line. If no date on a line, inherit from the previous transaction.',
     ),
 });
 
 export type TransactionItemAIType = z.infer<typeof TransactionItemAISchema>;
+
+export const CreateTransactionsInputSchema = z.array(
+  TransactionInputSchema.omit({
+    template: true,
+    templateId: true,
+  })
+    .extend({
+      schedule: ScheduledTransactionInputSchema.optional(),
+    })
+    .superRefine((transaction, ctx) => {
+      if (
+        transaction.schedule?.endDate &&
+        transaction.schedule.endDate < transaction.transactedAt.toISOString().slice(0, 10)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "End date cannot be before the transaction date",
+          path: ["schedule", "endDate"],
+        });
+      }
+    }),
+);

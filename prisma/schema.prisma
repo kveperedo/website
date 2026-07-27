@@ -32,16 +32,42 @@ enum TransactionType {
   @@map("transaction_types")
 }
 
-model Transaction {
-  id           String               @id @default(uuid()) @db.Uuid
-  description  String
-  amount       Decimal              @db.Decimal(10, 2)
-  type         TransactionType      @default(expense)
-  category     TransactionCategory?
-  transactedAt DateTime             @map("transacted_at") @db.Timestamptz(6)
-  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+model ScheduledTransactionTemplate {
+  id                  String               @id @default(uuid()) @db.Uuid
+  description         String
+  amount              Decimal              @db.Decimal(10, 2)
+  type                TransactionType      @default(expense)
+  category            TransactionCategory?
+  dayOfMonth          Int                  @map("day_of_month")
+  startDate           DateTime             @map("start_date") @db.Date
+  endDate             DateTime?            @map("end_date") @db.Date
+  maxOccurrences      Int?                 @map("max_occurrences")
+  isActive            Boolean              @default(true) @map("is_active")
+  sourceTransactionId String?              @unique @map("source_transaction_id") @db.Uuid
+  sourceTransaction   Transaction?         @relation("ScheduledTransactionSource", fields: [sourceTransactionId], references: [id], onDelete: SetNull)
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  transactions        Transaction[]        @relation("ScheduledTransaction")
 
+  @@index([isActive])
+  @@map("scheduled_transaction_templates")
+}
+
+model Transaction {
+  id                      String                        @id @default(uuid()) @db.Uuid
+  description             String
+  amount                  Decimal                       @db.Decimal(10, 2)
+  type                    TransactionType               @default(expense)
+  category                TransactionCategory?
+  transactedAt            DateTime                      @map("transacted_at") @db.Timestamptz(6)
+  templateId              String?                       @map("template_id") @db.Uuid
+  template                ScheduledTransactionTemplate? @relation("ScheduledTransaction", fields: [templateId], references: [id], onDelete: SetNull)
+  scheduledTemplateSource ScheduledTransactionTemplate? @relation("ScheduledTransactionSource")
+  createdAt               DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([templateId, transactedAt])
   @@index([transactedAt])
+  @@index([templateId])
   @@map("transactions")
 }

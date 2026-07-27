@@ -18,6 +18,7 @@ import { Route as authedAuthFinancesindexIndexRouteImport } from './routes/(auth
 import { Route as authedAuthFinancesTransactionsNewIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/new/index'
 import { Route as authedAuthFinancesTransactionsindexIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/(index)/index'
 import { Route as authedAuthFinancesTransactionsIdIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/$id/index'
+import { Route as authedAuthFinancesScheduledindexIndexRouteImport } from './routes/(authed)/_auth/finances/scheduled/(index)/index'
 
 const publicIndexRoute = publicIndexRouteImport.update({
   id: '/(public)/',
@@ -67,6 +68,12 @@ const authedAuthFinancesTransactionsIdIndexRoute =
     path: '/finances/transactions/$id/',
     getParentRoute: () => authedAuthRoute,
   } as any)
+const authedAuthFinancesScheduledindexIndexRoute =
+  authedAuthFinancesScheduledindexIndexRouteImport.update({
+    id: '/finances/scheduled/(index)/',
+    path: '/finances/scheduled/',
+    getParentRoute: () => authedAuthRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/login': typeof publicLoginRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/config/': typeof publicConfigIndexRoute
   '/e2e/': typeof authedAuthE2eIndexRoute
   '/finances/': typeof authedAuthFinancesindexIndexRoute
+  '/finances/scheduled/': typeof authedAuthFinancesScheduledindexIndexRoute
   '/finances/transactions/$id/': typeof authedAuthFinancesTransactionsIdIndexRoute
   '/finances/transactions/': typeof authedAuthFinancesTransactionsindexIndexRoute
   '/finances/transactions/new/': typeof authedAuthFinancesTransactionsNewIndexRoute
@@ -84,6 +92,7 @@ export interface FileRoutesByTo {
   '/config': typeof publicConfigIndexRoute
   '/e2e': typeof authedAuthE2eIndexRoute
   '/finances': typeof authedAuthFinancesindexIndexRoute
+  '/finances/scheduled': typeof authedAuthFinancesScheduledindexIndexRoute
   '/finances/transactions/$id': typeof authedAuthFinancesTransactionsIdIndexRoute
   '/finances/transactions': typeof authedAuthFinancesTransactionsindexIndexRoute
   '/finances/transactions/new': typeof authedAuthFinancesTransactionsNewIndexRoute
@@ -96,6 +105,7 @@ export interface FileRoutesById {
   '/(public)/config/': typeof publicConfigIndexRoute
   '/(authed)/_auth/e2e/': typeof authedAuthE2eIndexRoute
   '/(authed)/_auth/finances/(index)/': typeof authedAuthFinancesindexIndexRoute
+  '/(authed)/_auth/finances/scheduled/(index)/': typeof authedAuthFinancesScheduledindexIndexRoute
   '/(authed)/_auth/finances/transactions/$id/': typeof authedAuthFinancesTransactionsIdIndexRoute
   '/(authed)/_auth/finances/transactions/(index)/': typeof authedAuthFinancesTransactionsindexIndexRoute
   '/(authed)/_auth/finances/transactions/new/': typeof authedAuthFinancesTransactionsNewIndexRoute
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/config/'
     | '/e2e/'
     | '/finances/'
+    | '/finances/scheduled/'
     | '/finances/transactions/$id/'
     | '/finances/transactions/'
     | '/finances/transactions/new/'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/e2e'
     | '/finances'
+    | '/finances/scheduled'
     | '/finances/transactions/$id'
     | '/finances/transactions'
     | '/finances/transactions/new'
@@ -129,6 +141,7 @@ export interface FileRouteTypes {
     | '/(public)/config/'
     | '/(authed)/_auth/e2e/'
     | '/(authed)/_auth/finances/(index)/'
+    | '/(authed)/_auth/finances/scheduled/(index)/'
     | '/(authed)/_auth/finances/transactions/$id/'
     | '/(authed)/_auth/finances/transactions/(index)/'
     | '/(authed)/_auth/finances/transactions/new/'
@@ -206,12 +219,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authedAuthFinancesTransactionsIdIndexRouteImport
       parentRoute: typeof authedAuthRoute
     }
+    '/(authed)/_auth/finances/scheduled/(index)/': {
+      id: '/(authed)/_auth/finances/scheduled/(index)/'
+      path: '/finances/scheduled'
+      fullPath: '/finances/scheduled/'
+      preLoaderRoute: typeof authedAuthFinancesScheduledindexIndexRouteImport
+      parentRoute: typeof authedAuthRoute
+    }
   }
 }
 
 interface authedAuthRouteChildren {
   authedAuthE2eIndexRoute: typeof authedAuthE2eIndexRoute
   authedAuthFinancesindexIndexRoute: typeof authedAuthFinancesindexIndexRoute
+  authedAuthFinancesScheduledindexIndexRoute: typeof authedAuthFinancesScheduledindexIndexRoute
   authedAuthFinancesTransactionsIdIndexRoute: typeof authedAuthFinancesTransactionsIdIndexRoute
   authedAuthFinancesTransactionsindexIndexRoute: typeof authedAuthFinancesTransactionsindexIndexRoute
   authedAuthFinancesTransactionsNewIndexRoute: typeof authedAuthFinancesTransactionsNewIndexRoute
@@ -220,6 +241,8 @@ interface authedAuthRouteChildren {
 const authedAuthRouteChildren: authedAuthRouteChildren = {
   authedAuthE2eIndexRoute: authedAuthE2eIndexRoute,
   authedAuthFinancesindexIndexRoute: authedAuthFinancesindexIndexRoute,
+  authedAuthFinancesScheduledindexIndexRoute:
+    authedAuthFinancesScheduledindexIndexRoute,
   authedAuthFinancesTransactionsIdIndexRoute:
     authedAuthFinancesTransactionsIdIndexRoute,
   authedAuthFinancesTransactionsindexIndexRoute:

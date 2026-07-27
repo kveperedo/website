@@ -1,15 +1,20 @@
 import { expect, test, type Page } from "@playwright/test";
+import { addMonths, format } from "date-fns";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import {
+  createScheduledTransaction,
   createTransaction,
+  deleteScheduledTransactionTemplate,
   deleteTransaction,
+  deleteTransactionByDescription,
+  getTransactionId,
   openTransactionForEdit,
 } from "../helpers/transactions";
 
 const descriptionField = (page: Page) => page.getByTestId("description-input");
 
-test.describe.configure({ mode: "serial", timeout: 120000 });
+test.describe.configure({ mode: "serial", timeout: 60000 });
 
 test.describe("transaction mutations", () => {
   test("AI parse then save creates a transaction", async ({ page }) => {
@@ -56,6 +61,7 @@ test.describe("transaction mutations", () => {
     await expect(saveButton).toBeDisabled();
     await expect(saveButton).toBeEnabled();
 
+    await gotoAndWaitForHydration(page, `/finances/transactions/${id}`);
     await expect(descriptionField(page)).toHaveValue(updated);
     await deleteTransaction(page, id);
   });
@@ -88,20 +94,172 @@ test.describe("transaction mutations", () => {
   test("parsing from the dashboard creates a transaction and returns to the dashboard", async ({
     page,
   }) => {
+    const description = `E2E dashboard transaction ${Date.now()}`;
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+
+      const input = page.getByPlaceholder("Describe your transaction...");
+      await input.fill(`${description} 55`);
+      await page.getByTestId("parse-transaction").click();
+      await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+      await descriptionField(page).fill(description);
+
+      await page.getByRole("button", { name: "Save Transaction" }).click();
+      await page.waitForURL(/\/finances(\/?$|\?)/, { timeout: 30000 });
+
+      id = await getTransactionId(page, description);
+      await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toBeVisible();
+    } finally {
+      if (id) {
+        await deleteTransaction(page, id);
+      } else {
+        await deleteTransactionByDescription(page, description);
+      }
+    }
+  });
+
+  test("scheduling a new transaction creates a visible template", async ({ page }) => {
+    const description = `E2E scheduled new transaction ${Date.now()}`;
+    let id: string | undefined;
     await gotoAndWaitForHydration(page, "/finances");
 
-    const input = page.getByPlaceholder("Describe your transaction...");
-    await input.fill("Eggs 55");
-    await page.getByTestId("parse-transaction").click();
-    await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+    try {
+      id = await createScheduledTransaction(page, description);
+      await page.getByRole("link", { name: "Manage scheduled transactions" }).click();
+      await expect(page).toHaveURL(/\/finances\/scheduled$/);
 
-    await page.getByRole("button", { name: "Save Transaction" }).click();
-    await page.waitForURL(/\/finances(\/?$|\?)/, { timeout: 30000 });
+      const template = page.getByRole("group", { name: description });
+      await expect(template).toBeVisible();
+      await expect(template.getByText("1/3 occurrences")).toBeVisible();
+    } finally {
+      try {
+        await deleteScheduledTransactionTemplate(page, description);
+      } finally {
+        if (id) {
+          await deleteTransaction(page, id);
+        } else {
+          await deleteTransactionByDescription(page, description);
+        }
+      }
+    }
+  });
 
-    const id = await page
-      .locator("tr[data-transaction-id]")
-      .first()
-      .getAttribute("data-transaction-id");
-    await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toBeVisible();
+  test("scheduling a new transaction with no end condition shows No end", async ({ page }) => {
+    const description = `E2E no-end scheduled transaction ${Date.now()}`;
+    let id: string | undefined;
+    await gotoAndWaitForHydration(page, "/finances");
+
+    try {
+      id = await createScheduledTransaction(page, description, { endType: "none" });
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+
+      const template = page.getByRole("group", { name: description });
+      await expect(template).toBeVisible();
+      await expect(template.getByText("No end", { exact: true })).toBeVisible();
+    } finally {
+      try {
+        await deleteScheduledTransactionTemplate(page, description);
+      } finally {
+        if (id) {
+          await deleteTransaction(page, id);
+        } else {
+          await deleteTransactionByDescription(page, description);
+        }
+      }
+    }
+  });
+
+  test.describe("date-based scheduling", () => {
+    test.use({ timezoneId: "Asia/Manila" });
+
+    test("scheduling a new transaction until a date shows the end date", async ({ page }) => {
+      const description = `E2E date-end scheduled transaction ${Date.now()}`;
+      let id: string | undefined;
+      await gotoAndWaitForHydration(page, "/finances");
+      const browserToday = await page.evaluate(() => {
+        const now = new Date();
+        return { year: now.getFullYear(), month: now.getMonth(), day: now.getDate() };
+      });
+      const endDate = addMonths(
+        new Date(browserToday.year, browserToday.month, browserToday.day),
+        1,
+      );
+
+      try {
+        id = await createScheduledTransaction(page, description, { endType: "date", endDate });
+        await gotoAndWaitForHydration(page, "/finances/scheduled");
+
+        const template = page.getByRole("group", { name: description });
+        await expect(template).toBeVisible();
+        await expect(
+          template.getByText(`Until ${format(endDate, "MMM d, yyyy")}`, { exact: true }),
+        ).toBeVisible();
+      } finally {
+        try {
+          await deleteScheduledTransactionTemplate(page, description);
+        } finally {
+          if (id) {
+            await deleteTransaction(page, id);
+          } else {
+            await deleteTransactionByDescription(page, description);
+          }
+        }
+      }
+    });
+  });
+
+  test("an existing transaction can be made recurring and paused", async ({ page }) => {
+    const description = `E2E recurring existing transaction ${Date.now()}`;
+    let id: string | undefined;
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+
+    try {
+      id = await createTransaction(page, `${description} 75`, description);
+      await openTransactionForEdit(page, id);
+
+      await page.getByRole("button", { name: "Make recurring" }).click();
+      await expect(page.getByRole("heading", { name: "Make recurring" })).toBeVisible();
+      await page.getByRole("button", { name: "Create schedule" }).click();
+
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const template = page.getByRole("group", { name: description });
+      await expect(template).toBeVisible();
+      await template.getByRole("button", { name: "Pause" }).click();
+      await expect(template.getByRole("button", { name: "Resume" })).toBeVisible();
+
+      await openTransactionForEdit(page, id);
+      await expect(page.getByText("Paused", { exact: true })).toBeVisible();
+    } finally {
+      try {
+        await deleteScheduledTransactionTemplate(page, description);
+      } finally {
+        if (id) {
+          await deleteTransaction(page, id);
+        } else {
+          await deleteTransactionByDescription(page, description);
+        }
+      }
+    }
+  });
+
+  test("deleting a scheduled template preserves its source transaction", async ({ page }) => {
+    const description = `E2E deleted scheduled template ${Date.now()}`;
+    let id: string | undefined;
+    await gotoAndWaitForHydration(page, "/finances");
+
+    try {
+      id = await createScheduledTransaction(page, description);
+      await deleteScheduledTransactionTemplate(page, description);
+      await openTransactionForEdit(page, id);
+      await expect(page.getByRole("button", { name: "Make recurring" })).toBeVisible();
+    } finally {
+      if (id) {
+        await deleteTransaction(page, id);
+      } else {
+        await deleteTransactionByDescription(page, description);
+      }
+    }
   });
 });

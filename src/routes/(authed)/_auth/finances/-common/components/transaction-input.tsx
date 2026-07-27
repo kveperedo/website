@@ -1,6 +1,7 @@
 "use client";
 
 import { useServerFn } from "@tanstack/react-start";
+import { format } from "date-fns";
 import { ArrowUpIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -29,7 +30,9 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
     setIsParsing(true);
     setError(null);
     try {
-      const result = await parseTransactionWithAI({ data: inputText });
+      const result = await parseTransactionWithAI({
+        data: { text: inputText, localDate: format(new Date(), "yyyy-MM-dd") },
+      });
       onParsed(result);
     } catch {
       setError("Failed to parse transactions. Please try again.");
