@@ -51,9 +51,14 @@ export const getTransactionsByMonthFn = createServerFn()
 
 export const parseTransactionWithAIFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(z.string().max(1000, "Input too long — max 1000 characters"))
-  .handler(async ({ data: text }) => {
-    return await parseTransactions(text);
+  .inputValidator(
+    z.object({
+      text: z.string().max(1000, "Input too long — max 1000 characters"),
+      localDate: z.iso.date(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    return await parseTransactions(data.text, data.localDate);
   });
 
 export const createTransactionsFn = createServerFn({ method: "POST" })

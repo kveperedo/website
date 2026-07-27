@@ -8,6 +8,18 @@ type ScheduleEnd =
   | { endType: "count"; maxOccurrences: number }
   | { endType: "date"; endDate: Date };
 
+const PARSE_TEXT = "Test purchase 75";
+
+async function expectParsedDateToBeToday(page: Page) {
+  const { year, month, day } = await page.evaluate(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth(), day: now.getDate() };
+  });
+  const today = format(new Date(year, month, day), "MMMM do, yyyy");
+
+  await expect(page.getByRole("button", { name: "Date" })).toContainText(today);
+}
+
 export async function createTransaction(
   page: Page,
   text: string,
@@ -18,6 +30,7 @@ export async function createTransaction(
   await page.getByTestId("parse-transaction").click();
 
   await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+  await expectParsedDateToBeToday(page);
   await page.getByTestId("description-input").fill(description);
 
   await page.getByRole("button", { name: "Save Transaction" }).click();
@@ -32,10 +45,11 @@ export async function createScheduledTransaction(
   scheduleEnd: ScheduleEnd = { endType: "count", maxOccurrences: 3 },
 ): Promise<string> {
   const input = page.getByPlaceholder("Describe your transaction...");
-  await input.fill(`${description} 75`);
+  await input.fill(PARSE_TEXT);
   await page.getByTestId("parse-transaction").click();
 
   await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+  await expectParsedDateToBeToday(page);
   await page.getByTestId("description-input").fill(description);
   const scheduleCheckbox = page.getByRole("checkbox", { name: "Schedule transaction" });
   await page.getByText("Schedule transaction", { exact: true }).click();

@@ -6,8 +6,6 @@ import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/T
 
 import { ScheduledTransactionInputSchema } from "./scheduled-transaction";
 
-const today = new Date().toISOString().split("T")[0];
-
 export const TransactionItemAISchema = z.object({
   description: TransactionInputSchema.shape.description
     .min(1)
@@ -28,7 +26,7 @@ export const TransactionItemAISchema = z.object({
   transactedAt: z.iso
     .date()
     .describe(
-      `Transaction date in YYYY-MM-DD format. Use today (${today}) if no date is mentioned. Resolve relative dates: "yesterday" → subtract 1 day, "last Monday" → most recent Monday. If a date applies to multiple transactions on different lines, use the date from that line. If no date on a line, inherit from the previous transaction.`,
+      'Transaction date in YYYY-MM-DD format. Use the user\'s local date from the parsing instructions if no date is mentioned. Resolve relative dates: "yesterday" → subtract 1 day, "last Monday" → most recent Monday. If a date applies to multiple transactions on different lines, use the date from that line. If no date on a line, inherit from the previous transaction.',
     ),
 });
 

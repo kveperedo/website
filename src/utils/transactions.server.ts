@@ -89,10 +89,11 @@ export const getCategorySummary = async () => {
     .sort((a, b) => b.total - a.total);
 };
 
-export const parseTransactions = async (text: string): Promise<Array<TransactionItemAIType>> => {
+export const parseTransactions = async (
+  text: string,
+  localDate: string,
+): Promise<Array<TransactionItemAIType>> => {
   let parsedResult: Array<TransactionItemAIType> | null = null;
-
-  const today = new Date().toISOString().split("T")[0];
 
   const parseTransactionsTool = tool({
     name: "parse_transactions",
@@ -122,7 +123,7 @@ Examples:
   const agent = new Agent({
     name: "transaction_parser",
     model: "gpt-5.4-nano",
-    instructions: `You are a transaction parser. Today's date is ${today}. Parse the user's input into structured transactions by calling the parse_transactions tool. Always call the tool even for a single transaction.`,
+    instructions: `You are a transaction parser. The user's local date is ${localDate}. If no date is mentioned, transactedAt must be exactly ${localDate}. Parse the user's input into structured transactions by calling the parse_transactions tool. Always call the tool even for a single transaction.`,
     tools: [parseTransactionsTool],
   });
 
