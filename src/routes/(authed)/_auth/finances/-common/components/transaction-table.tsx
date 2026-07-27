@@ -29,7 +29,11 @@ export const TransactionTable = ({ transactions, label }: TransactionTableProps)
   };
 
   return (
-    <table className="w-full font-mono text-sm" aria-label={label}>
+    <table className="w-full table-fixed font-mono text-sm" aria-label={label}>
+      <colgroup>
+        <col />
+        <col className="w-28" />
+      </colgroup>
       <thead className="sr-only">
         <tr>
           <th scope="col">Description</th>
@@ -64,9 +68,9 @@ export const TransactionTable = ({ transactions, label }: TransactionTableProps)
                 <span className="w-5 shrink-0 text-right text-xs text-muted-foreground">
                   {format(t.transactedAt, "dd")}
                 </span>
-                <div className={cn("flex flex-col", !t.category && "justify-center")}>
-                  <span className="flex items-center gap-1 leading-5">
-                    {t.description}
+                <div className={cn("flex min-w-0 flex-col", !t.category && "justify-center")}>
+                  <span className="flex min-w-0 items-center gap-1 leading-5">
+                    <span className="min-w-0 flex-1 truncate">{t.description}</span>
                     {t.templateId && (
                       <span
                         role="img"
