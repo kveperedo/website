@@ -4,6 +4,8 @@ import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/Transac
 import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
 import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
+import { ScheduledTransactionInputSchema } from "./scheduled-transaction";
+
 const today = new Date().toISOString().split("T")[0];
 
 export const TransactionItemAISchema = z.object({
@@ -31,3 +33,25 @@ export const TransactionItemAISchema = z.object({
 });
 
 export type TransactionItemAIType = z.infer<typeof TransactionItemAISchema>;
+
+export const CreateTransactionsInputSchema = z.array(
+  TransactionInputSchema.omit({
+    template: true,
+    templateId: true,
+  })
+    .extend({
+      schedule: ScheduledTransactionInputSchema.optional(),
+    })
+    .superRefine((transaction, ctx) => {
+      if (
+        transaction.schedule?.endDate &&
+        transaction.schedule.endDate < transaction.transactedAt.toISOString().slice(0, 10)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "End date cannot be before the transaction date",
+          path: ["schedule", "endDate"],
+        });
+      }
+    }),
+);

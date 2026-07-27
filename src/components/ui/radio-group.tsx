@@ -1,12 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import {
-  composeRenderProps,
   RadioGroup as RadioGroupPrimitive,
   RadioField,
   RadioButton,
   type RadioGroupProps,
-  type RadioFieldProps,
 } from "react-aria-components";
 
 import { cn } from "@/lib/utils";
@@ -21,31 +21,34 @@ function RadioGroup({ className, ...props }: RadioGroupProps) {
   );
 }
 
-function RadioGroupItem({ className, children, ...props }: RadioFieldProps) {
+function RadioGroupItem({
+  className,
+  children,
+  value,
+  ...rest
+}: {
+  className?: string;
+  children?: ReactNode;
+  value: string;
+  [key: string]: unknown;
+}) {
   return (
-    <RadioField
-      data-slot="radio-group-item"
-      className={cn("group/radio-group-item", className)}
-      {...props}
-    >
+    <RadioField value={value} {...rest}>
       <RadioButton
         className={cn(
-          "peer relative flex aspect-square size-4 shrink-0 rounded-full border border-input outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 aria-invalid:aria-checked:border-primary data-focus-visible:border-ring data-focus-visible:ring-3 data-focus-visible:ring-ring/50 data-invalid:border-destructive data-invalid:ring-3 data-invalid:ring-destructive/20 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 dark:bg-input/30 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 dark:data-invalid:border-destructive/50 dark:data-invalid:ring-destructive/40 data-selected:border-primary data-selected:bg-primary data-selected:text-primary-foreground data-invalid:data-selected:border-primary dark:data-selected:bg-primary",
+          "group flex items-center gap-2 text-xs text-foreground data-disabled:opacity-50",
+          className,
         )}
       >
-        {composeRenderProps(children, (children, { isSelected }) => (
-          <>
-            <span
-              data-slot="radio-group-indicator"
-              className="flex size-4 items-center justify-center"
-            >
-              {isSelected && (
-                <span className="absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-foreground" />
-              )}
-            </span>
-            {children}
-          </>
-        ))}
+        <span
+          data-slot="radio-group-indicator"
+          className={cn(
+            "relative flex aspect-square size-4 shrink-0 items-center justify-center rounded-full border border-input outline-none group-focus-visible:border-ring group-focus-visible:ring-3 group-focus-visible:ring-ring/50 group-aria-invalid:border-destructive group-aria-invalid:ring-3 group-aria-invalid:ring-destructive/20 group-data-focus-visible:border-ring group-data-focus-visible:ring-3 group-data-focus-visible:ring-ring/50 group-data-invalid:border-destructive group-data-invalid:ring-3 group-data-invalid:ring-destructive/20 group-data-selected:border-primary group-data-selected:bg-primary group-data-selected:text-primary-foreground group-data-invalid:group-data-selected:border-primary group-data-disabled:cursor-not-allowed group-data-disabled:opacity-50 after:absolute after:-inset-x-3 after:-inset-y-2 dark:bg-input/30 dark:group-aria-invalid:border-destructive/50 dark:group-aria-invalid:ring-destructive/40 dark:group-data-invalid:border-destructive/50 dark:group-data-invalid:ring-destructive/40 dark:group-data-selected:bg-primary",
+          )}
+        >
+          <span className="hidden size-2 rounded-full bg-primary-foreground group-data-selected:block" />
+        </span>
+        {children}
       </RadioButton>
     </RadioField>
   );

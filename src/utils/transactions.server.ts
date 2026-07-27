@@ -1,14 +1,17 @@
-const DESCRIPTION_MAX_LENGTH = 200;
-
 import { Agent, run, tool } from "@openai/agents";
 import { addMonths, startOfMonth } from "date-fns";
 import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 
-import type { TransactionInputType } from "@/generated/zod/schemas";
+import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
+import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 
 import { getDb } from "@/db/client";
 import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/transaction";
+
+import { databaseDateToDateOnly } from "./date-only";
+import { createScheduledTransaction } from "./scheduled-transactions.server";
+import { createTransaction, DESCRIPTION_MAX_LENGTH } from "./transaction-creation.server";
 
 const getCurrentMonthRange = () => {
   const now = new Date();
@@ -146,31 +149,45 @@ Examples:
     }));
 };
 
-export const createTransactions = async (data: Array<TransactionInputType>) => {
+type CreateTransactionsInput = Omit<TransactionInputType, "template" | "templateId"> & {
+  schedule?: ScheduledTransactionInput;
+};
+
+export const createTransactions = async (data: Array<CreateTransactionsInput>) => {
   const transactions = await Promise.all(
-    data.map((transaction) =>
-      getDb().transaction.create({
-        data: {
-          description: transaction.description.slice(0, DESCRIPTION_MAX_LENGTH),
-          amount: transaction.amount,
-          type: transaction.type,
-          category: transaction.category ?? undefined,
-          transactedAt: transaction.transactedAt,
-        },
-      }),
+    data.map(({ schedule, ...transaction }) =>
+      schedule ? createScheduledTransaction(transaction, schedule) : createTransaction(transaction),
     ),
   );
 
-  return {
-    count: transactions.length,
-  };
+  return { count: transactions.length };
 };
 
 export const getTransactionById = async (id: string) => {
   const transaction = await getDb().transaction.findUniqueOrThrow({
     where: { id },
+    include: {
+      template: {
+        select: {
+          dayOfMonth: true,
+          endDate: true,
+          maxOccurrences: true,
+          isActive: true,
+          _count: { select: { transactions: true } },
+        },
+      },
+    },
   });
-  return { ...transaction, amount: transaction.amount.toNumber() };
+  return {
+    ...transaction,
+    amount: transaction.amount.toNumber(),
+    template: transaction.template && {
+      ...transaction.template,
+      endDate: transaction.template.endDate
+        ? databaseDateToDateOnly(transaction.template.endDate)
+        : null,
+    },
+  };
 };
 
 export const updateTransaction = async (id: string, data: TransactionInputType) => {

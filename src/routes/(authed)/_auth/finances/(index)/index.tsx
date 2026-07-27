@@ -5,6 +5,10 @@ import type { TransactionItemAIType } from "@/schema/transaction";
 
 import { BackButton } from "@/components/back-button";
 import {
+  generateScheduledTransactionsFn,
+  getUpcomingScheduledTransactionTemplatesFn,
+} from "@/utils/scheduled-transactions.functions";
+import {
   getCategorySummaryFn,
   getMonthlySummaryFn,
   getRecentTransactionsFn,
@@ -14,6 +18,7 @@ import { TransactionInput } from "../-common/components/transaction-input";
 import { CategorySummaryCard } from "./-common/components/category-summary-card";
 import { RecentTransactionsCard } from "./-common/components/recent-transactions-card";
 import { SummaryNetCard } from "./-common/components/summary-net-card";
+import { UpcomingTransactionsCard } from "./-common/components/upcoming-transactions-card";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
   { title: "Finances | Kevin Von Erich Peredo" },
@@ -22,13 +27,15 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
   head: () => ({ meta: META }),
   loader: async () => {
-    const [transactions, summary, categorySummary] = await Promise.all([
+    await generateScheduledTransactionsFn();
+    const [transactions, summary, categorySummary, upcomingTransactions] = await Promise.all([
       getRecentTransactionsFn(),
       getMonthlySummaryFn(),
       getCategorySummaryFn(),
+      getUpcomingScheduledTransactionTemplatesFn(),
     ]);
     const monthLabel = format(new Date(), "MMMM yyyy");
-    return { transactions, summary, categorySummary, monthLabel };
+    return { transactions, summary, categorySummary, upcomingTransactions, monthLabel };
   },
   component: RouteComponent,
 });
@@ -54,7 +61,10 @@ function RouteComponent() {
       </div>
 
       <div className="container mx-auto my-4 flex max-w-2xl flex-1 flex-col gap-4 overflow-y-auto px-4 pb-8">
-        <SummaryNetCard />
+        <div className="flex gap-4">
+          <SummaryNetCard />
+          <UpcomingTransactionsCard />
+        </div>
         <RecentTransactionsCard />
         <CategorySummaryCard />
       </div>

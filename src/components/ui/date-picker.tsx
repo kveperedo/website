@@ -16,9 +16,11 @@ function calendarDateToDate(calendarDate: CalendarDate): Date {
 }
 
 function DatePicker({
+  "aria-label": ariaLabel,
   value,
   onChange,
 }: {
+  "aria-label"?: string;
   value?: Date;
   onChange?: (date: Date | undefined) => void;
 }) {
@@ -26,7 +28,7 @@ function DatePicker({
 
   return (
     <PopoverTrigger isOpen={open} onOpenChange={setOpen}>
-      <Button variant="outline">
+      <Button variant="outline" aria-label={ariaLabel}>
         <CalendarIcon data-icon="inline-start" />
         {value ? format(value, "PPP") : <span className="text-muted-foreground">Pick a date</span>}
       </Button>

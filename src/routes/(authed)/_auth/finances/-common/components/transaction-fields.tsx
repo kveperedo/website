@@ -79,6 +79,7 @@ function DateField<TFieldValues extends FieldValues>({
         <Field>
           <FieldLabel className="text-sm tracking-wide text-foreground">Date</FieldLabel>
           <DatePicker
+            aria-label="Date"
             value={field.value ? new Date(field.value) : undefined}
             onChange={(date) => {
               if (!date) {

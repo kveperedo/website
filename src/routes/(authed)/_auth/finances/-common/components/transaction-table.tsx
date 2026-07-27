@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { format } from "date-fns";
+import { CalendarClock } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,7 @@ export type TransactionRow = {
   type: "expense" | "income";
   category: string | null;
   transactedAt: Date;
+  templateId: string | null;
 };
 
 type TransactionTableProps = {
@@ -63,7 +65,18 @@ export const TransactionTable = ({ transactions, label }: TransactionTableProps)
                   {format(t.transactedAt, "dd")}
                 </span>
                 <div className={cn("flex flex-col", !t.category && "justify-center")}>
-                  <span className="leading-5">{t.description}</span>
+                  <span className="flex items-center gap-1 leading-5">
+                    {t.description}
+                    {t.templateId && (
+                      <span
+                        role="img"
+                        aria-label="Scheduled transaction"
+                        title="Scheduled transaction"
+                      >
+                        <CalendarClock aria-hidden className="size-3 text-muted-foreground" />
+                      </span>
+                    )}
+                  </span>
                   {t.category && (
                     <span className="text-[10px]/3 text-muted-foreground">
                       {CATEGORY_LABELS[t.category as keyof typeof CATEGORY_LABELS]}
