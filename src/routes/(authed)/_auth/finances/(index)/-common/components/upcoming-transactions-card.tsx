@@ -2,7 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 
 import { TanstackLinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
@@ -30,7 +30,6 @@ export const UpcomingTransactionsCard = () => {
           <Empty>
             <EmptyHeader>
               <EmptyTitle>No upcoming transactions.</EmptyTitle>
-              <EmptyDescription>Schedule a transaction to see it here.</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
