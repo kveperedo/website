@@ -38,7 +38,7 @@ export const DayOfMonthField = <TFieldValues extends FieldValues>({
             />
             {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
             {field.value > 28 && !fieldState.error && (
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xxs text-muted-foreground">
                 Will generate on the last day for shorter months
               </span>
             )}

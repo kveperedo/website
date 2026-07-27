@@ -46,7 +46,7 @@ export const UpcomingTransactionsCard = () => {
                     <span className="truncate text-foreground">{t.description}</span>
                     <span
                       className={cn(
-                        "text-[10px]",
+                        "text-xxs",
                         t.type === "income"
                           ? TRANSACTION_TYPE_COLORS.income
                           : TRANSACTION_TYPE_COLORS.expense,

@@ -82,7 +82,7 @@ export const TransactionTable = ({ transactions, label }: TransactionTableProps)
                     )}
                   </span>
                   {t.category && (
-                    <span className="text-[10px]/3 text-muted-foreground">
+                    <span className="text-xxs/3 text-muted-foreground">
                       {CATEGORY_LABELS[t.category as keyof typeof CATEGORY_LABELS]}
                     </span>
                   )}
