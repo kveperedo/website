@@ -11,7 +11,7 @@ import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/tr
 
 import { databaseDateToDateOnly } from "./date-only";
 import { createScheduledTransaction } from "./scheduled-transactions.server";
-import { createTransaction, DESCRIPTION_MAX_LENGTH } from "./transaction-creation.server";
+import { createTransaction } from "./transaction-creation.server";
 
 const getCurrentMonthRange = () => {
   const now = new Date();
@@ -195,7 +195,7 @@ export const updateTransaction = async (id: string, data: TransactionInputType) 
   const transaction = await getDb().transaction.update({
     where: { id },
     data: {
-      description: data.description.slice(0, DESCRIPTION_MAX_LENGTH),
+      description: data.description,
       amount: data.amount,
       type: data.type,
       category: data.type === "income" ? null : (data.category ?? null),
