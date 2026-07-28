@@ -17,7 +17,7 @@
 
 - **TanStack Start** SSR app, file-based routing in `src/routes/`
 - Route groups: `(public)/` (homepage, login, config/mac setup) and `(authed)/_auth` (protected)
-- Server functions: `*.server.ts` (raw db/auth) + `*.functions.ts` (`createServerFn` wrappers); use `authMiddleware` for protected endpoints
+- Server functions: `*.server.ts` (raw db/auth) + `*.functions.ts` (`createServerFn` wrappers); use `authMiddleware` for protected endpoints. `serverFunctionLoggingMiddleware` is registered globally: log failures, successful mutations, and reads slower than 500 ms; never log request payloads or sensitive data. Do not log individual rate-limit rejections.
 - Import alias: `@/*` → `src/*`
 - Auth: session cookie (15-day max age), env vars `SESSION_SECRET` + `ADMIN_PASSWORD_HASH`
 - DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-neon`; config in `prisma.config.ts` (not `schema.prisma` datasource)
