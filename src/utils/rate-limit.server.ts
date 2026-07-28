@@ -2,6 +2,8 @@ import { getRequestIP } from "@tanstack/react-start/server";
 
 import { getBinding } from "@/lib/env";
 
+import { RateLimitError } from "./rate-limit-error";
+
 export async function checkRateLimit(limit: number, windowMs: number): Promise<void> {
   const ip = getRequestIP({ xForwardedFor: true }) ?? "unknown";
   const key = `ratelimit:${ip}`;
@@ -11,7 +13,7 @@ export async function checkRateLimit(limit: number, windowMs: number): Promise<v
   const count = raw ? Number.parseInt(raw, 10) + 1 : 1;
 
   if (count > limit) {
-    throw new Error("Too many requests. Try again later.");
+    throw new RateLimitError();
   }
 
   const ttl = Math.max(60, Math.ceil(windowMs / 1000));
