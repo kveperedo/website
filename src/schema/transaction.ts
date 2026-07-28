@@ -9,7 +9,6 @@ import { ScheduledTransactionInputSchema } from "./scheduled-transaction";
 export const TransactionItemAISchema = z.object({
   description: TransactionInputSchema.shape.description
     .min(1)
-    .max(200)
     .describe(
       "Clean, concise transaction description. Preserve the original text — do not paraphrase or reword. Only fix typos (and only if you're highly confident). Remove raw numbers (amount field captures them). Preserve merchant/vendor names when present.",
     ),

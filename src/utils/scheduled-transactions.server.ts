@@ -98,7 +98,7 @@ export const createScheduledTransaction = async (
   try {
     const template = await getDb().scheduledTransactionTemplate.create({
       data: {
-        description: data.description.slice(0, 200),
+        description: data.description,
         amount: data.amount,
         type: data.type,
         category: data.category ?? undefined,

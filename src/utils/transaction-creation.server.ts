@@ -2,14 +2,12 @@ import type { TransactionInputType } from "@/generated/zod/schemas/variants/inpu
 
 import { getDb } from "@/db/client";
 
-export const DESCRIPTION_MAX_LENGTH = 200;
-
 type CreateTransactionInput = Omit<TransactionInputType, "template">;
 
 export const createTransaction = async (data: CreateTransactionInput) => {
   const transaction = await getDb().transaction.create({
     data: {
-      description: data.description.slice(0, DESCRIPTION_MAX_LENGTH),
+      description: data.description,
       amount: data.amount,
       type: data.type,
       category: data.category ?? undefined,
