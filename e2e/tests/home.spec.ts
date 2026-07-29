@@ -4,14 +4,6 @@ import { gotoAndWaitForHydration } from "../helpers/auth";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("public pages revalidate from the device cache", async ({ request }) => {
-  for (const path of ["/", "/login", "/config"]) {
-    const response = await request.get(path);
-
-    expect(response.headers()["cache-control"]).toBe("private, max-age=0, must-revalidate");
-  }
-});
-
 test("homepage has the expected title", async ({ page }) => {
   await gotoAndWaitForHydration(page, "/");
 

@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 
 import { requireEnv } from "@/lib/env";
 
+import { cacheControl } from "./cache-control";
+
 type SessionData = {
   isLoggedIn: boolean;
 };
@@ -28,7 +30,7 @@ export const requireSession = async () => {
   if (!session.data.isLoggedIn) {
     throw redirect({
       to: "/login",
-      headers: { "Cache-Control": "no-store" },
+      headers: await cacheControl("no-store"),
     });
   }
 

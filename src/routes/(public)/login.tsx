@@ -9,6 +9,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { loginFn } from "@/utils/auth.functions";
+import { cacheControl } from "@/utils/cache-control";
 
 import { PUBLIC_CACHE_CONTROL } from "./-common/constants";
 
@@ -17,7 +18,7 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 ];
 
 export const Route = createFileRoute("/(public)/login")({
-  headers: () => ({ "Cache-Control": PUBLIC_CACHE_CONTROL }),
+  headers: () => cacheControl(PUBLIC_CACHE_CONTROL),
   head: () => ({ meta: META }),
   component: RouteComponent,
 });

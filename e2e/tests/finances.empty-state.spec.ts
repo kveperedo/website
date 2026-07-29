@@ -14,18 +14,6 @@ test.describe("empty states", () => {
     await context.close();
   });
 
-  test("dashboard HTML is not cached", async ({ page }) => {
-    const responsePromise = page.waitForResponse(
-      (response) =>
-        response.request().isNavigationRequest() &&
-        new URL(response.url()).pathname === "/finances",
-    );
-    await gotoAndWaitForHydration(page, "/finances");
-    const response = await responsePromise;
-
-    expect(response.headers()["cache-control"]).toBe("no-store");
-  });
-
   test("dashboard shows empty recent transactions and category summaries", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances");
 

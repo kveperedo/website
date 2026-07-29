@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { getCurrentUserFn } from "@/utils/auth.functions";
+import { cacheControl } from "@/utils/cache-control";
 
 import { FadeIn } from "./-common/components/fade-in";
 import { LinkButtons } from "./-common/components/link-buttons";
@@ -12,7 +13,7 @@ import { ProjectsSection } from "./-common/sections/projects";
 import { SummarySection } from "./-common/sections/summary";
 
 export const Route = createFileRoute("/(public)/")({
-  headers: () => ({ "Cache-Control": PUBLIC_CACHE_CONTROL }),
+  headers: () => cacheControl(PUBLIC_CACHE_CONTROL),
   head: () => ({ meta: META }),
   loader: async () => {
     const currentUser = await getCurrentUserFn();
