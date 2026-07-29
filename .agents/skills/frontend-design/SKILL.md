@@ -59,7 +59,7 @@ Heading / text scale (from actual pages):
 - List items: `text-sm leading-loose font-medium tracking-wide text-foreground`
 - Dates / captions: `font-mono text-sm text-muted-foreground`
 - Config page title: `font-mono text-5xl md:text-6xl font-medium text-foreground`
-- Config description: `text-lg leading-loose text-muted-foreground max-w-2xl`
+- Config description: `text-lg leading-loose text-muted-foreground`
 
 ## Spacing & Layout
 

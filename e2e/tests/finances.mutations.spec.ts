@@ -9,6 +9,7 @@ import {
   deleteTransaction,
   deleteTransactionByDescription,
   getTransactionId,
+  openTransactionComposer,
   openTransactionForEdit,
 } from "../helpers/transactions";
 
@@ -27,6 +28,7 @@ test.describe("transaction mutations", () => {
 
   test("new transaction form reflects type and category", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
 
     const input = page.getByPlaceholder("Describe your transaction...");
     await input.fill("Milk 75");
@@ -83,7 +85,10 @@ test.describe("transaction mutations", () => {
     await page.getByRole("button", { name: "Delete Transaction" }).click();
     await expect(page.getByText("Delete this transaction?")).toBeVisible();
 
-    await page.getByRole("button", { name: "Cancel" }).click();
+    await page
+      .getByLabel("Delete this transaction?")
+      .getByRole("button", { name: "Cancel" })
+      .click();
     await expect(page.getByText("Delete this transaction?")).toHaveCount(0);
 
     await expect(page).toHaveURL(new RegExp(`/finances/transactions/${id}`));
@@ -94,11 +99,12 @@ test.describe("transaction mutations", () => {
   test("parsing from the dashboard creates a transaction and returns to the dashboard", async ({
     page,
   }) => {
-    const description = `E2E dashboard transaction ${Date.now()}`;
+    const description = "Coffee beans";
     let id: string | undefined;
 
     try {
       await gotoAndWaitForHydration(page, "/finances");
+      await openTransactionComposer(page);
 
       const input = page.getByPlaceholder("Describe your transaction...");
       await input.fill(`${description} 55`);
@@ -121,7 +127,7 @@ test.describe("transaction mutations", () => {
   });
 
   test("scheduling a new transaction creates a visible template", async ({ page }) => {
-    const description = `E2E scheduled new transaction ${Date.now()}`;
+    const description = "Monthly gym membership";
     let id: string | undefined;
     await gotoAndWaitForHydration(page, "/finances");
 
@@ -147,7 +153,7 @@ test.describe("transaction mutations", () => {
   });
 
   test("scheduling a new transaction with no end condition shows No end", async ({ page }) => {
-    const description = `E2E no-end scheduled transaction ${Date.now()}`;
+    const description = "Cloud storage subscription";
     let id: string | undefined;
     await gotoAndWaitForHydration(page, "/finances");
 
@@ -175,7 +181,6 @@ test.describe("transaction mutations", () => {
     test.use({ timezoneId: "Asia/Manila" });
 
     test("scheduling a new transaction until a date shows the end date", async ({ page }) => {
-      const description = `E2E date-end scheduled transaction ${Date.now()}`;
       let id: string | undefined;
       await gotoAndWaitForHydration(page, "/finances");
       const browserToday = await page.evaluate(() => {
@@ -186,6 +191,7 @@ test.describe("transaction mutations", () => {
         new Date(browserToday.year, browserToday.month, browserToday.day),
         1,
       );
+      const description = `Vacation savings through ${format(endDate, "MMMM yyyy")}`;
 
       try {
         id = await createScheduledTransaction(page, description, { endType: "date", endDate });
@@ -211,7 +217,7 @@ test.describe("transaction mutations", () => {
   });
 
   test("an existing transaction can be made recurring and paused", async ({ page }) => {
-    const description = `E2E recurring existing transaction ${Date.now()}`;
+    const description = "Netflix subscription";
     let id: string | undefined;
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
@@ -222,6 +228,7 @@ test.describe("transaction mutations", () => {
       await page.getByRole("button", { name: "Make recurring" }).click();
       await expect(page.getByRole("heading", { name: "Make recurring" })).toBeVisible();
       await page.getByRole("button", { name: "Create schedule" }).click();
+      await expect(page.getByRole("heading", { name: "Make recurring" })).toHaveCount(0);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled");
       const template = page.getByRole("group", { name: description });
@@ -245,7 +252,7 @@ test.describe("transaction mutations", () => {
   });
 
   test("deleting a scheduled template preserves its source transaction", async ({ page }) => {
-    const description = `E2E deleted scheduled template ${Date.now()}`;
+    const description = "Magazine subscription";
     let id: string | undefined;
     await gotoAndWaitForHydration(page, "/finances");
 

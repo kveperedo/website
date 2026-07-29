@@ -1,9 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { z } from "zod";
 
-import { getTransactionByIdFn } from "@/utils/transactions.function";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { getTransactionByIdFn, updateTransactionFn } from "@/utils/transactions.function";
 
-import { EditTransactionForm } from "./-common/components/edit-transaction-form";
+import { FinanceContainer } from "../../-common/components/finance-container";
+import {
+  EditTransactionForm,
+  FORM_ID,
+  type EditFormData,
+} from "./-common/components/edit-transaction-form";
 
 const searchSchema = z.object({
   year: z.coerce.number().int().min(2020).max(2100).optional(),
@@ -31,18 +40,62 @@ export const Route = createFileRoute("/(authed)/_auth/finances/transactions/$id/
 });
 
 function RouteComponent() {
+  const router = useRouter();
   const search = Route.useSearch();
+  const { transaction } = Route.useLoaderData();
+  const updateTransaction = useServerFn(updateTransactionFn);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleBack = () => {
+    router.navigate({
+      to: "/finances/transactions",
+      search: { year: search.year, month: search.month, q: search.q || undefined },
+    });
+  };
+
+  const handleSubmit = async (updatedTransaction: EditFormData) => {
+    setIsSaving(true);
+    try {
+      await updateTransaction({
+        data: {
+          id: transaction.id,
+          data: {
+            ...updatedTransaction,
+            category: updatedTransaction.type === "income" ? null : updatedTransaction.category,
+            transactedAt: new Date(updatedTransaction.transactedAt),
+          },
+        },
+      });
+      await router.invalidate();
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
-    <main className="relative flex h-dvh flex-col">
+    <FinanceContainer.Root
+      footer={
+        <div className="container mx-auto flex h-16 items-center justify-end gap-4 px-4">
+          <Button variant="secondary" className="flex-1 sm:flex-none" onPress={handleBack}>
+            Cancel
+          </Button>
+          <Button
+            className="flex-1 sm:flex-none"
+            type="submit"
+            form={FORM_ID}
+            isDisabled={isSaving}
+          >
+            {isSaving && <Spinner data-icon="inline-start" />}
+            Save Changes
+          </Button>
+        </div>
+      }
+    >
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="container mx-auto flex h-full max-w-lg flex-col items-center justify-center px-4 py-8 md:max-w-xl lg:max-w-2xl">
-          <EditTransactionForm
-            backTo="/finances/transactions"
-            backSearch={{ year: search.year, month: search.month, q: search.q || undefined }}
-          />
+        <div className="container mx-auto flex h-full flex-col items-center justify-center p-6 sm:px-4 sm:py-8">
+          <EditTransactionForm onSubmit={handleSubmit} />
         </div>
       </div>
-    </main>
+    </FinanceContainer.Root>
   );
 }

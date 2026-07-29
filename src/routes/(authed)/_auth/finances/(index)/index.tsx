@@ -1,9 +1,6 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
 
-import type { TransactionItemAIType } from "@/schema/transaction";
-
-import { BackButton } from "@/components/back-button";
 import {
   generateScheduledTransactionsFn,
   getUpcomingScheduledTransactionTemplatesFn,
@@ -14,7 +11,7 @@ import {
   getRecentTransactionsFn,
 } from "@/utils/transactions.function";
 
-import { TransactionInput } from "../-common/components/transaction-input";
+import { FinanceContainer } from "../-common/components/finance-container";
 import { CategorySummaryCard } from "./-common/components/category-summary-card";
 import { RecentTransactionsCard } from "./-common/components/recent-transactions-card";
 import { SummaryNetCard } from "./-common/components/summary-net-card";
@@ -41,37 +38,21 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
 });
 
 function RouteComponent() {
-  const router = useRouter();
   const { monthLabel } = Route.useLoaderData();
 
-  const handleParsed = (transactions: Array<TransactionItemAIType>) => {
-    router.navigate({
-      to: "/finances/transactions/new",
-      search: { transactions, returnTo: "/finances" },
-    });
-  };
-
   return (
-    <main className="relative flex h-dvh flex-col overflow-hidden">
-      <div className="container mx-auto max-w-2xl p-4 pb-0">
-        <div className="flex items-center gap-2">
-          <BackButton variant="icon" to="/" />
-          <h1 className="font-heading text-lg text-foreground">{monthLabel}</h1>
-        </div>
-      </div>
-
-      <div className="container mx-auto my-4 flex max-w-2xl flex-1 flex-col gap-4 overflow-y-auto px-4 pb-8">
+    <FinanceContainer.Root footer={<FinanceContainer.Footer />}>
+      <div className="container mx-auto flex flex-1 flex-col gap-4 p-4">
+        <h2 className="sr-only">{monthLabel}</h2>
         <div className="flex gap-4">
           <SummaryNetCard />
           <UpcomingTransactionsCard />
         </div>
-        <RecentTransactionsCard />
-        <CategorySummaryCard />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+          <RecentTransactionsCard />
+          <CategorySummaryCard />
+        </div>
       </div>
-
-      <div className="container mx-auto max-w-2xl px-4 pb-6">
-        <TransactionInput onParsed={handleParsed} />
-      </div>
-    </main>
+    </FinanceContainer.Root>
   );
 }

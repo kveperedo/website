@@ -2,6 +2,9 @@ import { expect, test } from "@playwright/test";
 import { format, subMonths } from "date-fns";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
+import { openTransactionComposer } from "../helpers/transactions";
+
+test.describe.configure({ mode: "serial" });
 
 test.describe("dashboard", () => {
   test("finances dashboard loads after login", async ({ page }) => {
@@ -11,23 +14,60 @@ test.describe("dashboard", () => {
     await expect(page.getByRole("main")).toBeVisible();
   });
 
-  test("dashboard shows the current month heading", async ({ page }) => {
+  test("dashboard shows the current month", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances");
 
     const monthLabel = format(new Date(), "MMMM yyyy");
-    await expect(page.getByRole("heading", { level: 1, name: monthLabel })).toBeVisible();
+    await expect(
+      page.getByRole("paragraph").filter({ hasText: new RegExp(`^${monthLabel}$`) }),
+    ).toBeVisible();
   });
 
-  test("dashboard shows the transaction input with a disabled parse button when empty", async ({
+  test("dashboard opens the transaction composer with a disabled parse button when empty", async ({
     page,
   }) => {
     await gotoAndWaitForHydration(page, "/finances");
+    await expect(page.getByPlaceholder("Describe your transaction...")).toHaveCount(0);
+
+    await openTransactionComposer(page);
 
     const input = page.getByPlaceholder("Describe your transaction...");
     await expect(input).toBeVisible();
 
     const parseButton = page.getByTestId("parse-transaction");
     await expect(parseButton).toBeDisabled();
+  });
+
+  test("footer navigation changes sections and closes an unsubmitted composer", async ({
+    page,
+  }) => {
+    await gotoAndWaitForHydration(page, "/finances");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Describe your transaction...");
+    const navigation = page.getByRole("navigation", { name: "Finance navigation" });
+    await input.fill("Coffee 120");
+    await navigation.getByRole("link", { name: "Transactions", exact: true }).click();
+
+    await expect(page).toHaveURL(/\/finances\/transactions$/);
+    await expect(input).toHaveCount(0);
+    await expect(
+      navigation.getByRole("link", { name: "Transactions", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+
+    await navigation.getByRole("link", { name: "Scheduled", exact: true }).click();
+    await expect(page).toHaveURL(/\/finances\/scheduled$/);
+    await expect(navigation.getByRole("link", { name: "Scheduled", exact: true })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+
+    await navigation.getByRole("link", { name: "Dashboard", exact: true }).click();
+    await expect(page).toHaveURL(/\/finances$/);
+    await expect(navigation.getByRole("link", { name: "Dashboard", exact: true })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 
   test("dashboard shows the recent transactions card", async ({ page }) => {
@@ -109,15 +149,21 @@ test.describe("transactions", () => {
     await expect(page.getByRole("button", { name: "Delete Transaction" })).toBeVisible();
   });
 
-  test("back button on the edit page returns to the transactions list", async ({ page }) => {
+  test("Cancel discards edits and returns to the transactions list", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
     await page.locator("tr[data-transaction-id]").first().click();
     await expect(page).toHaveURL(/\/finances\/transactions\/.+/);
 
     await expect(page.getByRole("button", { name: "Delete Transaction" })).toBeVisible();
-    await page.getByRole("link", { name: "Back" }).click();
+    const originalDescription = await page.getByTestId("description-input").inputValue();
+    const transactionUrl = page.url();
+    await page.getByTestId("description-input").fill("Unsaved description");
+    await page.getByRole("button", { name: "Cancel" }).click();
     await expect(page).toHaveURL(/\/finances\/transactions$/);
+
+    await gotoAndWaitForHydration(page, transactionUrl);
+    await expect(page.getByTestId("description-input")).toHaveValue(originalDescription);
   });
 
   test("clear search button removes the query from the URL and input", async ({ page }) => {

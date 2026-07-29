@@ -4,17 +4,15 @@ import { ChevronLeft, ChevronRight, SearchIcon, X } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
-import type { TransactionItemAIType } from "@/schema/transaction";
-
-import { BackButton } from "@/components/back-button";
 import { Button, LinkButton, TanstackLinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import { TransactionInput } from "@/routes/(authed)/_auth/finances/-common/components/transaction-input";
 import { TransactionTable } from "@/routes/(authed)/_auth/finances/-common/components/transaction-table";
 import { generateScheduledTransactionsFn } from "@/utils/scheduled-transactions.functions";
 import { getTransactionsByMonthFn } from "@/utils/transactions.function";
+
+import { FinanceContainer } from "../../-common/components/finance-container";
 
 const searchSchema = z.object({
   year: z.coerce.number().int().min(2020).max(2100).optional(),
@@ -90,21 +88,14 @@ function RouteComponent() {
     });
   };
 
-  const handleParsed = (transactions: Array<TransactionItemAIType>) => {
-    router.navigate({
-      to: "/finances/transactions/new",
-      search: { transactions, returnTo: "/finances/transactions" },
-    });
-  };
-
   const hasNoTransactions = transactions.length === 0;
   const hasNoResults = hasNoTransactions && search.q;
 
   return (
-    <main className="relative flex h-dvh flex-col overflow-hidden">
-      <div className="container mx-auto max-w-2xl p-4 pb-0">
+    <FinanceContainer.Root footer={<FinanceContainer.Footer />}>
+      <div className="container mx-auto flex flex-1 flex-col gap-4 px-4 py-4">
+        <h2 className="sr-only">Transactions</h2>
         <div className="flex items-center gap-2">
-          <BackButton variant="icon" className="self-center" to="/finances" />
           <div className="relative flex-1">
             <Input
               className="pr-10"
@@ -163,9 +154,6 @@ function RouteComponent() {
             )}
           </div>
         </div>
-      </div>
-
-      <div className="container mx-auto my-4 flex max-w-2xl flex-1 flex-col gap-4 overflow-y-auto px-4 pb-8">
         {hasNoResults ? (
           <Card className="py-6">
             <Empty>
@@ -195,10 +183,6 @@ function RouteComponent() {
           </Card>
         )}
       </div>
-
-      <div className="container mx-auto max-w-2xl px-4 pb-6">
-        <TransactionInput onParsed={handleParsed} />
-      </div>
-    </main>
+    </FinanceContainer.Root>
   );
 }

@@ -13,7 +13,7 @@ export const RecentTransactionsCard = () => {
   const isTransactionListEmpty = transactions.length === 0;
 
   return (
-    <Card className={cn("gap-0 py-0", isTransactionListEmpty && "pt-6")}>
+    <Card className={cn("gap-0 py-0 sm:flex-1", isTransactionListEmpty && "pt-6")}>
       {!isTransactionListEmpty && (
         <CardHeader className="flex flex-row items-center justify-between px-4 py-4">
           <CardTitle className="font-mono text-xs text-muted-foreground">

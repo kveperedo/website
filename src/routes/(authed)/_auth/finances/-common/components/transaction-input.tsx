@@ -13,25 +13,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { parseTransactionWithAIFn } from "@/utils/transactions.function";
 
 type TransactionInputProps = {
+  autoFocus?: boolean;
+  value: string;
+  onValueChange: (value: string) => void;
   onParsed: (transactions: Array<TransactionItemAIType>) => void;
 };
 
-function TransactionInput({ onParsed }: TransactionInputProps) {
+function TransactionInput({ autoFocus, onParsed, onValueChange, value }: TransactionInputProps) {
   const parseTransactionWithAI = useServerFn(parseTransactionWithAIFn);
 
-  const [inputText, setInputText] = useState("");
   const [isParsing, setIsParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleParse = async () => {
-    if (!inputText.trim()) {
+    if (!value.trim()) {
       return;
     }
     setIsParsing(true);
     setError(null);
     try {
       const result = await parseTransactionWithAI({
-        data: { text: inputText, localDate: format(new Date(), "yyyy-MM-dd") },
+        data: { text: value, localDate: format(new Date(), "yyyy-MM-dd") },
       });
       onParsed(result);
     } catch {
@@ -46,9 +48,10 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
       <div className="relative">
         <Textarea
           rows={1}
-          className="max-h-40 min-h-10 resize-none overflow-y-auto py-3.5 pr-10"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
+          autoFocus={autoFocus}
+          className="max-h-40 min-h-10 resize-none overflow-y-auto border-none py-3.5 pr-10"
+          value={value}
+          onChange={(e) => onValueChange(e.target.value)}
           placeholder="Describe your transaction..."
           disabled={isParsing}
         />
@@ -57,7 +60,7 @@ function TransactionInput({ onParsed }: TransactionInputProps) {
           data-testid="parse-transaction"
           className="absolute right-2.25 bottom-2.25 size-9 md:right-1.75 md:bottom-1.75 md:size-8"
           onPress={handleParse}
-          isDisabled={!inputText.trim() || isParsing}
+          isDisabled={!value.trim() || isParsing}
         >
           {isParsing ? <Spinner /> : <ArrowUpIcon />}
         </Button>
