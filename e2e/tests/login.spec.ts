@@ -4,6 +4,14 @@ import { gotoAndWaitForHydration } from "../helpers/auth";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
+test("unauthenticated protected redirects are not cached", async ({ request }) => {
+  const response = await request.get("/finances", { maxRedirects: 0 });
+
+  expect(response.status()).toBe(307);
+  expect(new URL(response.headers().location, response.url()).pathname).toBe("/login");
+  expect(response.headers()["cache-control"]).toBe("no-store");
+});
+
 test("login page renders correctly", async ({ page }) => {
   await gotoAndWaitForHydration(page, "/login");
 

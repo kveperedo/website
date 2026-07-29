@@ -5,13 +5,14 @@ import { getCurrentUserFn } from "@/utils/auth.functions";
 import { FadeIn } from "./-common/components/fade-in";
 import { LinkButtons } from "./-common/components/link-buttons";
 import { ScrollButton } from "./-common/components/scroll-button";
-import { META, SECTION_IDS } from "./-common/constants";
+import { META, PUBLIC_CACHE_CONTROL, SECTION_IDS } from "./-common/constants";
 import { InfoSection } from "./-common/sections/info";
 import { IntroductionSection } from "./-common/sections/introduction";
 import { ProjectsSection } from "./-common/sections/projects";
 import { SummarySection } from "./-common/sections/summary";
 
 export const Route = createFileRoute("/(public)/")({
+  headers: () => ({ "Cache-Control": PUBLIC_CACHE_CONTROL }),
   head: () => ({ meta: META }),
   loader: async () => {
     const currentUser = await getCurrentUserFn();

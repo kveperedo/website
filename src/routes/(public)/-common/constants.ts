@@ -1,3 +1,5 @@
+export const PUBLIC_CACHE_CONTROL = "private, max-age=0, must-revalidate";
+
 export const SECTION_IDS = {
   INTRO: "intro",
   PROJECTS: "projects",

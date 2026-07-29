@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { BackButton } from "@/components/back-button";
 
+import { PUBLIC_CACHE_CONTROL } from "../-common/constants";
 import { MacSetup } from "./-common/sections/mac-setup";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
@@ -28,6 +29,7 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 ];
 
 export const Route = createFileRoute("/(public)/config/")({
+  headers: () => ({ "Cache-Control": PUBLIC_CACHE_CONTROL }),
   head: () => ({ meta: META }),
   component: ConfigRoute,
 });

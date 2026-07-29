@@ -26,7 +26,10 @@ export const requireSession = async () => {
   const session = await useAppSession();
 
   if (!session.data.isLoggedIn) {
-    throw redirect({ to: "/login" });
+    throw redirect({
+      to: "/login",
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   return session;
