@@ -10,11 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { loginFn } from "@/utils/auth.functions";
 
+import { PUBLIC_CACHE_CONTROL } from "./-common/constants";
+
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
   { title: "Login | Kevin Von Erich Peredo" },
 ];
 
 export const Route = createFileRoute("/(public)/login")({
+  headers: () => ({ "Cache-Control": PUBLIC_CACHE_CONTROL }),
   head: () => ({ meta: META }),
   component: RouteComponent,
 });
