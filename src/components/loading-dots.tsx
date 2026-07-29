@@ -71,7 +71,7 @@ function LoadingDots() {
   }
 
   return (
-    <div className="fixed right-4 bottom-4 z-50">
+    <div className="fixed top-4 right-4 z-50">
       <span className="flex size-12 items-center justify-center bg-card shadow-lg">
         <BrailleSpinner frame={frame} />
       </span>

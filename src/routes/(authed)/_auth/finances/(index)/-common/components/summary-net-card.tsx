@@ -6,12 +6,13 @@ import { Route } from "../..";
 import { TRANSACTION_TYPE_COLORS } from "../../../-common/constants";
 
 export const SummaryNetCard = () => {
-  const { summary } = Route.useLoaderData();
+  const { summary, monthLabel } = Route.useLoaderData();
   const isEmpty = summary.transactionCount === 0;
 
   return (
     <Card className={cn("min-w-0 flex-1 p-2", isEmpty && "py-6")}>
       <CardContent className="flex flex-col gap-1 p-2">
+        <p className="font-mono text-xs text-muted-foreground">{monthLabel}</p>
         {isEmpty ? (
           <Empty>
             <EmptyHeader>
@@ -21,7 +22,6 @@ export const SummaryNetCard = () => {
           </Empty>
         ) : (
           <>
-            <p className="font-mono text-xs text-muted-foreground">Transaction Summary</p>
             <p
               className={cn(
                 "font-mono text-xl font-medium",

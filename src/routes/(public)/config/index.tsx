@@ -39,7 +39,7 @@ function ConfigRoute() {
         <div className="mb-10">
           <BackButton to="/" />
 
-          <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
             My personal reference for setting up a new macOS machine, including apps, tools, and
             system preferences I rely on.
           </p>

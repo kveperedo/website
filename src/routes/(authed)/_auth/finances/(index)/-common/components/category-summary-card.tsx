@@ -50,7 +50,7 @@ export const CategorySummaryCard = () => {
   const chartHeight = Math.max(chartData.length * BAR_HEIGHT, 80);
 
   return (
-    <Card className={cn("gap-0 py-0", isEmpty && "pt-6")}>
+    <Card className={cn("gap-0 py-0 sm:flex-2", isEmpty && "pt-6")}>
       {!isEmpty && (
         <CardHeader className="px-4 py-4">
           <CardTitle className="font-mono text-sm text-foreground">Spending by category</CardTitle>

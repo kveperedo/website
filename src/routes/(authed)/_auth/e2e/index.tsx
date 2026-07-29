@@ -40,7 +40,7 @@ function RouteComponent() {
 
   if (!isAvailable) {
     return (
-      <main className="container mx-auto flex min-h-dvh max-w-2xl flex-col items-center justify-center px-8 py-16">
+      <main className="container mx-auto flex min-h-dvh flex-col items-center justify-center px-8 py-16">
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Not Available</CardTitle>
@@ -104,7 +104,7 @@ function RouteComponent() {
   ];
 
   return (
-    <main className="container mx-auto flex min-h-dvh max-w-2xl flex-col items-center justify-center px-8 py-16">
+    <main className="container mx-auto flex min-h-dvh flex-col items-center justify-center px-8 py-16">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>E2E Database Tools</CardTitle>

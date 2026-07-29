@@ -10,6 +10,11 @@ type ScheduleEnd =
 
 const PARSE_TEXT = "Test purchase 75";
 
+export async function openTransactionComposer(page: Page) {
+  await page.getByRole("button", { name: "Add transaction" }).press("Enter");
+  await expect(page.getByPlaceholder("Describe your transaction...")).toBeVisible();
+}
+
 async function expectParsedDateToBeToday(page: Page) {
   const { year, month, day } = await page.evaluate(() => {
     const now = new Date();
@@ -25,6 +30,7 @@ export async function createTransaction(
   text: string,
   description = text,
 ): Promise<string> {
+  await openTransactionComposer(page);
   const input = page.getByPlaceholder("Describe your transaction...");
   await input.fill(text);
   await page.getByTestId("parse-transaction").click();
@@ -44,6 +50,7 @@ export async function createScheduledTransaction(
   description: string,
   scheduleEnd: ScheduleEnd = { endType: "count", maxOccurrences: 3 },
 ): Promise<string> {
+  await openTransactionComposer(page);
   const input = page.getByPlaceholder("Describe your transaction...");
   await input.fill(PARSE_TEXT);
   await page.getByTestId("parse-transaction").click();
@@ -57,14 +64,14 @@ export async function createScheduledTransaction(
 
   if (scheduleEnd.endType === "count") {
     const endAfterCount = page.getByRole("radio", { name: "After N occurrences" });
-    await endAfterCount.click({ force: true });
+    await page.getByText("After N occurrences", { exact: true }).click();
     await expect(endAfterCount).toBeChecked();
     await page.getByLabel("Number of occurrences").fill(scheduleEnd.maxOccurrences.toString());
   }
 
   if (scheduleEnd.endType === "date") {
     const endOnDate = page.getByRole("radio", { name: "On date" });
-    await endOnDate.click({ force: true });
+    await page.getByText("On date", { exact: true }).click();
     await expect(endOnDate).toBeChecked();
 
     const endDatePicker = page.getByRole("button", { name: "End date" });

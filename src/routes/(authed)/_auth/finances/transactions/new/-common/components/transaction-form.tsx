@@ -1,9 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import {
   Controller,
   useFieldArray,
@@ -17,12 +15,9 @@ import {
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 import type { TransactionItemAIType } from "@/schema/transaction";
 
-import { BackButton } from "@/components/back-button";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Spinner } from "@/components/ui/spinner";
 import { type TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import {
   AmountField,
@@ -31,9 +26,7 @@ import {
   DescriptionField,
   TypeField,
 } from "@/routes/(authed)/_auth/finances/-common/components/transaction-fields";
-import { createTransactionsFn } from "@/utils/transactions.function";
 
-import { Route } from "../..";
 import {
   DayOfMonthField,
   EndDateField,
@@ -166,23 +159,21 @@ const TransactionCard = ({
   );
 };
 
+export const FORM_ID = "new-transaction-form";
+
 type TransactionFormProps = {
-  initialTransactions?: Array<TransactionItemAIType>;
+  transactions?: Array<TransactionItemAIType>;
+  onSubmit: (data: TransactionFormData) => void;
 };
 
-function TransactionForm({ initialTransactions }: TransactionFormProps) {
+function TransactionForm({ transactions, onSubmit }: TransactionFormProps) {
   const now = new Date().toISOString();
-  const router = useRouter();
-  const { returnTo } = Route.useSearch();
-
-  const [isSaving, setIsSaving] = useState(false);
-  const createTransactions = useServerFn(createTransactionsFn);
 
   const { control, getValues, handleSubmit, setValue } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
       transactions:
-        initialTransactions?.map((t) => ({
+        transactions?.map((t) => ({
           description: t.description,
           amount: t.amount,
           transactedAt: t.transactedAt ? enrichDate(t.transactedAt) : now,
@@ -198,51 +189,13 @@ function TransactionForm({ initialTransactions }: TransactionFormProps) {
     name: "transactions",
   });
 
-  const onSubmit = async (data: TransactionFormData) => {
-    if (data.transactions.length === 0) {
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      await createTransactions({
-        data: data.transactions.map((transaction) => {
-          const transactionInput: NewTransactionInput = {
-            description: transaction.description,
-            amount: transaction.amount,
-            type: transaction.type,
-            category: transaction.type === "income" ? null : transaction.category,
-            transactedAt: new Date(transaction.transactedAt),
-          };
-
-          if (transaction.scheduleEnabled) {
-            const { schedule } = transaction;
-
-            transactionInput.schedule = {
-              dayOfMonth: schedule.dayOfMonth!,
-              endDate: schedule.endType === "date" ? (schedule.endDate ?? null) : null,
-              maxOccurrences:
-                schedule.endType === "count" ? (schedule.maxOccurrences ?? null) : null,
-            };
-          }
-
-          return transactionInput;
-        }),
-      });
-      router.navigate({ to: returnTo ?? "/finances" });
-    } catch {
-      // TODO: Add snackbar for error
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   return (
     <form
+      id={FORM_ID}
       onSubmit={handleSubmit(onSubmit)}
       className="flex h-full w-full flex-col gap-6 self-stretch"
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-start gap-6 overflow-y-auto sm:grid-cols-2">
         {fields.map((field, index) => (
           <TransactionCard
             key={field.id}
@@ -253,14 +206,6 @@ function TransactionForm({ initialTransactions }: TransactionFormProps) {
             totalCount={fields.length}
           />
         ))}
-      </div>
-
-      <div className="flex shrink-0 gap-3">
-        <BackButton />
-        <Button className="flex-1 sm:flex-none" type="submit" isDisabled={isSaving}>
-          {isSaving && <Spinner data-icon="inline-start" />}
-          Save Transaction
-        </Button>
       </div>
     </form>
   );
