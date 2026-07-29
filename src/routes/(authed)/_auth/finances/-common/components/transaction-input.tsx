@@ -52,7 +52,7 @@ function TransactionInput({ autoFocus, onParsed, onValueChange, value }: Transac
           className="max-h-40 min-h-10 resize-none overflow-y-auto border-none py-3.5 pr-10"
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
-          placeholder="Describe your transaction..."
+          placeholder="Add transaction..."
           disabled={isParsing}
         />
         <Button

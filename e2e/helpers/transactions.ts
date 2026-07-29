@@ -12,7 +12,7 @@ const PARSE_TEXT = "Test purchase 75";
 
 export async function openTransactionComposer(page: Page) {
   await page.getByRole("button", { name: "Add transaction" }).press("Enter");
-  await expect(page.getByPlaceholder("Describe your transaction...")).toBeVisible();
+  await expect(page.getByPlaceholder("Add transaction...")).toBeVisible();
 }
 
 async function expectParsedDateToBeToday(page: Page) {
@@ -31,7 +31,7 @@ export async function createTransaction(
   description = text,
 ): Promise<string> {
   await openTransactionComposer(page);
-  const input = page.getByPlaceholder("Describe your transaction...");
+  const input = page.getByPlaceholder("Add transaction...");
   await input.fill(text);
   await page.getByTestId("parse-transaction").click();
 
@@ -51,7 +51,7 @@ export async function createScheduledTransaction(
   scheduleEnd: ScheduleEnd = { endType: "count", maxOccurrences: 3 },
 ): Promise<string> {
   await openTransactionComposer(page);
-  const input = page.getByPlaceholder("Describe your transaction...");
+  const input = page.getByPlaceholder("Add transaction...");
   await input.fill(PARSE_TEXT);
   await page.getByTestId("parse-transaction").click();
 

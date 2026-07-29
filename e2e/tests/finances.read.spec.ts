@@ -27,11 +27,11 @@ test.describe("dashboard", () => {
     page,
   }) => {
     await gotoAndWaitForHydration(page, "/finances");
-    await expect(page.getByPlaceholder("Describe your transaction...")).toHaveCount(0);
+    await expect(page.getByPlaceholder("Add transaction...")).toHaveCount(0);
 
     await openTransactionComposer(page);
 
-    const input = page.getByPlaceholder("Describe your transaction...");
+    const input = page.getByPlaceholder("Add transaction...");
     await expect(input).toBeVisible();
 
     const parseButton = page.getByTestId("parse-transaction");
@@ -44,7 +44,7 @@ test.describe("dashboard", () => {
     await gotoAndWaitForHydration(page, "/finances");
     await openTransactionComposer(page);
 
-    const input = page.getByPlaceholder("Describe your transaction...");
+    const input = page.getByPlaceholder("Add transaction...");
     const navigation = page.getByRole("navigation", { name: "Finance navigation" });
     await input.fill("Coffee 120");
     await navigation.getByRole("link", { name: "Transactions", exact: true }).click();
@@ -203,6 +203,46 @@ test.describe("transactions", () => {
 
     const currentLabel = format(new Date(), "MMMM yyyy");
     await expect(page.getByLabel(`Search ${currentLabel} transactions`)).toBeVisible();
+  });
+});
+
+test.describe("mobile finance layout", () => {
+  test.use({ viewport: { width: 390, height: 320 } });
+
+  test("footer keeps the composer and navigation reachable after scrolling", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await page.evaluate(() => window.scrollTo(0, 200));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+
+    const addTransaction = page.getByRole("button", { name: "Add transaction" });
+    await expect(addTransaction).toBeInViewport();
+    await addTransaction.press("Enter");
+    const input = page.getByPlaceholder("Add transaction...");
+    await expect(input).toBeInViewport();
+
+    const navigation = page.getByRole("navigation", { name: "Finance navigation" });
+    const scheduledLink = navigation.getByRole("link", { name: "Scheduled", exact: true });
+    await expect(scheduledLink).toBeInViewport();
+    await scheduledLink.click();
+    await expect(page).toHaveURL(/\/finances\/scheduled$/);
+    await expect(input).toHaveCount(0);
+  });
+
+  test("editor footer actions remain reachable after scrolling", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await page.locator("tr[data-transaction-id]").first().click();
+    await expect(page).toHaveURL(/\/finances\/transactions\/.+/);
+
+    await page.evaluate(() => window.scrollTo(0, 200));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+
+    const cancel = page.getByRole("button", { name: "Cancel" });
+    await expect(cancel).toBeInViewport();
+    const saveChanges = page.getByRole("button", { name: "Save Changes" });
+    await expect(saveChanges).toBeInViewport();
+
+    await cancel.press("Enter");
+    await expect(page).toHaveURL(/\/finances\/transactions$/);
   });
 });
 
