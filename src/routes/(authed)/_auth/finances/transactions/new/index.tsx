@@ -103,12 +103,10 @@ function RouteComponent() {
         </div>
       }
     >
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="container mx-auto flex h-full flex-col items-center justify-center p-6 sm:px-4 sm:py-8">
-          {transactions.length > 0 && (
-            <TransactionForm transactions={transactions} onSubmit={handleSubmit} />
-          )}
-        </div>
+      <div className="container mx-auto flex h-full flex-1 flex-col items-center justify-center p-6 sm:px-4 sm:py-8">
+        {transactions.length > 0 && (
+          <TransactionForm transactions={transactions} onSubmit={handleSubmit} />
+        )}
       </div>
     </FinanceContainer.Root>
   );

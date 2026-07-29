@@ -68,7 +68,7 @@ function EditTransactionForm({ onSubmit }: EditTransactionFormProps) {
       className="flex h-full w-full flex-col gap-6 self-stretch"
     >
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto sm:flex-row sm:items-start">
-        <Card className="flex flex-col gap-5 p-5">
+        <Card className="flex flex-1 flex-col gap-5 p-5">
           <FieldGroup>
             <DescriptionField control={control} name="description" />
             <AmountField control={control} name="amount" />

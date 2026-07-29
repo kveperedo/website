@@ -34,7 +34,8 @@ const FinanceContainerRoot = ({ header, footer, children }: FinanceContainerProp
       className={cn(
         "relative min-h-dvh",
         header && "pt-14",
-        footer && "pb-[calc(4rem+env(safe-area-inset-bottom))]",
+        footer &&
+          "pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(4rem+env(safe-area-inset-bottom))]",
       )}
     >
       {header && (
@@ -44,7 +45,7 @@ const FinanceContainerRoot = ({ header, footer, children }: FinanceContainerProp
       )}
       <main className="flex flex-col">{children}</main>
       {footer && (
-        <footer className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+        <footer className="fixed inset-x-6 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-30 flex flex-col gap-2 rounded-none border border-border bg-background/90 shadow-xl backdrop-blur sm:inset-x-0 sm:bottom-0 sm:block sm:border-0 sm:border-t sm:pb-[env(safe-area-inset-bottom)] sm:shadow-none">
           {footer}
         </footer>
       )}
@@ -92,12 +93,12 @@ const FinanceContainerFooter = () => {
               size="default"
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "h-full flex-1 flex-col gap-0.5 border-y-2 border-t-0 border-transparent px-2 pt-px text-muted-foreground hover:text-foreground active:not-aria-[haspopup]:translate-y-0 sm:flex-row sm:items-center sm:gap-2",
+                "h-full flex-1 flex-col gap-0.5 border-y-2 border-t-0 border-transparent px-0 pt-px text-muted-foreground hover:text-foreground active:not-aria-[haspopup]:translate-y-0 sm:flex-row sm:items-center sm:gap-2 sm:px-2",
                 isActive && "border-b-primary text-foreground",
               )}
             >
               <Icon className="size-4" />
-              <span>{route.label}</span>
+              <span className="text-[9px] sm:text-sm">{route.label}</span>
             </TanstackLinkButton>
           );
         })}
@@ -106,6 +107,7 @@ const FinanceContainerFooter = () => {
           <Button
             variant={isComposerOpen ? "secondary" : "default"}
             size="icon-lg"
+            className="size-11 sm:size-9"
             onPress={() => setIsComposerOpen((prev) => !prev)}
             aria-controls="transaction-composer"
             aria-expanded={isComposerOpen}

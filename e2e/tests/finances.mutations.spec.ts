@@ -30,7 +30,7 @@ test.describe("transaction mutations", () => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
     await openTransactionComposer(page);
 
-    const input = page.getByPlaceholder("Describe your transaction...");
+    const input = page.getByPlaceholder("Add transaction...");
     await input.fill("Milk 75");
     await page.getByTestId("parse-transaction").click();
     await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
@@ -106,7 +106,7 @@ test.describe("transaction mutations", () => {
       await gotoAndWaitForHydration(page, "/finances");
       await openTransactionComposer(page);
 
-      const input = page.getByPlaceholder("Describe your transaction...");
+      const input = page.getByPlaceholder("Add transaction...");
       await input.fill(`${description} 55`);
       await page.getByTestId("parse-transaction").click();
       await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
