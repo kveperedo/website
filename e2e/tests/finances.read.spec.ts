@@ -122,10 +122,17 @@ test.describe("transactions", () => {
     await expect(page.getByLabel(`Search ${prevLabel} transactions`)).toBeVisible();
   });
 
-  test("next month button is disabled on the current month", async ({ page }) => {
+  test("next month navigation updates the URL and month label", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    await expect(page.getByRole("link", { name: "Next month" })).toBeDisabled();
+    const nextMonth = page.getByRole("link", { name: "Next month" });
+    await expect(nextMonth).toBeEnabled();
+    await nextMonth.click();
+
+    await expect(page).toHaveURL(/\/finances\/transactions\?.*(year|month)=/);
+
+    const nextLabel = format(addMonths(new Date(), 1), "MMMM yyyy");
+    await expect(page.getByLabel(`Search ${nextLabel} transactions`)).toBeVisible();
   });
 
   test("typing a search query updates the URL", async ({ page }) => {
