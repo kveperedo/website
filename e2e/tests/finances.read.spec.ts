@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { format, subMonths } from "date-fns";
+import { addMonths, format, getDaysInMonth, subMonths } from "date-fns";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import { openTransactionComposer } from "../helpers/transactions";
@@ -88,7 +88,7 @@ test.describe("dashboard", () => {
     await gotoAndWaitForHydration(page, "/finances");
 
     const dueTransaction = page.locator("tr[data-transaction-id]", {
-      hasText: "E2E due scheduled transaction",
+      hasText: "Disney+ subscription",
     });
     await expect(dueTransaction).toHaveCount(1);
     await expect(dueTransaction.getByRole("img", { name: "Scheduled transaction" })).toBeVisible();
@@ -247,6 +247,24 @@ test.describe("mobile finance layout", () => {
 });
 
 test.describe("dashboard with data", () => {
+  test("dashboard groups upcoming scheduled transactions by month", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances");
+
+    const now = new Date();
+    const currentMonthLabel = format(now, "MMMM");
+    const nextMonthLabel = format(addMonths(now, 1), "MMMM");
+    const nextMonth = page.getByRole("region", { name: nextMonthLabel });
+
+    await expect(nextMonth).toContainText("Spotify subscription");
+    await expect(nextMonth).toContainText("Google One storage");
+
+    if (now.getDate() < getDaysInMonth(now)) {
+      const currentMonth = page.getByRole("region", { name: currentMonthLabel });
+      await expect(currentMonth).toContainText("Internet bill");
+      await expect(currentMonth).not.toContainText("Google One storage");
+    }
+  });
+
   test("recent transactions 'View all' button navigates to the transactions list", async ({
     page,
   }) => {
