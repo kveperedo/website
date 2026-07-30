@@ -1,4 +1,12 @@
-import { addMonths, getDaysInMonth, isAfter, isBefore, startOfDay, startOfMonth } from "date-fns";
+import {
+  addMonths,
+  format,
+  getDaysInMonth,
+  isAfter,
+  isBefore,
+  startOfDay,
+  startOfMonth,
+} from "date-fns";
 
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
@@ -52,39 +60,79 @@ export const getScheduledTransactionTemplates = async () => {
 export const getUpcomingScheduledTransactionTemplates = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const nextMonthEnd = startOfMonth(addMonths(now, 2));
+  const monthStarts = [monthStart, monthEnd];
 
   const templates = await getDb().scheduledTransactionTemplate.findMany({
     where: {
       isActive: true,
-      startDate: { lt: monthEnd },
+      startDate: { lt: nextMonthEnd },
       OR: [{ endDate: null }, { endDate: { gte: monthStart } }],
-      transactions: {
-        none: {
-          transactedAt: { gte: monthStart, lt: monthEnd },
-        },
-      },
     },
-    orderBy: { dayOfMonth: "asc" },
     include: {
       _count: { select: { transactions: true } },
+      transactions: {
+        where: {
+          transactedAt: { gte: monthStart, lt: nextMonthEnd },
+        },
+        select: { transactedAt: true },
+      },
     },
   });
 
-  return templates
-    .filter((template) => {
-      const occurrence = getDayInMonth(year, month, template.dayOfMonth);
-      return (
-        isAfter(occurrence, now) &&
-        isOccurrenceWithinTemplateRange(occurrence, template.startDate, template.endDate) &&
-        (template.maxOccurrences === null || template._count.transactions < template.maxOccurrences)
-      );
+  const upcomingTransactions = templates
+    .flatMap((template) => {
+      if (
+        template.maxOccurrences !== null &&
+        template._count.transactions >= template.maxOccurrences
+      ) {
+        return [];
+      }
+
+      for (const occurrenceMonthStart of monthStarts) {
+        const occurrence = getDayInMonth(
+          occurrenceMonthStart.getFullYear(),
+          occurrenceMonthStart.getMonth() + 1,
+          template.dayOfMonth,
+        );
+        const nextOccurrenceMonthStart = startOfMonth(addMonths(occurrenceMonthStart, 1));
+        const isRecorded = template.transactions.some(
+          (transaction) =>
+            transaction.transactedAt >= occurrenceMonthStart &&
+            transaction.transactedAt < nextOccurrenceMonthStart,
+        );
+
+        if (
+          isAfter(occurrence, now) &&
+          isOccurrenceWithinTemplateRange(occurrence, template.startDate, template.endDate) &&
+          !isRecorded
+        ) {
+          return [{ occurrence, template }];
+        }
+      }
+
+      return [];
     })
-    .slice(0, 3)
-    .map((template) => ({
-      ...template,
-      amount: template.amount.toNumber(),
+    .sort((a, b) => a.occurrence.getTime() - b.occurrence.getTime())
+    .slice(0, 3);
+
+  return [
+    {
+      label: format(monthStart, "MMMM"),
+      transactions: upcomingTransactions.filter(({ occurrence }) => occurrence < monthEnd),
+    },
+    {
+      label: format(monthEnd, "MMMM"),
+      transactions: upcomingTransactions.filter(({ occurrence }) => occurrence >= monthEnd),
+    },
+  ]
+    .filter((group) => group.transactions.length > 0)
+    .map(({ label, transactions }) => ({
+      label,
+      transactions: transactions.map(({ template }) => {
+        const { transactions: _transactions, ...templateData } = template;
+        return { ...templateData, amount: template.amount.toNumber() };
+      }),
     }));
 };
 

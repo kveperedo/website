@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { setDate, setHours, startOfMonth, subMonths } from "date-fns";
+import { addMonths, getDaysInMonth, setDate, setHours, startOfMonth, subMonths } from "date-fns";
 
 import { getDb } from "@/db/client";
 
@@ -29,7 +29,10 @@ export async function resetTestData() {
 export async function seedTestData() {
   const now = new Date();
   const monthStart = startOfMonth(now);
+  const nextMonthStart = startOfMonth(addMonths(now, 1));
   const at = (day: number, hour = 9) => setHours(setDate(monthStart, day), hour);
+  const hasUpcomingCurrentMonth = now.getDate() < getDaysInMonth(now);
+  const upcomingDay = hasUpcomingCurrentMonth ? now.getDate() + 1 : now.getDate();
 
   const db = getDb();
   await Promise.all([
@@ -64,13 +67,13 @@ export async function seedTestData() {
   const dueScheduleDate = subMonths(now, 1);
   const template = await db.scheduledTransactionTemplate.create({
     data: {
-      description: "E2E due scheduled transaction",
+      description: "Disney+ subscription",
       amount: 750.0,
       type: "expense",
       category: "bills_utilities",
       dayOfMonth: now.getDate(),
       startDate: dueScheduleDate,
-      maxOccurrences: 3,
+      maxOccurrences: 2,
     },
   });
   const sourceTransaction = await db.transaction.create({
@@ -87,4 +90,51 @@ export async function seedTestData() {
     where: { id: template.id },
     data: { sourceTransactionId: sourceTransaction.id },
   });
+
+  const [, recordedTemplate] = await Promise.all([
+    db.scheduledTransactionTemplate.create({
+      data: {
+        description: "Spotify subscription",
+        amount: 320.0,
+        type: "expense",
+        category: "bills_utilities",
+        dayOfMonth: 1,
+        startDate: nextMonthStart,
+      },
+    }),
+    db.scheduledTransactionTemplate.create({
+      data: {
+        description: "Google One storage",
+        amount: 180.0,
+        type: "expense",
+        category: "bills_utilities",
+        dayOfMonth: upcomingDay,
+        startDate: monthStart,
+      },
+    }),
+  ]);
+
+  await db.transaction.create({
+    data: {
+      description: recordedTemplate.description,
+      amount: 180.0,
+      type: "expense",
+      category: "bills_utilities",
+      transactedAt: at(upcomingDay),
+      templateId: recordedTemplate.id,
+    },
+  });
+
+  if (hasUpcomingCurrentMonth) {
+    await db.scheduledTransactionTemplate.create({
+      data: {
+        description: "Internet bill",
+        amount: 240.0,
+        type: "expense",
+        category: "bills_utilities",
+        dayOfMonth: upcomingDay,
+        startDate: monthStart,
+      },
+    });
+  }
 }
