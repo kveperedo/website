@@ -83,19 +83,6 @@ test.describe("dashboard", () => {
       page.getByText(/Spending by category|No expenses recorded this month/i),
     ).toBeVisible();
   });
-
-  test("dashboard generates each due scheduled transaction once", async ({ page }) => {
-    await gotoAndWaitForHydration(page, "/finances");
-
-    const dueTransaction = page.locator("tr[data-transaction-id]", {
-      hasText: "Disney+ subscription",
-    });
-    await expect(dueTransaction).toHaveCount(1);
-    await expect(dueTransaction.getByRole("img", { name: "Scheduled transaction" })).toBeVisible();
-
-    await gotoAndWaitForHydration(page, "/finances");
-    await expect(dueTransaction).toHaveCount(1);
-  });
 });
 
 test.describe("transactions", () => {

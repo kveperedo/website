@@ -7,7 +7,6 @@ import { authMiddleware } from "./auth.middleware";
 import { createRateLimitMiddleware } from "./rate-limit.middleware";
 import {
   deleteScheduledTransactionTemplate,
-  generateScheduledTransactions,
   getScheduledTransactionTemplates,
   getUpcomingScheduledTransactionTemplates,
   createScheduledTransactionTemplate,
@@ -45,10 +44,4 @@ export const deleteScheduledTransactionTemplateFn = createServerFn({ method: "PO
   .inputValidator(z.string().uuid())
   .handler(async ({ data }) => {
     return await deleteScheduledTransactionTemplate(data);
-  });
-
-export const generateScheduledTransactionsFn = createServerFn({ method: "POST" })
-  .middleware([authMiddleware, createRateLimitMiddleware()])
-  .handler(async () => {
-    return await generateScheduledTransactions();
   });

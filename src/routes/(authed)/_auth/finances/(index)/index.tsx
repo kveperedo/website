@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
 
-import {
-  generateScheduledTransactionsFn,
-  getUpcomingScheduledTransactionTemplatesFn,
-} from "@/utils/scheduled-transactions.functions";
+import { getUpcomingScheduledTransactionTemplatesFn } from "@/utils/scheduled-transactions.functions";
 import {
   getCategorySummaryFn,
   getMonthlySummaryFn,
@@ -24,7 +21,6 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
   head: () => ({ meta: META }),
   loader: async () => {
-    await generateScheduledTransactionsFn();
     const [transactions, summary, categorySummary, upcomingTransactions] = await Promise.all([
       getRecentTransactionsFn(),
       getMonthlySummaryFn(),

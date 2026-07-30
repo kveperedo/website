@@ -2,10 +2,18 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getDb } from "@/db/client";
 
-import { getUpcomingScheduledTransactionTemplates } from "./scheduled-transactions.server";
+import {
+  generateScheduledTransactions,
+  getUpcomingScheduledTransactionTemplates,
+} from "./scheduled-transactions.server";
+import { createTransaction } from "./transaction-creation.server";
 
 vi.mock("@/db/client", () => ({
   getDb: vi.fn(),
+}));
+
+vi.mock("./transaction-creation.server", () => ({
+  createTransaction: vi.fn(),
 }));
 
 const date = (value: string) => new Date(`${value}T12:00:00`);
@@ -41,9 +49,25 @@ const mockTemplates = (templates: Array<ReturnType<typeof template>>) => {
   } as never);
 };
 
+const mockGeneration = (
+  templates: Array<ReturnType<typeof template>>,
+  findFirst = vi.fn().mockResolvedValue(null),
+) => {
+  vi.mocked(getDb).mockReturnValue({
+    scheduledTransactionTemplate: {
+      findMany: vi.fn().mockResolvedValue(templates),
+    },
+    transaction: {
+      count: vi.fn().mockResolvedValue(0),
+      findFirst,
+    },
+  } as never);
+};
+
 describe("getUpcomingScheduledTransactionTemplates", () => {
   afterEach(() => {
     vi.useRealTimers();
+    vi.clearAllMocks();
     vi.restoreAllMocks();
   });
 
@@ -93,5 +117,97 @@ describe("getUpcomingScheduledTransactionTemplates", () => {
     expect(upcoming.flatMap((group) => group.transactions.map((item) => item.id))).toEqual([
       "aug-01",
     ]);
+  });
+});
+
+describe("generateScheduledTransactions", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
+  });
+
+  it("creates a due transaction with the UTC occurrence date", async () => {
+    mockGeneration([template("due", 1)]);
+    vi.mocked(createTransaction).mockResolvedValue({
+      id: "transaction-id",
+      templateId: "due",
+      description: "due",
+    } as never);
+
+    await generateScheduledTransactions(new Date("2026-07-01T00:05:00.000Z"));
+    expect(createTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ transactedAt: new Date("2026-07-01T00:00:00.000Z") }),
+    );
+  });
+
+  it("does not create a duplicate when the occurrence already exists", async () => {
+    const findFirst = vi
+      .fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: "existing-transaction" });
+    mockGeneration([template("due", 1)], findFirst);
+    vi.mocked(createTransaction).mockResolvedValue({
+      id: "transaction-id",
+      templateId: "due",
+      description: "due",
+    } as never);
+
+    const scheduledTime = new Date("2026-07-01T00:05:00.000Z");
+    await generateScheduledTransactions(scheduledTime);
+    await generateScheduledTransactions(scheduledTime);
+
+    expect(createTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it("backfills missed current-month occurrences without creating prior-month occurrences", async () => {
+    mockGeneration([
+      template("current-month", 2),
+      template("prior-month", 30, [], date("2026-06-30")),
+    ]);
+    vi.mocked(createTransaction).mockResolvedValue({
+      id: "transaction-id",
+      templateId: "current-month",
+      description: "current-month",
+    } as never);
+
+    await generateScheduledTransactions(new Date("2026-07-05T00:05:00.000Z"));
+
+    expect(createTransaction).toHaveBeenCalledTimes(1);
+    expect(createTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: "current-month" }),
+    );
+  });
+
+  it("uses the final valid day for end-of-month schedules", async () => {
+    mockGeneration([template("month-end", 31)]);
+    vi.mocked(createTransaction).mockResolvedValue({
+      id: "transaction-id",
+      templateId: "month-end",
+      description: "month-end",
+    } as never);
+
+    await generateScheduledTransactions(new Date("2026-02-28T00:05:00.000Z"));
+
+    expect(createTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ transactedAt: new Date("2026-02-28T00:00:00.000Z") }),
+    );
+  });
+
+  it("continues after a template failure and reports the failed run", async () => {
+    mockGeneration([template("failed", 1), template("created", 1)]);
+    vi.mocked(createTransaction)
+      .mockRejectedValueOnce(new Error("database error"))
+      .mockResolvedValueOnce({
+        id: "transaction-id",
+        templateId: "created",
+        description: "created",
+      } as never);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    await expect(
+      generateScheduledTransactions(new Date("2026-07-01T00:05:00.000Z")),
+    ).rejects.toThrow("Failed to generate 1 scheduled transaction(s).");
+
+    expect(createTransaction).toHaveBeenCalledTimes(2);
   });
 });
