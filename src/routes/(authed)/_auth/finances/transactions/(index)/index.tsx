@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, SearchIcon, X } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
-import { Button, LinkButton, TanstackLinkButton } from "@/components/ui/button";
+import { Button, TanstackLinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
@@ -53,8 +53,6 @@ function RouteComponent() {
   const current = new Date(year, month - 1);
   const prevDate = subMonths(current, 1);
   const nextDate = addMonths(current, 1);
-  const now = new Date();
-  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1;
   const [inputValue, setInputValue] = useState(search.q ?? "");
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -133,25 +131,19 @@ function RouteComponent() {
             >
               <ChevronLeft />
             </TanstackLinkButton>
-            {isCurrentMonth ? (
-              <LinkButton variant="secondary" size="icon" isDisabled aria-label="Next month">
-                <ChevronRight />
-              </LinkButton>
-            ) : (
-              <TanstackLinkButton
-                to="/finances/transactions"
-                search={{
-                  year: nextDate.getFullYear(),
-                  month: nextDate.getMonth() + 1,
-                  q: search.q || undefined,
-                }}
-                variant="secondary"
-                size="icon"
-                aria-label="Next month"
-              >
-                <ChevronRight />
-              </TanstackLinkButton>
-            )}
+            <TanstackLinkButton
+              to="/finances/transactions"
+              search={{
+                year: nextDate.getFullYear(),
+                month: nextDate.getMonth() + 1,
+                q: search.q || undefined,
+              }}
+              variant="secondary"
+              size="icon"
+              aria-label="Next month"
+            >
+              <ChevronRight />
+            </TanstackLinkButton>
           </div>
         </div>
         {hasNoResults ? (
