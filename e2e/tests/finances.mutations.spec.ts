@@ -251,7 +251,7 @@ test.describe("transaction mutations", () => {
     }
   });
 
-  test("deleting a scheduled template preserves its source transaction", async ({ page }) => {
+  test("deleting a scheduled template preserves its linked transaction", async ({ page }) => {
     const description = "Magazine subscription";
     let id: string | undefined;
     await gotoAndWaitForHydration(page, "/finances");

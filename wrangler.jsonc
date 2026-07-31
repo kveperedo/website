@@ -3,7 +3,7 @@
   "name": "website",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "./src/worker.ts",
   "kv_namespaces": [
     {
       "binding": "website-rate-limit",
@@ -11,6 +11,9 @@
     },
   ],
   "workers_dev": true,
+  "triggers": {
+    "crons": ["5 0 * * *"],
+  },
   "routes": [
     {
       "pattern": "kevinperedo.com",

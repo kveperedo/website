@@ -43,8 +43,6 @@ model ScheduledTransactionTemplate {
   endDate             DateTime?            @map("end_date") @db.Date
   maxOccurrences      Int?                 @map("max_occurrences")
   isActive            Boolean              @default(true) @map("is_active")
-  sourceTransactionId String?              @unique @map("source_transaction_id") @db.Uuid
-  sourceTransaction   Transaction?         @relation("ScheduledTransactionSource", fields: [sourceTransactionId], references: [id], onDelete: SetNull)
   createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
   transactions        Transaction[]        @relation("ScheduledTransaction")
@@ -62,7 +60,6 @@ model Transaction {
   transactedAt            DateTime                      @map("transacted_at") @db.Timestamptz(6)
   templateId              String?                       @map("template_id") @db.Uuid
   template                ScheduledTransactionTemplate? @relation("ScheduledTransaction", fields: [templateId], references: [id], onDelete: SetNull)
-  scheduledTemplateSource ScheduledTransactionTemplate? @relation("ScheduledTransactionSource")
   createdAt               DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(6)
 

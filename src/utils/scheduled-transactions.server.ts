@@ -1,12 +1,4 @@
-import {
-  addMonths,
-  format,
-  getDaysInMonth,
-  isAfter,
-  isBefore,
-  startOfDay,
-  startOfMonth,
-} from "date-fns";
+import { addMonths, format, isAfter, isBefore } from "date-fns";
 
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
@@ -16,18 +8,23 @@ import { getDb } from "@/db/client";
 import { databaseDateToDateOnly, dateOnlyToDatabaseDate } from "./date-only";
 import { createTransaction } from "./transaction-creation.server";
 
-const getCurrentMonthRange = () => {
-  const now = new Date();
+const getCurrentMonthRange = (now = new Date()) => {
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth();
   return {
-    monthStart: startOfMonth(now),
-    monthEnd: startOfMonth(addMonths(now, 1)),
+    monthStart: new Date(Date.UTC(year, month, 1)),
+    monthEnd: new Date(Date.UTC(year, month + 1, 1)),
   };
 };
 
 const getDayInMonth = (year: number, month: number, dayOfMonth: number) => {
-  const daysInMonth = getDaysInMonth(new Date(year, month - 1));
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const day = Math.min(dayOfMonth, daysInMonth);
-  return new Date(year, month - 1, day, 0, 0, 0, 0);
+  return new Date(Date.UTC(year, month - 1, day));
+};
+
+const startOfUtcDay = (date: Date) => {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };
 
 const isOccurrenceWithinTemplateRange = (
@@ -38,8 +35,16 @@ const isOccurrenceWithinTemplateRange = (
   return !isBefore(occurrence, startDate) && (!endDate || !isAfter(occurrence, endDate));
 };
 
+const getErrorCode = (error: unknown) => {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return undefined;
+  }
+
+  return typeof error.code === "string" ? error.code : undefined;
+};
+
 const isUniqueConstraintError = (error: unknown) => {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
+  return getErrorCode(error) === "P2002";
 };
 
 export const getScheduledTransactionTemplates = async () => {
@@ -58,9 +63,9 @@ export const getScheduledTransactionTemplates = async () => {
 };
 
 export const getUpcomingScheduledTransactionTemplates = async () => {
-  const { monthStart, monthEnd } = getCurrentMonthRange();
   const now = new Date();
-  const nextMonthEnd = startOfMonth(addMonths(now, 2));
+  const { monthStart, monthEnd } = getCurrentMonthRange(now);
+  const nextMonthEnd = getCurrentMonthRange(addMonths(now, 1)).monthEnd;
   const monthStarts = [monthStart, monthEnd];
 
   const templates = await getDb().scheduledTransactionTemplate.findMany({
@@ -91,11 +96,17 @@ export const getUpcomingScheduledTransactionTemplates = async () => {
 
       for (const occurrenceMonthStart of monthStarts) {
         const occurrence = getDayInMonth(
-          occurrenceMonthStart.getFullYear(),
-          occurrenceMonthStart.getMonth() + 1,
+          occurrenceMonthStart.getUTCFullYear(),
+          occurrenceMonthStart.getUTCMonth() + 1,
           template.dayOfMonth,
         );
-        const nextOccurrenceMonthStart = startOfMonth(addMonths(occurrenceMonthStart, 1));
+        const nextOccurrenceMonthStart = new Date(
+          Date.UTC(
+            occurrenceMonthStart.getUTCFullYear(),
+            occurrenceMonthStart.getUTCMonth() + 1,
+            1,
+          ),
+        );
         const isRecorded = template.transactions.some(
           (transaction) =>
             transaction.transactedAt >= occurrenceMonthStart &&
@@ -193,7 +204,6 @@ export const createScheduledTransactionTemplate = async (
   try {
     const template = await getDb().scheduledTransactionTemplate.create({
       data: {
-        sourceTransactionId: id,
         description: transaction.description,
         amount: transaction.amount,
         type: transaction.type,
@@ -213,10 +223,6 @@ export const createScheduledTransactionTemplate = async (
     });
     return { ...updatedTransaction, amount: updatedTransaction.amount.toNumber() };
   } catch (err) {
-    if (isUniqueConstraintError(err)) {
-      throw new Error("This transaction is already scheduled.");
-    }
-
     if (templateId) {
       try {
         await deleteScheduledTransactionTemplate(templateId);
@@ -252,12 +258,11 @@ export const deleteScheduledTransactionTemplate = async (id: string) => {
   await getDb().scheduledTransactionTemplate.delete({ where: { id } });
 };
 
-export const generateScheduledTransactions = async () => {
-  const { monthStart, monthEnd } = getCurrentMonthRange();
-  const now = new Date();
-  const today = startOfDay(now);
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+export const generateScheduledTransactions = async (date: Date) => {
+  const { monthStart, monthEnd } = getCurrentMonthRange(date);
+  const today = startOfUtcDay(date);
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + 1;
 
   const templates = await getDb().scheduledTransactionTemplate.findMany({
     where: {
@@ -266,7 +271,7 @@ export const generateScheduledTransactions = async () => {
     },
   });
 
-  const created: Array<{ id: string; templateId: string; description: string }> = [];
+  let failedCount = 0;
 
   for (const template of templates) {
     const transactedAt = getDayInMonth(year, month, template.dayOfMonth);
@@ -296,9 +301,8 @@ export const generateScheduledTransactions = async () => {
       continue;
     }
 
-    let transaction;
     try {
-      transaction = await createTransaction({
+      await createTransaction({
         description: template.description,
         amount: template.amount.toNumber(),
         type: template.type,
@@ -311,15 +315,17 @@ export const generateScheduledTransactions = async () => {
         continue;
       }
 
-      throw err;
+      failedCount += 1;
+      console.error("Failed to generate scheduled transaction.", {
+        templateId: template.id,
+        transactedAt: transactedAt.toISOString(),
+        errorCode: getErrorCode(err),
+      });
+      continue;
     }
-
-    created.push({
-      id: transaction.id,
-      templateId: template.id,
-      description: transaction.description,
-    });
   }
 
-  return { created };
+  if (failedCount > 0) {
+    throw new Error(`Failed to generate ${failedCount} scheduled transaction(s).`);
+  }
 };

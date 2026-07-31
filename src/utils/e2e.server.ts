@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { addMonths, getDaysInMonth, setDate, setHours, startOfMonth, subMonths } from "date-fns";
+import { addMonths, getDaysInMonth, setDate, setHours, startOfMonth } from "date-fns";
 
 import { getDb } from "@/db/client";
 
@@ -28,6 +28,7 @@ export async function resetTestData() {
 
 export async function seedTestData() {
   const now = new Date();
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const monthStart = startOfMonth(now);
   const nextMonthStart = startOfMonth(addMonths(now, 1));
   const at = (day: number, hour = 9) => setHours(setDate(monthStart, day), hour);
@@ -64,19 +65,22 @@ export async function seedTestData() {
     }),
   ]);
 
-  const dueScheduleDate = subMonths(now, 1);
+  const dueScheduleDate = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, today.getUTCDate()),
+  );
   const template = await db.scheduledTransactionTemplate.create({
     data: {
       description: "Disney+ subscription",
       amount: 750.0,
       type: "expense",
       category: "bills_utilities",
-      dayOfMonth: now.getDate(),
+      dayOfMonth: today.getUTCDate(),
       startDate: dueScheduleDate,
       maxOccurrences: 2,
+      isActive: false,
     },
   });
-  const sourceTransaction = await db.transaction.create({
+  await db.transaction.create({
     data: {
       description: template.description,
       amount: 750.0,
@@ -86,9 +90,19 @@ export async function seedTestData() {
       templateId: template.id,
     },
   });
+  await db.transaction.create({
+    data: {
+      description: template.description,
+      amount: 750.0,
+      type: "expense",
+      category: "bills_utilities",
+      transactedAt: today,
+      templateId: template.id,
+    },
+  });
   await db.scheduledTransactionTemplate.update({
     where: { id: template.id },
-    data: { sourceTransactionId: sourceTransaction.id },
+    data: { isActive: true },
   });
 
   const [, recordedTemplate] = await Promise.all([

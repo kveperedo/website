@@ -9,7 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { TransactionTable } from "@/routes/(authed)/_auth/finances/-common/components/transaction-table";
-import { generateScheduledTransactionsFn } from "@/utils/scheduled-transactions.functions";
 import { getTransactionsByMonthFn } from "@/utils/transactions.function";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
@@ -26,11 +25,6 @@ export const Route = createFileRoute("/(authed)/_auth/finances/transactions/(ind
   loader: async ({ deps }) => {
     const year = deps.year ?? new Date().getFullYear();
     const month = deps.month ?? new Date().getMonth() + 1;
-    const now = new Date();
-    const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1;
-    if (isCurrentMonth) {
-      await generateScheduledTransactionsFn();
-    }
     const transactions = await getTransactionsByMonthFn({
       data: { year, month, q: deps.q || undefined },
     });
