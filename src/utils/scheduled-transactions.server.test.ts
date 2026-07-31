@@ -34,7 +34,6 @@ const template = (
   endDate,
   maxOccurrences: null,
   isActive: true,
-  sourceTransactionId: null,
   createdAt: date("2026-01-01"),
   updatedAt: date("2026-01-01"),
   _count: { transactions: transactions.length },

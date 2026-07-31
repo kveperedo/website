@@ -204,7 +204,6 @@ export const createScheduledTransactionTemplate = async (
   try {
     const template = await getDb().scheduledTransactionTemplate.create({
       data: {
-        sourceTransactionId: id,
         description: transaction.description,
         amount: transaction.amount,
         type: transaction.type,
@@ -224,10 +223,6 @@ export const createScheduledTransactionTemplate = async (
     });
     return { ...updatedTransaction, amount: updatedTransaction.amount.toNumber() };
   } catch (err) {
-    if (isUniqueConstraintError(err)) {
-      throw new Error("This transaction is already scheduled.");
-    }
-
     if (templateId) {
       try {
         await deleteScheduledTransactionTemplate(templateId);

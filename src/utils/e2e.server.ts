@@ -80,7 +80,7 @@ export async function seedTestData() {
       isActive: false,
     },
   });
-  const sourceTransaction = await db.transaction.create({
+  await db.transaction.create({
     data: {
       description: template.description,
       amount: 750.0,
@@ -102,7 +102,7 @@ export async function seedTestData() {
   });
   await db.scheduledTransactionTemplate.update({
     where: { id: template.id },
-    data: { sourceTransactionId: sourceTransaction.id, isActive: true },
+    data: { isActive: true },
   });
 
   const [, recordedTemplate] = await Promise.all([
