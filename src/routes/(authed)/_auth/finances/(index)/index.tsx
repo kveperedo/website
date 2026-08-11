@@ -5,12 +5,14 @@ import { TIME_ZONE } from "@/utils/local-date";
 import { getUpcomingScheduledTransactionTemplatesFn } from "@/utils/scheduled-transactions.functions";
 import {
   getCategorySummaryFn,
+  getCategoryTrendsFn,
   getMonthlySummaryFn,
   getRecentTransactionsFn,
 } from "@/utils/transactions.function";
 
 import { FinanceContainer } from "../-common/components/finance-container";
 import { CategorySummaryCard } from "./-common/components/category-summary-card";
+import { CategoryTrendsCard } from "./-common/components/category-trends-card";
 import { RecentTransactionsCard } from "./-common/components/recent-transactions-card";
 import { SummaryNetCard } from "./-common/components/summary-net-card";
 import { UpcomingTransactionsCard } from "./-common/components/upcoming-transactions-card";
@@ -22,14 +24,23 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
   head: () => ({ meta: META }),
   loader: async () => {
-    const [transactions, summary, categorySummary, upcomingTransactions] = await Promise.all([
-      getRecentTransactionsFn(),
-      getMonthlySummaryFn(),
-      getCategorySummaryFn(),
-      getUpcomingScheduledTransactionTemplatesFn(),
-    ]);
+    const [transactions, summary, categorySummary, upcomingTransactions, categoryTrends] =
+      await Promise.all([
+        getRecentTransactionsFn(),
+        getMonthlySummaryFn(),
+        getCategorySummaryFn(),
+        getUpcomingScheduledTransactionTemplatesFn(),
+        getCategoryTrendsFn(),
+      ]);
     const monthLabel = formatInTimeZone(new Date(), TIME_ZONE, "MMMM yyyy");
-    return { transactions, summary, categorySummary, upcomingTransactions, monthLabel };
+    return {
+      transactions,
+      summary,
+      categorySummary,
+      upcomingTransactions,
+      categoryTrends,
+      monthLabel,
+    };
   },
   component: RouteComponent,
 });
@@ -49,6 +60,7 @@ function RouteComponent() {
           <RecentTransactionsCard />
           <CategorySummaryCard />
         </div>
+        <CategoryTrendsCard />
       </div>
     </FinanceContainer.Root>
   );

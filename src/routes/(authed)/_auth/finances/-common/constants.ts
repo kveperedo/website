@@ -1,3 +1,4 @@
+import type { ChartConfig } from "@/components/ui/chart";
 import type { TransactionCategory } from "@/generated/prisma/enums";
 
 export type CategoryColor = {
@@ -42,6 +43,13 @@ export const CATEGORY_CHART_COLORS: Record<TransactionCategory, string> = {
   hobbies_lifestyle: "#8b5cf6",
   financial: "#eab308",
 };
+
+export const CATEGORY_CHART_CONFIG: ChartConfig = Object.fromEntries(
+  CATEGORIES.map(({ value }) => [
+    value,
+    { label: CATEGORY_LABELS[value], color: CATEGORY_CHART_COLORS[value] },
+  ]),
+) satisfies ChartConfig;
 
 export const CATEGORY_COLORS: Record<TransactionCategory, CategoryColor> = {
   food_drinks: {

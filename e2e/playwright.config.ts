@@ -62,5 +62,14 @@ export default defineConfig({
       },
       dependencies: ["finance.read"],
     },
+    {
+      name: "finance.trends",
+      testMatch: /finances\.trends\.spec\.ts$/,
+      dependencies: ["finance.seed"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+      },
+    },
   ],
 });
