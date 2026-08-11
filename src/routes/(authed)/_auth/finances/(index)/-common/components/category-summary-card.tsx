@@ -1,39 +1,16 @@
 import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
 
-import type { ChartConfig } from "@/components/ui/chart";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
-import { CATEGORY_CHART_COLORS, CATEGORY_LABELS } from "../../../-common/constants";
-
-const chartConfig = {
-  food_drinks: { label: CATEGORY_LABELS.food_drinks, color: CATEGORY_CHART_COLORS.food_drinks },
-  groceries_household: {
-    label: CATEGORY_LABELS.groceries_household,
-    color: CATEGORY_CHART_COLORS.groceries_household,
-  },
-  transportation: {
-    label: CATEGORY_LABELS.transportation,
-    color: CATEGORY_CHART_COLORS.transportation,
-  },
-  bills_utilities: {
-    label: CATEGORY_LABELS.bills_utilities,
-    color: CATEGORY_CHART_COLORS.bills_utilities,
-  },
-  health_wellness: {
-    label: CATEGORY_LABELS.health_wellness,
-    color: CATEGORY_CHART_COLORS.health_wellness,
-  },
-  hobbies_lifestyle: {
-    label: CATEGORY_LABELS.hobbies_lifestyle,
-    color: CATEGORY_CHART_COLORS.hobbies_lifestyle,
-  },
-  financial: { label: CATEGORY_LABELS.financial, color: CATEGORY_CHART_COLORS.financial },
-} satisfies ChartConfig;
+import {
+  CATEGORY_CHART_CONFIG,
+  CATEGORY_CHART_COLORS,
+  CATEGORY_LABELS,
+} from "../../../-common/constants";
 
 const BAR_HEIGHT = 36;
 
@@ -70,7 +47,7 @@ export const CategorySummaryCard = () => {
           </div>
         ) : (
           <ChartContainer
-            config={chartConfig}
+            config={CATEGORY_CHART_CONFIG}
             className="w-full px-4 pb-4"
             style={{ minHeight: chartHeight }}
             initialDimension={{ width: 320, height: chartHeight }}

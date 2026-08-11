@@ -6,12 +6,14 @@ import type { TransactionInputType } from "@/generated/zod/schemas/variants/inpu
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 
 import { getDb } from "@/db/client";
+import { TransactionCategory } from "@/generated/prisma/enums";
 import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/transaction";
 
 import {
   databaseDateToDateOnly,
   endOfLocalMonth,
   getCurrentMonthRange,
+  getCurrentYearMonth,
   startOfLocalMonth,
 } from "./local-date";
 import { createScheduledTransaction } from "./scheduled-transactions.server";
@@ -83,6 +85,47 @@ export const getCategorySummary = async () => {
   return grouped
     .map((g) => ({ category: g.category!, total: g._sum.amount!.toNumber() }))
     .sort((a, b) => b.total - a.total);
+};
+
+const ALL_CATEGORIES = Object.values(TransactionCategory);
+
+const TREND_MONTHS = 6;
+
+export type CategoryTrendRow = { month: string } & Record<TransactionCategory, number>;
+
+const emptyMonth = (): Record<TransactionCategory, number> =>
+  Object.fromEntries(ALL_CATEGORIES.map((c) => [c, 0])) as Record<TransactionCategory, number>;
+
+export const getCategoryTrends = async () => {
+  const { year, month } = getCurrentYearMonth();
+  const trendsStart = startOfLocalMonth(year, month - (TREND_MONTHS - 1));
+  const trendsEnd = endOfLocalMonth(year, month);
+
+  const rows = await getDb().$queryRaw<
+    Array<{ month: string; category: TransactionCategory; total: number }>
+  >`
+    SELECT
+      TO_CHAR("transacted_at", 'YYYY-MM') AS month,
+      category,
+      SUM(amount)::float AS total
+    FROM transactions
+    WHERE "transacted_at" >= ${trendsStart}
+      AND "transacted_at" < ${trendsEnd}
+      AND type = 'expense'
+      AND category IS NOT NULL
+    GROUP BY month, category
+    ORDER BY month ASC
+  `;
+
+  return rows.reduce<Array<CategoryTrendRow>>((result, row) => {
+    const last = result[result.length - 1];
+    if (last?.month === row.month) {
+      last[row.category] = row.total;
+    } else {
+      result.push({ month: row.month, ...emptyMonth(), [row.category]: row.total });
+    }
+    return result;
+  }, []);
 };
 
 export const parseTransactions = async (

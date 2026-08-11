@@ -15,7 +15,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { getIsE2EAvailableFn, resetTestDataFn, seedTestDataFn } from "@/utils/e2e.functions";
+import {
+  getIsE2EAvailableFn,
+  resetTestDataFn,
+  seedTestDataFn,
+  seedTrendsTestDataFn,
+} from "@/utils/e2e.functions";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
   { title: "E2E Tools | Kevin Von Erich Peredo" },
@@ -34,9 +39,10 @@ function RouteComponent() {
   const { isAvailable } = Route.useLoaderData();
   const reset = useServerFn(resetTestDataFn);
   const seed = useServerFn(seedTestDataFn);
+  const seedTrends = useServerFn(seedTrendsTestDataFn);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [pending, setPending] = useState<"reset" | "seed" | null>(null);
-  const [openDialog, setOpenDialog] = useState<"reset" | "seed" | null>(null);
+  const [pending, setPending] = useState<"reset" | "seed" | "seed-trends" | null>(null);
+  const [openDialog, setOpenDialog] = useState<"reset" | "seed" | "seed-trends" | null>(null);
 
   if (!isAvailable) {
     return (
@@ -55,16 +61,19 @@ function RouteComponent() {
     );
   }
 
-  const handleAction = async (action: "reset" | "seed") => {
+  const handleAction = async (action: "reset" | "seed" | "seed-trends") => {
     setPending(action);
     setStatus(null);
     try {
       if (action === "reset") {
         await reset();
         setStatus({ type: "success", message: "Database reset successfully." });
-      } else {
+      } else if (action === "seed") {
         await seed();
         setStatus({ type: "success", message: "Database seeded successfully." });
+      } else {
+        await seedTrends();
+        setStatus({ type: "success", message: "Trends data seeded successfully." });
       }
     } catch {
       setStatus({
@@ -98,6 +107,18 @@ function RouteComponent() {
       title: "Seed Database",
       description: "This will insert sample transactions for the current month.",
       confirmTestId: "confirm-seed",
+      confirmLabel: "Insert Data",
+      confirmingLabel: "Seeding...",
+    },
+    {
+      id: "seed-trends" as const,
+      triggerTestId: "seed-trends",
+      buttonVariant: "outline" as const,
+      buttonLabel: "Seed Trends Data",
+      title: "Seed Trends Data",
+      description:
+        "This will insert sample transactions across the last 6 months for category trends.",
+      confirmTestId: "confirm-seed-trends",
       confirmLabel: "Insert Data",
       confirmingLabel: "Seeding...",
     },
