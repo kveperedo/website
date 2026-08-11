@@ -1,5 +1,4 @@
 import { Agent, run, tool } from "@openai/agents";
-import { addMonths, startOfMonth } from "date-fns";
 import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 
@@ -9,17 +8,14 @@ import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 import { getDb } from "@/db/client";
 import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/transaction";
 
-import { databaseDateToDateOnly } from "./date-only";
+import {
+  databaseDateToDateOnly,
+  endOfLocalMonth,
+  getCurrentMonthRange,
+  startOfLocalMonth,
+} from "./local-date";
 import { createScheduledTransaction } from "./scheduled-transactions.server";
 import { createTransaction } from "./transaction-creation.server";
-
-const getCurrentMonthRange = () => {
-  const now = new Date();
-  return {
-    monthStart: startOfMonth(now),
-    monthEnd: startOfMonth(addMonths(now, 1)),
-  };
-};
 
 export const getRecentTransactions = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
@@ -37,8 +33,8 @@ export const getRecentTransactions = async () => {
 };
 
 export const getTransactionsByMonth = async (year: number, month: number, q?: string) => {
-  const monthStart = new Date(year, month - 1, 1);
-  const monthEnd = addMonths(monthStart, 1);
+  const monthStart = startOfLocalMonth(year, month);
+  const monthEnd = endOfLocalMonth(year, month);
 
   const transactions = await getDb().transaction.findMany({
     where: {

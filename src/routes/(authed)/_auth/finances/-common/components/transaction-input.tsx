@@ -1,7 +1,6 @@
 "use client";
 
 import { useServerFn } from "@tanstack/react-start";
-import { format } from "date-fns";
 import { ArrowUpIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -10,6 +9,7 @@ import type { TransactionItemAIType } from "@/schema/transaction";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { todayDateOnly } from "@/utils/local-date";
 import { parseTransactionWithAIFn } from "@/utils/transactions.function";
 
 type TransactionInputProps = {
@@ -33,7 +33,7 @@ function TransactionInput({ autoFocus, onParsed, onValueChange, value }: Transac
     setError(null);
     try {
       const result = await parseTransactionWithAI({
-        data: { text: value, localDate: format(new Date(), "yyyy-MM-dd") },
+        data: { text: value, localDate: todayDateOnly() },
       });
       onParsed(result);
     } catch {

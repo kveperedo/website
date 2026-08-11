@@ -15,6 +15,7 @@ export default defineConfig({
   reporter: [["html", { outputFolder: "playwright-report" }], ["list"]],
   use: {
     baseURL: process.env.BASE_URL ?? "http://localhost:3000",
+    timezoneId: "Asia/Manila",
     trace: { mode: "on-first-retry", snapshots: false, screenshots: true },
     screenshot: "only-on-failure",
   },
