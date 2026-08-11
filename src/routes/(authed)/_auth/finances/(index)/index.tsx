@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
+import { TIME_ZONE } from "@/utils/local-date";
 import { getUpcomingScheduledTransactionTemplatesFn } from "@/utils/scheduled-transactions.functions";
 import {
   getCategorySummaryFn,
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       getCategorySummaryFn(),
       getUpcomingScheduledTransactionTemplatesFn(),
     ]);
-    const monthLabel = format(new Date(), "MMMM yyyy");
+    const monthLabel = formatInTimeZone(new Date(), TIME_ZONE, "MMMM yyyy");
     return { transactions, summary, categorySummary, upcomingTransactions, monthLabel };
   },
   component: RouteComponent,

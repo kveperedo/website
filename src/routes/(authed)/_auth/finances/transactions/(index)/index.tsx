@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { addMonths, format, subMonths } from "date-fns";
+import { addMonths, subMonths } from "date-fns";
 import { ChevronLeft, ChevronRight, SearchIcon, X } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { TransactionTable } from "@/routes/(authed)/_auth/finances/-common/components/transaction-table";
+import { formatLocal, getCurrentYearMonth } from "@/utils/local-date";
 import { getTransactionsByMonthFn } from "@/utils/transactions.function";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
@@ -23,18 +24,19 @@ export const Route = createFileRoute("/(authed)/_auth/finances/transactions/(ind
   validateSearch: searchSchema,
   loaderDeps: ({ search: { year, month, q } }) => ({ year, month, q }),
   loader: async ({ deps }) => {
-    const year = deps.year ?? new Date().getFullYear();
-    const month = deps.month ?? new Date().getMonth() + 1;
+    const { year: currentYear, month: currentMonth } = getCurrentYearMonth();
+    const year = deps.year ?? currentYear;
+    const month = deps.month ?? currentMonth;
     const transactions = await getTransactionsByMonthFn({
       data: { year, month, q: deps.q || undefined },
     });
-    const monthLabel = format(new Date(year, month - 1), "MMMM yyyy");
+    const monthLabel = formatLocal(new Date(year, month - 1, 15), "MMMM yyyy");
     return { transactions, monthLabel, year, month };
   },
   head: ({ loaderData }) => {
     const { year, month } = loaderData!;
 
-    const monthLabel = format(new Date(year, month - 1), "MMMM yyyy");
+    const monthLabel = formatLocal(new Date(year, month - 1, 15), "MMMM yyyy");
     return { meta: [{ title: `${monthLabel} Transactions | Kevin Von Erich Peredo` }] };
   },
   component: RouteComponent,

@@ -178,8 +178,6 @@ test.describe("transaction mutations", () => {
   });
 
   test.describe("date-based scheduling", () => {
-    test.use({ timezoneId: "Asia/Manila" });
-
     test("scheduling a new transaction until a date shows the end date", async ({ page }) => {
       let id: string | undefined;
       await gotoAndWaitForHydration(page, "/finances");

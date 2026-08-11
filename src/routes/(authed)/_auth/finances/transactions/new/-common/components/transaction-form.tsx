@@ -26,6 +26,7 @@ import {
   DescriptionField,
   TypeField,
 } from "@/routes/(authed)/_auth/finances/-common/components/transaction-fields";
+import { dateOnlyToDatabaseDate, todayDateOnly } from "@/utils/local-date";
 
 import {
   DayOfMonthField,
@@ -43,17 +44,7 @@ export type NewTransactionInput = Omit<TransactionInputType, "template"> & {
 };
 
 const enrichDate = (dateStr: string) => {
-  const now = new Date();
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(
-    y,
-    m - 1,
-    d,
-    now.getHours(),
-    now.getMinutes(),
-    now.getSeconds(),
-    now.getMilliseconds(),
-  ).toISOString();
+  return dateOnlyToDatabaseDate(dateStr).toISOString();
 };
 
 const TransactionCard = ({
@@ -167,7 +158,7 @@ type TransactionFormProps = {
 };
 
 function TransactionForm({ transactions, onSubmit }: TransactionFormProps) {
-  const now = new Date().toISOString();
+  const now = dateOnlyToDatabaseDate(todayDateOnly()).toISOString();
 
   const { control, getValues, handleSubmit, setValue } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionFormSchema),

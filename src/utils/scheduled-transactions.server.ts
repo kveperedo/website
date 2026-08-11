@@ -1,21 +1,20 @@
-import { addMonths, format, isAfter, isBefore } from "date-fns";
+import { addMonths, isAfter, isBefore } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 
 import { getDb } from "@/db/client";
 
-import { databaseDateToDateOnly, dateOnlyToDatabaseDate } from "./date-only";
+import {
+  databaseDateToDateOnly,
+  dateOnlyToDatabaseDate,
+  getCurrentMonthRange,
+  getCurrentYearMonth,
+  startOfLocalMonth,
+  TIME_ZONE,
+} from "./local-date";
 import { createTransaction } from "./transaction-creation.server";
-
-const getCurrentMonthRange = (now = new Date()) => {
-  const year = now.getUTCFullYear();
-  const month = now.getUTCMonth();
-  return {
-    monthStart: new Date(Date.UTC(year, month, 1)),
-    monthEnd: new Date(Date.UTC(year, month + 1, 1)),
-  };
-};
 
 const getDayInMonth = (year: number, month: number, dayOfMonth: number) => {
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -95,18 +94,11 @@ export const getUpcomingScheduledTransactionTemplates = async () => {
       }
 
       for (const occurrenceMonthStart of monthStarts) {
-        const occurrence = getDayInMonth(
-          occurrenceMonthStart.getUTCFullYear(),
-          occurrenceMonthStart.getUTCMonth() + 1,
-          template.dayOfMonth,
-        );
-        const nextOccurrenceMonthStart = new Date(
-          Date.UTC(
-            occurrenceMonthStart.getUTCFullYear(),
-            occurrenceMonthStart.getUTCMonth() + 1,
-            1,
-          ),
-        );
+        const zoned = toZonedTime(occurrenceMonthStart, TIME_ZONE);
+        const year = zoned.getFullYear();
+        const month = zoned.getMonth() + 1;
+        const occurrence = getDayInMonth(year, month, template.dayOfMonth);
+        const nextOccurrenceMonthStart = startOfLocalMonth(year, month + 1);
         const isRecorded = template.transactions.some(
           (transaction) =>
             transaction.transactedAt >= occurrenceMonthStart &&
@@ -129,11 +121,11 @@ export const getUpcomingScheduledTransactionTemplates = async () => {
 
   return [
     {
-      label: format(monthStart, "MMMM"),
+      label: formatInTimeZone(monthStart, TIME_ZONE, "MMMM"),
       transactions: upcomingTransactions.filter(({ occurrence }) => occurrence < monthEnd),
     },
     {
-      label: format(monthEnd, "MMMM"),
+      label: formatInTimeZone(monthEnd, TIME_ZONE, "MMMM"),
       transactions: upcomingTransactions.filter(({ occurrence }) => occurrence >= monthEnd),
     },
   ]
@@ -260,9 +252,8 @@ export const deleteScheduledTransactionTemplate = async (id: string) => {
 
 export const generateScheduledTransactions = async (date: Date) => {
   const { monthStart, monthEnd } = getCurrentMonthRange(date);
+  const { year, month } = getCurrentYearMonth(date);
   const today = startOfUtcDay(date);
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth() + 1;
 
   const templates = await getDb().scheduledTransactionTemplate.findMany({
     where: {
