@@ -73,4 +73,22 @@ test.describe("category trends card", () => {
     await expect(card.locator(".recharts-line")).toHaveCount(7);
     await expect(legend.getByText("Food & Drinks", { exact: true })).toBeVisible();
   });
+
+  test("category trends filter persists selected categories after reload", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances");
+
+    const card = page.getByTestId("category-trends-card");
+    const legend = page.getByTestId("category-trends-legend");
+    await card.getByRole("button", { name: "Filter" }).click();
+    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
+
+    await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
+    await expect(legend.getByText("Transport", { exact: true })).toBeVisible();
+    await page.waitForTimeout(1000);
+
+    await gotoAndWaitForHydration(page, "/finances");
+
+    await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
+    await expect(legend.getByText("Transport", { exact: true })).toBeVisible();
+  });
 });

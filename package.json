@@ -46,6 +46,7 @@
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^17.4.2",
+    "es-toolkit": "^1.50.0",
     "lucide-react": "^1.22.0",
     "openai": "^6.45.0",
     "react": "^19.2.7",
