@@ -16,7 +16,7 @@ export const UpcomingTransactionsCard = () => {
     <Card className="flex min-w-0 flex-1 flex-col p-2">
       <CardContent className="flex flex-col gap-2 p-2">
         <div className="flex items-center justify-between">
-          <p className="font-mono text-xs text-muted-foreground">Upcoming Transactions</p>
+          <p className="font-mono text-xs text-muted-foreground">Upcoming transactions</p>
           <TanstackLinkButton
             variant="ghost"
             size="icon-sm"

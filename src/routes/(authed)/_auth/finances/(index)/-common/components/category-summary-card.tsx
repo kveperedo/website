@@ -30,7 +30,9 @@ export const CategorySummaryCard = () => {
     <Card className={cn("gap-0 py-0 sm:flex-2", isEmpty && "pt-6")}>
       {!isEmpty && (
         <CardHeader className="px-4 py-4">
-          <CardTitle className="font-mono text-sm text-foreground">Spending by category</CardTitle>
+          <CardTitle className="font-mono text-xs text-muted-foreground">
+            Spending breakdown
+          </CardTitle>
         </CardHeader>
       )}
       <CardContent className="p-0">

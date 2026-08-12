@@ -80,7 +80,7 @@ test.describe("dashboard", () => {
     await gotoAndWaitForHydration(page, "/finances");
 
     await expect(
-      page.getByText(/Spending by category|No expenses recorded this month/i),
+      page.getByText(/Spending breakdown|No expenses recorded this month/i),
     ).toBeVisible();
   });
 });
