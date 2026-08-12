@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { addMonths, format, getDaysInMonth, subMonths } from "date-fns";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
+import { resetDatabase, seedDatabase, seedNetCardScenario } from "../helpers/database";
 import { openTransactionComposer } from "../helpers/transactions";
 
 test.describe.configure({ mode: "serial" });
@@ -18,9 +19,7 @@ test.describe("dashboard", () => {
     await gotoAndWaitForHydration(page, "/finances");
 
     const monthLabel = format(new Date(), "MMMM yyyy");
-    await expect(
-      page.getByRole("paragraph").filter({ hasText: new RegExp(`^${monthLabel}$`) }),
-    ).toBeVisible();
+    await expect(page.getByText(`Your ${monthLabel} finances so far`)).toBeVisible();
   });
 
   test("dashboard opens the transaction composer with a disabled parse button when empty", async ({
@@ -256,6 +255,75 @@ test.describe("dashboard with data", () => {
       const currentMonth = page.getByRole("region", { name: currentMonthLabel });
       await expect(currentMonth).toContainText("Internet bill");
       await expect(currentMonth).not.toContainText("Google One storage");
+    }
+  });
+
+  test("net card shows the current month label with data", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances");
+
+    const monthLabel = format(new Date(), "MMMM yyyy");
+    await expect(page.getByText(`Your ${monthLabel} finances so far`)).toBeVisible();
+  });
+
+  test("net card shows the seeded net amount, percentage, and pace", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances");
+
+    const now = new Date();
+    const expenses =
+      750 +
+      (now.getDate() >= 2 ? 1500 : 0) +
+      (now.getDate() >= 5 ? 850 : 0) +
+      (now.getDate() === getDaysInMonth(now) ? 180 : 0);
+    const formatCurrency = (amount: number) =>
+      `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
+
+    await expect(
+      page.getByText(`${formatCurrency(45000 - expenses)} left`, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(`Expenses are ${Math.round((expenses / 45000) * 100)}% of income`, {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(`${formatCurrency(expenses)} / ${formatCurrency(45000)}`, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("progressbar", { name: "Expenses as a percentage of income" }),
+    ).toHaveAttribute("aria-valuenow", String(Math.round((expenses / 45000) * 100)));
+    await expect(
+      page.getByText(`${formatCurrency(expenses - 750)} above your 1-month pace`, { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText("₱750.00", { exact: true })).toBeVisible();
+    await expect(page.getByText(/spent$/)).toHaveCount(0);
+  });
+
+  test("net card renders its conditional comparison states", async ({ page }) => {
+    try {
+      await seedNetCardScenario(page, "over-income");
+      await gotoAndWaitForHydration(page, "/finances");
+      await expect(page.getByText("₱1,200.00 over income", { exact: true })).toBeVisible();
+      await expect(page.getByText("No income recorded this month")).toBeVisible();
+      await expect(page.getByText("No historical data for comparison")).toBeVisible();
+
+      await seedNetCardScenario(page, "below-pace");
+      await gotoAndWaitForHydration(page, "/finances");
+      await expect(
+        page.getByText("₱400.00 below your 1-month pace", { exact: true }),
+      ).toBeVisible();
+
+      await seedNetCardScenario(page, "on-pace");
+      await gotoAndWaitForHydration(page, "/finances");
+      await expect(
+        page.getByText("On pace with your 1-month average", { exact: true }),
+      ).toBeVisible();
+
+      await seedNetCardScenario(page, "no-history");
+      await gotoAndWaitForHydration(page, "/finances");
+      await expect(page.getByText("No historical data for comparison")).toBeVisible();
+    } finally {
+      await resetDatabase(page);
+      await seedDatabase(page);
     }
   });
 

@@ -2,10 +2,13 @@ import { type Page } from "@playwright/test";
 
 import { gotoAndWaitForHydration } from "./auth";
 
+type NetCardScenario = "below-pace" | "no-history" | "on-pace" | "over-income";
+
 const statusText = {
   reset: "Database reset successfully.",
   seed: "Database seeded successfully.",
   seedTrends: "Trends data seeded successfully.",
+  seedNetCard: "Net card test data seeded successfully.",
 } as const;
 
 export async function resetDatabase(page: Page) {
@@ -20,6 +23,13 @@ export async function seedDatabase(page: Page) {
   await page.getByTestId("seed-database").click();
   await page.getByTestId("confirm-seed").click();
   await page.getByText(statusText.seed).waitFor({ state: "visible", timeout: 15000 });
+}
+
+export async function seedNetCardScenario(page: Page, scenario: NetCardScenario) {
+  await gotoAndWaitForHydration(page, "/e2e");
+  await page.getByTestId(`seed-net-card-${scenario}`).click();
+  await page.getByTestId(`confirm-seed-net-card-${scenario}`).click();
+  await page.getByText(statusText.seedNetCard).waitFor({ state: "visible", timeout: 15000 });
 }
 
 export async function seedTrendsData(page: Page) {

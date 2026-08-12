@@ -19,6 +19,9 @@ import {
 import { createScheduledTransaction } from "./scheduled-transactions.server";
 import { createTransaction } from "./transaction-creation.server";
 
+export { getMonthlyHistory } from "./transactions-history.server";
+export type { MonthlyHistory, MonthlyHistoryEntry } from "./transactions-history.server";
+
 export const getRecentTransactions = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
 

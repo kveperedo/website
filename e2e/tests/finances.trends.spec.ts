@@ -80,6 +80,10 @@ test.describe("category trends card", () => {
     const card = page.getByTestId("category-trends-card");
     const legend = page.getByTestId("category-trends-legend");
     await card.getByRole("button", { name: "Filter" }).click();
+    await page.getByRole("menuitem", { name: "Deselect all" }).click();
+    await page.keyboard.press("Escape");
+    await card.getByRole("button", { name: "Select all categories" }).click();
+    await card.getByRole("button", { name: "Filter" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
 
     await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);

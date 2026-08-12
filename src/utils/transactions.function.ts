@@ -11,6 +11,7 @@ import {
   deleteTransaction,
   getCategorySummary,
   getCategoryTrends,
+  getMonthlyHistory,
   getMonthlySummary,
   getRecentTransactions,
   getTransactionById,
@@ -29,6 +30,12 @@ export const getMonthlySummaryFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async () => {
     return await getMonthlySummary();
+  });
+
+export const getMonthlyHistoryFn = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async () => {
+    return await getMonthlyHistory();
   });
 
 export const getCategorySummaryFn = createServerFn()

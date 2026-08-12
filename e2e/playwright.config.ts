@@ -65,7 +65,7 @@ export default defineConfig({
     {
       name: "finance.trends",
       testMatch: /finances\.trends\.spec\.ts$/,
-      dependencies: ["finance.seed"],
+      dependencies: ["finance.read"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: path.join(import.meta.dirname, ".auth", "user.json"),
