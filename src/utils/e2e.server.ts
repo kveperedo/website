@@ -1,9 +1,21 @@
 import { env } from "cloudflare:workers";
-import { addMonths, getDaysInMonth, setDate, setHours, startOfMonth } from "date-fns";
+import {
+  addDays,
+  addHours,
+  addMonths,
+  getDaysInMonth,
+  setDate,
+  setHours,
+  startOfMonth,
+} from "date-fns";
 
 import type { TransactionCategory } from "@/generated/prisma/enums";
 
 import { getDb } from "@/db/client";
+
+import { getCurrentYearMonth, startOfLocalMonth } from "./local-date";
+
+export type NetCardScenario = "below-pace" | "no-history" | "on-pace" | "over-income";
 
 export function isE2EAvailable() {
   return !!env.E2E_PASSWORD;
@@ -32,7 +44,11 @@ export async function resetTestData() {
   ]);
 }
 
-export async function seedTestData() {
+export async function seedTestData(scenario?: NetCardScenario) {
+  if (scenario) {
+    return seedNetCardTestData(scenario);
+  }
+
   const now = new Date();
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const monthStart = startOfMonth(now);
@@ -154,6 +170,50 @@ export async function seedTestData() {
         category: "bills_utilities",
         dayOfMonth: upcomingDay,
         startDate: monthStart,
+      },
+    });
+  }
+}
+
+async function seedNetCardTestData(scenario: NetCardScenario) {
+  await resetTestData();
+
+  const { year, month } = getCurrentYearMonth();
+  const currentMonthStart = startOfLocalMonth(year, month);
+  const priorMonthStart = startOfLocalMonth(year, month - 1);
+  const at = (monthStart: Date, day: number) => addHours(addDays(monthStart, day - 1), 9);
+  const db = getDb();
+
+  const currentTransactions =
+    scenario === "over-income"
+      ? [{ description: "Expense only", amount: 1200, type: "expense" as const }]
+      : [
+          { description: "Income", amount: 1000, type: "income" as const },
+          {
+            description: "Current expense",
+            amount: scenario === "below-pace" || scenario === "no-history" ? 100 : 500,
+            type: "expense" as const,
+          },
+        ];
+
+  await Promise.all(
+    currentTransactions.map((transaction) =>
+      db.transaction.create({
+        data: {
+          ...transaction,
+          transactedAt: at(currentMonthStart, 1),
+        },
+      }),
+    ),
+  );
+
+  if (scenario !== "over-income" && scenario !== "no-history") {
+    await db.transaction.create({
+      data: {
+        description: "Historical expense",
+        amount: 500,
+        type: "expense",
+        transactedAt: at(priorMonthStart, 1),
       },
     });
   }

@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import type { NetCardScenario } from "@/utils/e2e.server";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,8 +43,8 @@ function RouteComponent() {
   const seed = useServerFn(seedTestDataFn);
   const seedTrends = useServerFn(seedTrendsTestDataFn);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [pending, setPending] = useState<"reset" | "seed" | "seed-trends" | null>(null);
-  const [openDialog, setOpenDialog] = useState<"reset" | "seed" | "seed-trends" | null>(null);
+  const [pending, setPending] = useState<string | null>(null);
+  const [openDialog, setOpenDialog] = useState<string | null>(null);
 
   if (!isAvailable) {
     return (
@@ -61,8 +63,12 @@ function RouteComponent() {
     );
   }
 
-  const handleAction = async (action: "reset" | "seed" | "seed-trends") => {
-    setPending(action);
+  const handleAction = async (
+    id: string,
+    action: "reset" | "seed" | "seed-trends" | "net-card",
+    scenario?: NetCardScenario,
+  ) => {
+    setPending(id);
     setStatus(null);
     try {
       if (action === "reset") {
@@ -71,6 +77,9 @@ function RouteComponent() {
       } else if (action === "seed") {
         await seed();
         setStatus({ type: "success", message: "Database seeded successfully." });
+      } else if (action === "net-card" && scenario) {
+        await seed({ data: scenario });
+        setStatus({ type: "success", message: "Net card test data seeded successfully." });
       } else {
         await seedTrends();
         setStatus({ type: "success", message: "Trends data seeded successfully." });
@@ -87,9 +96,22 @@ function RouteComponent() {
     }
   };
 
-  const dialogs = [
+  const dialogs: Array<{
+    id: string;
+    action: "reset" | "seed" | "seed-trends" | "net-card";
+    scenario?: NetCardScenario;
+    triggerTestId: string;
+    buttonVariant: "default" | "destructive" | "outline";
+    buttonLabel: string;
+    title: string;
+    description: string;
+    confirmTestId: string;
+    confirmLabel: string;
+    confirmingLabel: string;
+  }> = [
     {
       id: "reset" as const,
+      action: "reset",
       triggerTestId: "reset-database",
       buttonVariant: "destructive" as const,
       buttonLabel: "Reset Database",
@@ -101,6 +123,7 @@ function RouteComponent() {
     },
     {
       id: "seed" as const,
+      action: "seed",
       triggerTestId: "seed-database",
       buttonVariant: "default" as const,
       buttonLabel: "Seed Database",
@@ -112,6 +135,7 @@ function RouteComponent() {
     },
     {
       id: "seed-trends" as const,
+      action: "seed-trends",
       triggerTestId: "seed-trends",
       buttonVariant: "outline" as const,
       buttonLabel: "Seed Trends Data",
@@ -122,6 +146,26 @@ function RouteComponent() {
       confirmLabel: "Insert Data",
       confirmingLabel: "Seeding...",
     },
+    ...(
+      [
+        ["over-income", "Over Income"],
+        ["below-pace", "Below Pace"],
+        ["on-pace", "On Pace"],
+        ["no-history", "No History"],
+      ] as const
+    ).map(([scenario, label]) => ({
+      id: `net-card-${scenario}`,
+      action: "net-card" as const,
+      scenario,
+      triggerTestId: `seed-net-card-${scenario}`,
+      buttonVariant: "outline" as const,
+      buttonLabel: `Seed Net Card: ${label}`,
+      title: `Seed Net Card: ${label}`,
+      description: "This replaces all test data with a dashboard net card scenario.",
+      confirmTestId: `confirm-seed-net-card-${scenario}`,
+      confirmLabel: "Replace Data",
+      confirmingLabel: "Seeding...",
+    })),
   ];
 
   return (
@@ -167,7 +211,7 @@ function RouteComponent() {
                   <AlertDialogAction
                     data-testid={dialog.confirmTestId}
                     isDisabled={pending === dialog.id}
-                    onPress={() => handleAction(dialog.id)}
+                    onPress={() => handleAction(dialog.id, dialog.action, dialog.scenario)}
                   >
                     {pending === dialog.id ? dialog.confirmingLabel : dialog.confirmLabel}
                   </AlertDialogAction>

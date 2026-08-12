@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 
 import { authMiddleware } from "./auth.middleware";
 import {
@@ -9,6 +10,10 @@ import {
   seedTrendsTestData,
 } from "./e2e.server";
 import { createRateLimitMiddleware } from "./rate-limit.middleware";
+
+const NetCardScenarioSchema = z
+  .enum(["below-pace", "no-history", "on-pace", "over-income"])
+  .optional();
 
 export const getIsE2EAvailableFn = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
@@ -25,9 +30,10 @@ export const resetTestDataFn = createServerFn({ method: "POST" })
 
 export const seedTestDataFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .handler(async () => {
+  .inputValidator(NetCardScenarioSchema)
+  .handler(async ({ data }) => {
     requireE2EAvailable();
-    await seedTestData();
+    await seedTestData(data);
   });
 
 export const seedTrendsTestDataFn = createServerFn({ method: "POST" })

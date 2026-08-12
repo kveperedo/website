@@ -7,7 +7,7 @@ import { getUpcomingScheduledTransactionTemplatesFn } from "@/utils/scheduled-tr
 import {
   getCategorySummaryFn,
   getCategoryTrendsFn,
-  getMonthlySummaryFn,
+  getMonthlyHistoryFn,
   getRecentTransactionsFn,
 } from "@/utils/transactions.function";
 
@@ -27,27 +27,27 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
   loader: async () => {
     const [
       transactions,
-      summary,
       categorySummary,
       upcomingTransactions,
       categoryTrends,
       categoryTrendsVisibleCategories,
+      history,
     ] = await Promise.all([
       getRecentTransactionsFn(),
-      getMonthlySummaryFn(),
       getCategorySummaryFn(),
       getUpcomingScheduledTransactionTemplatesFn(),
       getCategoryTrendsFn(),
       getCategoryTrendsVisibleCategoriesFn(),
+      getMonthlyHistoryFn(),
     ]);
     const monthLabel = formatInTimeZone(new Date(), TIME_ZONE, "MMMM yyyy");
     return {
       transactions,
-      summary,
       categorySummary,
       upcomingTransactions,
       categoryTrends,
       categoryTrendsVisibleCategories,
+      history,
       monthLabel,
     };
   },
@@ -61,7 +61,7 @@ function RouteComponent() {
     <FinanceContainer.Root footer={<FinanceContainer.Footer />}>
       <div className="container mx-auto flex flex-1 flex-col gap-4 p-4">
         <h2 className="sr-only">{monthLabel}</h2>
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
           <SummaryNetCard />
           <UpcomingTransactionsCard />
         </div>
