@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { ChevronDownIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import type { TransactionCategory } from "@/generated/prisma/enums";
@@ -6,6 +7,14 @@ import type { TransactionCategory } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
 
@@ -54,81 +63,115 @@ function formatMonthLabel(yyyyMm: string): string {
 
 const CHART_HEIGHT = 350;
 
-function TrendsLegend({
-  hoveredCategory,
-  pressedCategory,
-  onHover,
-  onPress,
-}: {
-  hoveredCategory: TransactionCategory | null;
-  pressedCategory: TransactionCategory | null;
-  onHover: (category: TransactionCategory | null) => void;
-  onPress: (category: TransactionCategory | null) => void;
-}) {
-  const hasRecentlyPressed = useRef(false);
-
+function TrendsLegend({ visibleCategories }: { visibleCategories: Array<TransactionCategory> }) {
   return (
-    <div className="flex flex-wrap justify-center pt-3">
-      {CATEGORIES.map((category) => {
-        const isActive =
-          pressedCategory === category.value ||
-          (!pressedCategory && hoveredCategory === category.value);
-        const isDimmed = (hoveredCategory !== null || pressedCategory !== null) && !isActive;
-        return (
-          <Button
-            key={category.value}
-            variant="ghost"
-            size="xs"
-            onPress={() => {
-              hasRecentlyPressed.current = true;
-              onPress(pressedCategory === category.value ? null : category.value);
-              setTimeout(() => {
-                hasRecentlyPressed.current = false;
-              }, 100);
-            }}
-            onHoverStart={() => onHover(category.value)}
-            onHoverEnd={() => {
-              if (!hasRecentlyPressed.current) {
-                onHover(null);
-              }
-            }}
-            className={cn(
-              "gap-1.5 px-2 py-3 transition-opacity active:translate-y-0! sm:px-4",
-              isDimmed && "opacity-30",
-            )}
-          >
+    <div data-testid="category-trends-legend" className="flex flex-wrap justify-center pt-3">
+      {CATEGORIES.filter((category) => visibleCategories.includes(category.value)).map(
+        (category) => (
+          <div key={category.value} className="flex items-center gap-1.5 p-2 sm:px-4">
             <span
               className="inline-block h-2 w-2 shrink-0 rounded-none"
               style={{ backgroundColor: CATEGORY_CHART_COLORS[category.value] }}
             />
-            <span
-              className={cn(
-                "text-xs",
-                isDimmed ? "text-muted-foreground/40" : "text-muted-foreground",
-              )}
-            >
-              {CATEGORY_LABELS[category.value]}
-            </span>
-          </Button>
-        );
-      })}
+            <span className="text-xs text-muted-foreground">{CATEGORY_LABELS[category.value]}</span>
+          </div>
+        ),
+      )}
     </div>
+  );
+}
+
+function CategoryFilter({
+  visibleCategories,
+  onSelectionChange,
+}: {
+  visibleCategories: Array<TransactionCategory>;
+  onSelectionChange: (categories: Array<TransactionCategory>) => void;
+}) {
+  const selectedKeys = useMemo(() => new Set(visibleCategories), [visibleCategories]);
+  const areAllCategoriesVisible = visibleCategories.length === CATEGORIES.length;
+  const areNoCategoriesVisible = visibleCategories.length === 0;
+  return (
+    <DropdownMenuTrigger>
+      <Button variant="outline" size="sm" className="gap-1.5">
+        <span>Filter</span>
+        <ChevronDownIcon className="h-3.5 w-3.5" />
+      </Button>
+      <DropdownMenu className="w-40" placement="bottom end">
+        <DropdownMenuGroup aria-label="Bulk actions">
+          <DropdownMenuItem
+            isDisabled={areAllCategoriesVisible}
+            shouldCloseOnSelect={false}
+            onAction={() => {
+              onSelectionChange(CATEGORIES.map((category) => category.value));
+            }}
+          >
+            Select all
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            isDisabled={areNoCategoriesVisible}
+            shouldCloseOnSelect={false}
+            onAction={() => {
+              onSelectionChange([]);
+            }}
+          >
+            Deselect all
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup
+          selectionMode="multiple"
+          selectedKeys={selectedKeys}
+          onSelectionChange={(keys) => {
+            if (keys === "all") {
+              onSelectionChange(CATEGORIES.map((category) => category.value));
+              return;
+            }
+            onSelectionChange(
+              CATEGORIES.filter((category) => keys.has(category.value)).map(
+                (category) => category.value,
+              ),
+            );
+          }}
+        >
+          <DropdownMenuLabel className="px-2 py-1">Filter categories</DropdownMenuLabel>
+          {CATEGORIES.map((category) => (
+            <DropdownMenuItem
+              id={category.value}
+              key={category.value}
+              textValue={CATEGORY_LABELS[category.value]}
+            >
+              <span
+                className="mr-2 inline-block h-2 w-2 shrink-0 rounded-none"
+                style={{ backgroundColor: CATEGORY_CHART_COLORS[category.value] }}
+              />
+              {CATEGORY_LABELS[category.value]}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
+      </DropdownMenu>
+    </DropdownMenuTrigger>
   );
 }
 
 export const CategoryTrendsCard = () => {
   const { categoryTrends } = Route.useLoaderData();
-  const [hoveredCategory, setHoveredCategory] = useState<TransactionCategory | null>(null);
-  const [pressedCategory, setPressedCategory] = useState<TransactionCategory | null>(null);
+  const [visibleCategories, setVisibleCategories] = useState<Array<TransactionCategory>>(
+    CATEGORIES.map((c) => c.value),
+  );
   const isEmpty = categoryTrends.length === 0;
 
   const chartData = isEmpty ? [] : categoryTrends;
 
   return (
-    <Card className={cn("flex-1 gap-0 py-0", isEmpty && "pt-6")}>
+    <Card data-testid="category-trends-card" className={cn("flex-1 gap-0 py-0", isEmpty && "pt-6")}>
       {!isEmpty && (
-        <CardHeader className="px-4 py-4">
+        <CardHeader className="flex items-center justify-between px-4 py-4">
           <CardTitle className="font-mono text-xs text-muted-foreground">Category trends</CardTitle>
+          <CategoryFilter
+            visibleCategories={visibleCategories}
+            onSelectionChange={setVisibleCategories}
+          />
         </CardHeader>
       )}
       <CardContent className="p-0">
@@ -141,6 +184,24 @@ export const CategoryTrendsCard = () => {
                   Add transactions across multiple months to see spending trends.
                 </EmptyDescription>
               </EmptyHeader>
+            </Empty>
+          </div>
+        ) : visibleCategories.length === 0 ? (
+          <div className="px-6 py-12 md:px-8">
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>No categories selected.</EmptyTitle>
+                <EmptyDescription>
+                  Select a category from Filter to show its trend.
+                </EmptyDescription>
+              </EmptyHeader>
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => setVisibleCategories(CATEGORIES.map((category) => category.value))}
+              >
+                Select all categories
+              </Button>
             </Empty>
           </div>
         ) : (
@@ -201,34 +262,22 @@ export const CategoryTrendsCard = () => {
                   }
                 />
                 {CATEGORIES.map((category) => {
-                  const isActive =
-                    pressedCategory === category.value ||
-                    (!pressedCategory && hoveredCategory === category.value);
-                  const isDimmed =
-                    (hoveredCategory !== null || pressedCategory !== null) && !isActive;
-                  return (
+                  const isVisible = visibleCategories.includes(category.value);
+                  return isVisible ? (
                     <Line
                       key={category.value}
                       type="monotone"
                       dataKey={category.value}
                       stroke={CATEGORY_CHART_COLORS[category.value]}
                       strokeWidth={2}
-                      strokeOpacity={isDimmed ? 0.15 : 1}
                       dot={false}
-                      activeDot={
-                        hoveredCategory !== null || pressedCategory !== null ? false : { r: 4 }
-                      }
+                      activeDot={{ r: 4 }}
                     />
-                  );
+                  ) : null;
                 })}
               </LineChart>
             </ChartContainer>
-            <TrendsLegend
-              hoveredCategory={hoveredCategory}
-              pressedCategory={pressedCategory}
-              onHover={setHoveredCategory}
-              onPress={setPressedCategory}
-            />
+            <TrendsLegend visibleCategories={visibleCategories} />
           </div>
         )}
       </CardContent>
