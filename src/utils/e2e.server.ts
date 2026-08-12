@@ -17,15 +17,19 @@ export function requireE2EAvailable() {
 
 export async function resetTestData() {
   const db = getDb();
-  const [templates, transactions] = await Promise.all([
+  const [templates, transactions, preferences] = await Promise.all([
     db.scheduledTransactionTemplate.findMany({ select: { id: true } }),
     db.transaction.findMany({ select: { id: true } }),
+    db.financePreferences.findUnique({ where: { id: "default" }, select: { id: true } }),
   ]);
 
   await Promise.all(
     templates.map(({ id }) => db.scheduledTransactionTemplate.delete({ where: { id } })),
   );
-  await Promise.all(transactions.map(({ id }) => db.transaction.delete({ where: { id } })));
+  await Promise.all([
+    ...transactions.map(({ id }) => db.transaction.delete({ where: { id } })),
+    ...(preferences ? [db.financePreferences.delete({ where: { id: preferences.id } })] : []),
+  ]);
 }
 
 export async function seedTestData() {
