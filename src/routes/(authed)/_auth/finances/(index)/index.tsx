@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { formatInTimeZone } from "date-fns-tz";
 
+import { getCategoryTrendsVisibleCategoriesFn } from "@/utils/finance-preferences.function";
 import { TIME_ZONE } from "@/utils/local-date";
 import { getUpcomingScheduledTransactionTemplatesFn } from "@/utils/scheduled-transactions.functions";
 import {
@@ -24,14 +25,21 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
   head: () => ({ meta: META }),
   loader: async () => {
-    const [transactions, summary, categorySummary, upcomingTransactions, categoryTrends] =
-      await Promise.all([
-        getRecentTransactionsFn(),
-        getMonthlySummaryFn(),
-        getCategorySummaryFn(),
-        getUpcomingScheduledTransactionTemplatesFn(),
-        getCategoryTrendsFn(),
-      ]);
+    const [
+      transactions,
+      summary,
+      categorySummary,
+      upcomingTransactions,
+      categoryTrends,
+      categoryTrendsVisibleCategories,
+    ] = await Promise.all([
+      getRecentTransactionsFn(),
+      getMonthlySummaryFn(),
+      getCategorySummaryFn(),
+      getUpcomingScheduledTransactionTemplatesFn(),
+      getCategoryTrendsFn(),
+      getCategoryTrendsVisibleCategoriesFn(),
+    ]);
     const monthLabel = formatInTimeZone(new Date(), TIME_ZONE, "MMMM yyyy");
     return {
       transactions,
@@ -39,6 +47,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       categorySummary,
       upcomingTransactions,
       categoryTrends,
+      categoryTrendsVisibleCategories,
       monthLabel,
     };
   },

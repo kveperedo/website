@@ -4,9 +4,13 @@ import { getBinding } from "@/lib/env";
 
 import { RateLimitError } from "./rate-limit-error";
 
-export async function checkRateLimit(limit: number, windowMs: number): Promise<void> {
+export async function checkRateLimit(
+  limit: number,
+  windowMs: number,
+  keyPrefix = "default",
+): Promise<void> {
   const ip = getRequestIP({ xForwardedFor: true }) ?? "unknown";
-  const key = `ratelimit:${ip}`;
+  const key = `ratelimit:${keyPrefix}:${ip}`;
   const kv = getBinding("website-rate-limit");
 
   const raw = await kv.get(key);

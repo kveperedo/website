@@ -68,3 +68,12 @@ model Transaction {
   @@index([templateId])
   @@map("transactions")
 }
+
+model FinancePreferences {
+  id                              String              @id
+  categoryTrendsVisibleCategories TransactionCategory[] @default([]) @map("category_trends_visible_categories")
+  createdAt                       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("finance_preferences")
+}

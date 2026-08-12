@@ -1,5 +1,7 @@
+import { useServerFn } from "@tanstack/react-start";
+import { debounce } from "es-toolkit/function";
 import { ChevronDownIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import type { TransactionCategory } from "@/generated/prisma/enums";
@@ -17,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
+import { setCategoryTrendsVisibleCategoriesFn } from "@/utils/finance-preferences.function";
 
 import { Route } from "../..";
 import {
@@ -155,13 +158,27 @@ function CategoryFilter({
 }
 
 export const CategoryTrendsCard = () => {
-  const { categoryTrends } = Route.useLoaderData();
+  const { categoryTrends, categoryTrendsVisibleCategories } = Route.useLoaderData();
+  const setCategoryTrendsVisibleCategories = useServerFn(setCategoryTrendsVisibleCategoriesFn);
   const [visibleCategories, setVisibleCategories] = useState<Array<TransactionCategory>>(
-    CATEGORIES.map((c) => c.value),
+    () => categoryTrendsVisibleCategories ?? CATEGORIES.map((category) => category.value),
   );
   const isEmpty = categoryTrends.length === 0;
 
   const chartData = isEmpty ? [] : categoryTrends;
+  const persistSelection = useEffectEvent((categories: Array<TransactionCategory>) => {
+    void setCategoryTrendsVisibleCategories({ data: categories });
+  });
+  const debouncedPersistSelection = useRef(
+    debounce((categories: Array<TransactionCategory>) => persistSelection(categories), 300),
+  ).current;
+
+  useEffect(() => () => debouncedPersistSelection.flush(), [debouncedPersistSelection]);
+
+  const handleSelectionChange = (categories: Array<TransactionCategory>) => {
+    setVisibleCategories(categories);
+    debouncedPersistSelection(categories);
+  };
 
   return (
     <Card data-testid="category-trends-card" className={cn("flex-1 gap-0 py-0", isEmpty && "pt-6")}>
@@ -170,7 +187,7 @@ export const CategoryTrendsCard = () => {
           <CardTitle className="font-mono text-xs text-muted-foreground">Category trends</CardTitle>
           <CategoryFilter
             visibleCategories={visibleCategories}
-            onSelectionChange={setVisibleCategories}
+            onSelectionChange={handleSelectionChange}
           />
         </CardHeader>
       )}
@@ -198,7 +215,7 @@ export const CategoryTrendsCard = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onPress={() => setVisibleCategories(CATEGORIES.map((category) => category.value))}
+                onPress={() => handleSelectionChange(CATEGORIES.map((category) => category.value))}
               >
                 Select all categories
               </Button>
