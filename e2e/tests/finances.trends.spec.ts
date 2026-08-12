@@ -32,8 +32,45 @@ test.describe("category trends card", () => {
   test("category trends legend shows categories", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances");
 
-    await expect(page.getByRole("button", { name: "Food & Drinks" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Groceries" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Transport" })).toBeVisible();
+    const legend = page.getByTestId("category-trends-legend");
+    await expect(legend.getByText("Food & Drinks", { exact: true })).toBeVisible();
+    await expect(legend.getByText("Groceries", { exact: true })).toBeVisible();
+    await expect(legend.getByText("Transport", { exact: true })).toBeVisible();
+  });
+
+  test("category trends filter shows an empty state and can restore all categories", async ({
+    page,
+  }) => {
+    await gotoAndWaitForHydration(page, "/finances");
+
+    const card = page.getByTestId("category-trends-card");
+    await card.getByRole("button", { name: "Filter" }).click();
+    await page.getByRole("menuitem", { name: "Deselect all" }).click();
+
+    await expect(page.getByRole("menu")).toBeVisible();
+    await expect(card.getByText("No categories selected.")).toBeVisible();
+    await expect(card.locator(".recharts-line")).toHaveCount(0);
+
+    await page.keyboard.press("Escape");
+    await card.getByRole("button", { name: "Select all categories" }).click();
+    await expect(card.locator(".recharts-line")).toHaveCount(7);
+    await expect(card.getByText("No categories selected.")).toHaveCount(0);
+  });
+
+  test("category trends filter toggles individual series and legend labels", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances");
+
+    const card = page.getByTestId("category-trends-card");
+    const legend = page.getByTestId("category-trends-legend");
+    await card.getByRole("button", { name: "Filter" }).click();
+    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
+
+    await expect(card.locator(".recharts-line")).toHaveCount(6);
+    await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
+    await expect(legend.getByText("Transport", { exact: true })).toBeVisible();
+
+    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
+    await expect(card.locator(".recharts-line")).toHaveCount(7);
+    await expect(legend.getByText("Food & Drinks", { exact: true })).toBeVisible();
   });
 });
