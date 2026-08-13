@@ -1,85 +1,117 @@
-# Kevin Von Erich Peredo Website
+# Kevin Von Erich Peredo's Website
 
-This is my website, built as a flexible foundation for tools, pages, and features I use day to day.
+The personal website for [Kevin Von Erich Peredo](https://kevinperedo.com). It includes a public portfolio and an authenticated personal-finance dashboard for tracking transactions, scheduled entries, and spending trends.
 
-This project currently includes a personal-facing home experience and continues to evolve over time.
+## Stack
 
-## About This App
+- React 19, TypeScript, and TanStack Start
+- Vite and Cloudflare Workers
+- Tailwind CSS 4, shadcn/ui, and React Aria Components
+- PostgreSQL, Prisma 7, and the Neon driver adapter
+- Vitest and Playwright
 
-I build practical, user-focused software with strong attention to frontend experience and maintainable code.
+## Requirements
 
-This project serves as a central place to share my work, background, and ongoing updates.
+- Node.js 22+
+- npm
+- A PostgreSQL database
 
-## Tech Stack
+## Local Development
 
-- React
-- TanStack Start
-- Tailwind
-- Vite
-- TypeScript
-- Prisma ORM
-- PostgreSQL
+Install dependencies, create your local environment file, generate the Prisma client, apply migrations, and start the development server:
 
-## Project Structure
-
-- src/routes: file-based routes and page composition
-- src/routes/index: current landing page and core sections
-- src/styles.css: global styles, theme tokens, and custom utilities
-- public: static assets used by the app
-
-## Getting Started
-
-Install dependencies and run the app locally:
-
+```bash
 npm install
+cp .env.example .env
+npm run db:generate
+npm run db:deploy
 npm run dev
+```
+
+The site is available at [http://localhost:3000](http://localhost:3000).
 
 ## Environment Variables
 
-Create a local `.env` file with these required values:
+Set these values in `.env`:
 
-- `SESSION_SECRET`: a long random secret used to sign the session cookie
-- `ADMIN_PASSWORD_HASH`: a bcrypt hash of the admin password used by the login flow
-- `DATABASE_URL`: PostgreSQL connection string used by Prisma ORM
+| Variable              | Purpose                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| `SESSION_SECRET`      | Long, random secret used to sign session cookies.                                  |
+| `ADMIN_PASSWORD_HASH` | bcrypt hash of the password for the admin login.                                   |
+| `DATABASE_URL`        | PostgreSQL connection string.                                                      |
+| `OPENAI_API_KEY`      | OpenAI API key for AI-powered features.                                            |
+| `BASE_URL`            | Base URL for Playwright tests. Defaults to `http://localhost:3000`.                |
+| `E2E_PASSWORD`        | Plaintext admin password for local E2E tests; it must match `ADMIN_PASSWORD_HASH`. |
 
-The repo includes `.env.example` as a reference.
+Use `.env.example` as the source of truth for the local environment template. Production secrets are configured with Wrangler rather than committed to the repository.
 
-If you need a bcrypt hash, generate one with a small Node script or any bcrypt CLI utility before starting the app.
+## Project Structure
 
-## Database (Prisma ORM)
-
-Generate and apply migrations:
-
-```bash
-npm run db:generate
-npm run db:migrate
+```text
+src/
+  app/            Domain services for auth, finance, infrastructure, and E2E fixtures
+  components/     Shared UI components
+  routes/         TanStack Start file-based routes
+    (public)/     Homepage, login, and public configuration pages
+    (authed)/     Protected finance dashboard and transaction management
+  styles.css      Global Tailwind theme tokens and styles
+prisma/           Prisma schema and committed database migrations
 ```
 
-Useful DB commands:
+## Database
+
+The project uses Prisma with PostgreSQL. Generate the client after dependency or schema changes, then use the appropriate migration command for the environment.
 
 ```bash
+# Generate Prisma client and Zod schemas
+npm run db:generate
+
+# Create and apply a development migration
+npm run db:migrate
+
+# Apply committed migrations
+npm run db:deploy
+
+# Validate the schema, push a schema directly, or inspect the database
 npm run db:check
 npm run db:push
-npm run db:deploy
 npm run db:studio
 ```
 
-Notes:
+## Quality Checks
 
-- `db:generate` generates the Prisma client into `src/generated/prisma`.
-- `db:migrate` creates and applies development migrations from `prisma/schema.prisma`.
-- `db:deploy` applies committed migrations in production.
-- `db:studio` opens Prisma Studio for browsing tables and rows.
-- Run DB migrations as a separate deployment step, not inside `npm run build`.
-
-## Build For Production
-
-Create a production build:
-
-npm run build
-
-## Run Tests
-
-Run the test suite:
-
+```bash
+npm run lint
+npm run format:check
+npm run typecheck
 npm run test
+```
+
+Run E2E tests against a running local server:
+
+```bash
+npm run dev
+npm run test:e2e
+```
+
+## Build And Deploy
+
+Create a production build locally:
+
+```bash
+npm run build
+```
+
+Deploy the Worker to production:
+
+```bash
+npm run deploy
+```
+
+Create an aliased preview deployment:
+
+```bash
+npm run deploy:preview -- "pr-<slug>"
+```
+
+The Worker configuration, custom domain, KV-backed rate limiting, cron trigger, and observability settings are defined in `wrangler.jsonc`.
