@@ -3,12 +3,9 @@ import { z } from "zod";
 
 import { TransactionCategory } from "@/generated/prisma/enums";
 
-import { authMiddleware } from "./auth.middleware";
-import {
-  getCategoryTrendsVisibleCategories,
-  setCategoryTrendsVisibleCategories,
-} from "./finance-preferences.server";
-import { createRateLimitMiddleware } from "./rate-limit.middleware";
+import { authMiddleware } from "../../auth/middleware";
+import { createRateLimitMiddleware } from "../../infra/rate-limit/middleware";
+import { getCategoryTrendsVisibleCategories, setCategoryTrendsVisibleCategories } from "./server";
 
 export const getCategoryTrendsVisibleCategoriesFn = createServerFn()
   .middleware([authMiddleware])

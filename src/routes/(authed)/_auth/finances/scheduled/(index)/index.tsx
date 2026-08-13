@@ -5,6 +5,11 @@ import { PauseIcon, PlayIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import {
+  deleteScheduledTransactionTemplateFn,
+  getScheduledTransactionTemplatesFn,
+  toggleScheduledTransactionTemplateFn,
+} from "@/app/finance/scheduled-transactions/functions";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -18,11 +23,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
-import {
-  deleteScheduledTransactionTemplateFn,
-  getScheduledTransactionTemplatesFn,
-  toggleScheduledTransactionTemplateFn,
-} from "@/utils/scheduled-transactions.functions";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
 import { CATEGORY_COLORS, CATEGORY_LABELS, TRANSACTION_TYPE_COLORS } from "../../-common/constants";

@@ -6,11 +6,11 @@ import { useState } from "react";
 
 import type { TransactionItemAIType } from "@/schema/transaction";
 
+import { todayDateOnly } from "@/app/finance/local-date";
+import { parseTransactionWithAIFn } from "@/app/finance/transactions/functions";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { todayDateOnly } from "@/utils/local-date";
-import { parseTransactionWithAIFn } from "@/utils/transactions.function";
 
 type TransactionInputProps = {
   autoFocus?: boolean;

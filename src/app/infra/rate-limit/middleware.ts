@@ -1,7 +1,7 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 
-import { checkRateLimit } from "./rate-limit.server";
+import { checkRateLimit } from "./server";
 
 export function createRateLimitMiddleware(opts?: {
   limit?: number;

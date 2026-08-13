@@ -6,10 +6,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 
+import { createTransactionsFn } from "@/app/finance/transactions/functions";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { TransactionItemAISchema } from "@/schema/transaction";
-import { createTransactionsFn } from "@/utils/transactions.function";
 
 import type { TransactionFormData } from "../../-common/transaction-form-schema";
 

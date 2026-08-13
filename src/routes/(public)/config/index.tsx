@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { cacheControl } from "@/app/infra/cache-control";
 import { BackButton } from "@/components/back-button";
-import { cacheControl } from "@/utils/cache-control";
 
 import { PUBLIC_CACHE_CONTROL } from "../-common/constants";
 import { MacSetup } from "./-common/sections/mac-setup";

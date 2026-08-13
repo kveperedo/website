@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 
 import { requireEnv } from "@/lib/env";
 
-import { cacheControl } from "./cache-control";
+import { cacheControl } from "../infra/cache-control";
 
 type SessionData = {
   isLoggedIn: boolean;

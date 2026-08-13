@@ -15,6 +15,7 @@ import {
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 import type { TransactionItemAIType } from "@/schema/transaction";
 
+import { dateOnlyToDatabaseDate, todayDateOnly } from "@/app/finance/local-date";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -26,7 +27,6 @@ import {
   DescriptionField,
   TypeField,
 } from "@/routes/(authed)/_auth/finances/-common/components/transaction-fields";
-import { dateOnlyToDatabaseDate, todayDateOnly } from "@/utils/local-date";
 
 import {
   DayOfMonthField,

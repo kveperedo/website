@@ -2,8 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import type { NetCardScenario } from "@/utils/e2e.server";
+import type { NetCardScenario } from "@/app/e2e/server";
 
+import {
+  getIsE2EAvailableFn,
+  resetTestDataFn,
+  seedTestDataFn,
+  seedTrendsTestDataFn,
+} from "@/app/e2e/functions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,12 +23,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import {
-  getIsE2EAvailableFn,
-  resetTestDataFn,
-  seedTestDataFn,
-  seedTrendsTestDataFn,
-} from "@/utils/e2e.functions";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
   { title: "E2E Tools | Kevin Von Erich Peredo" },

@@ -13,7 +13,7 @@ import type { TransactionCategory } from "@/generated/prisma/enums";
 
 import { getDb } from "@/db/client";
 
-import { getCurrentYearMonth, startOfLocalMonth } from "./local-date";
+import { getCurrentYearMonth, startOfLocalMonth } from "../finance/local-date";
 
 export type NetCardScenario = "below-pace" | "no-history" | "on-pace" | "over-income";
 

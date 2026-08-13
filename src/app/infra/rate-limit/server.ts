@@ -2,7 +2,7 @@ import { getRequestIP } from "@tanstack/react-start/server";
 
 import { getBinding } from "@/lib/env";
 
-import { RateLimitError } from "./rate-limit-error";
+import { RateLimitError } from "./error";
 
 export async function checkRateLimit(
   limit: number,

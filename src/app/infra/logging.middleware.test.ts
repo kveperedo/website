@@ -1,8 +1,8 @@
 import { redirect } from "@tanstack/react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { RateLimitError } from "./rate-limit-error";
-import { serverFunctionLoggingMiddleware } from "./server-function-logging.middleware";
+import { serverFunctionLoggingMiddleware } from "./logging.middleware";
+import { RateLimitError } from "./rate-limit/error";
 
 const runMiddleware = (method: "GET" | "POST", next: () => Promise<unknown>) => {
   const server = serverFunctionLoggingMiddleware.options.server;
@@ -16,7 +16,7 @@ const runMiddleware = (method: "GET" | "POST", next: () => Promise<unknown>) => 
     data: {},
     method,
     next,
-    serverFnMeta: { filename: "src/utils/example.functions.ts", id: "test", name: "exampleFn" },
+    serverFnMeta: { filename: "src/app/example.functions.ts", id: "test", name: "exampleFn" },
     signal: new AbortController().signal,
   } as never);
 };

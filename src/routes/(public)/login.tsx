@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import { loginFn } from "@/app/auth/functions";
+import { cacheControl } from "@/app/infra/cache-control";
 import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { loginFn } from "@/utils/auth.functions";
-import { cacheControl } from "@/utils/cache-control";
 
 import { PUBLIC_CACHE_CONTROL } from "./-common/constants";
 

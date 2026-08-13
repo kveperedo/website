@@ -2,17 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getDb } from "@/db/client";
 
-import {
-  generateScheduledTransactions,
-  getUpcomingScheduledTransactionTemplates,
-} from "./scheduled-transactions.server";
-import { createTransaction } from "./transaction-creation.server";
+import { createTransaction } from "../transactions/creation.server";
+import { generateScheduledTransactions, getUpcomingScheduledTransactionTemplates } from "./server";
 
 vi.mock("@/db/client", () => ({
   getDb: vi.fn(),
 }));
 
-vi.mock("./transaction-creation.server", () => ({
+vi.mock("../transactions/creation.server", () => ({
   createTransaction: vi.fn(),
 }));
 

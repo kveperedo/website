@@ -1,15 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { authMiddleware } from "./auth.middleware";
+import { authMiddleware } from "../auth/middleware";
+import { createRateLimitMiddleware } from "../infra/rate-limit/middleware";
 import {
   isE2EAvailable,
   requireE2EAvailable,
   resetTestData,
   seedTestData,
   seedTrendsTestData,
-} from "./e2e.server";
-import { createRateLimitMiddleware } from "./rate-limit.middleware";
+} from "./server";
 
 const NetCardScenarioSchema = z
   .enum(["below-pace", "no-history", "on-pace", "over-income"])

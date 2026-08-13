@@ -4,8 +4,8 @@ import { z } from "zod";
 import { TransactionInputSchema } from "@/generated/zod/schemas";
 import { CreateTransactionsInputSchema } from "@/schema/transaction";
 
-import { authMiddleware } from "./auth.middleware";
-import { createRateLimitMiddleware } from "./rate-limit.middleware";
+import { authMiddleware } from "../../auth/middleware";
+import { createRateLimitMiddleware } from "../../infra/rate-limit/middleware";
 import {
   createTransactions,
   deleteTransaction,
@@ -18,7 +18,7 @@ import {
   getTransactionsByMonth,
   parseTransactions,
   updateTransaction,
-} from "./transactions.server";
+} from "./server";
 
 export const getRecentTransactionsFn = createServerFn()
   .middleware([authMiddleware])
