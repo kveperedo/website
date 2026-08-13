@@ -6,7 +6,7 @@
 - `npm run dev` — port 3000, `--host` for network access
 - `npm run lint` / `npm run format:check` — pre-commit runs both
 - `npm run db:generate` → `npm run db:deploy` — required before build if schema changed
-- `npm run test` — Vitest (no tests exist yet)
+- `npm run test` — Vitest unit tests
 - `npm run build` — outputs a Cloudflare Workers bundle (via `@cloudflare/vite-plugin`)
 - `npm run deploy` — runs `npm run build && wrangler deploy` (production → `kevinperedo.com`)
 - **Preview deploy**: `npm run deploy:preview -- "pr-<slug>"` — uploads a version with an aliased preview URL at `pr-<slug>-website-preview.kveperedo.workers.dev`
@@ -22,7 +22,7 @@
 - Auth: session cookie (15-day max age), env vars `SESSION_SECRET` + `ADMIN_PASSWORD_HASH`
 - DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-neon`; config in `prisma.config.ts` (not `schema.prisma` datasource)
 - Prisma client outputs to `src/generated/prisma` (gitignored)
-- Validation: `zod` schema input validation on server functions (see `auth.functions.ts`)
+- Validation: `zod` schema input validation on server functions (see `src/app/auth/functions.ts`)
 - **React Compiler** enabled via `@rolldown/plugin-babel`
 - Prefer `date-fns` over native `Date` APIs for date manipulation and formatting
 
@@ -44,21 +44,21 @@
 
 ## Key Files
 
-| File                                            | Purpose                                                |
-| ----------------------------------------------- | ------------------------------------------------------ |
-| `src/db/client.ts`                              | Prisma client singleton (Neon adapter)                 |
-| `src/utils/auth.server.ts`                      | Session read/login/logout                              |
-| `src/utils/auth.functions.ts`                   | `createServerFn` wrappers for auth                     |
-| `src/utils/auth.middleware.ts`                  | Composable auth middleware for server functions        |
-| `src/utils/expenses.server.ts` / `.function.ts` | Example server function pattern                        |
-| `prisma/schema.prisma`                          | Single model: `Expense`                                |
-| `src/styles.css`                                | Tailwind v4 theme, fonts, keyframes, CSS variables     |
-| `src/components/link.tsx`                       | RAC `<Link>` via `createLink` — TanStack Router typed  |
-| `src/components/ui/`                            | shadcn components (button, badge, input, field, etc.)  |
-| `src/lib/env.ts`                                | `requireEnv()` helper for env vars                     |
-| `wrangler.jsonc`                                | Cloudflare Workers config (KV, routes, bindings)       |
-| `worker-configuration.d.ts`                     | Auto-generated Worker types (run `npm run cf-typegen`) |
-| `components.json`                               | shadcn registry config                                 |
+| File                        | Purpose                                                |
+| --------------------------- | ------------------------------------------------------ |
+| `src/db/client.ts`          | Prisma client singleton (Neon adapter)                 |
+| `src/app/auth/`             | Session logic, server functions, and auth middleware   |
+| `src/app/finance/`          | Finance-domain services and server functions           |
+| `src/app/infra/`            | Cache control, logging, and rate limiting              |
+| `src/app/e2e/`              | E2E fixture seeding and server functions               |
+| `prisma/schema.prisma`      | Single model: `Expense`                                |
+| `src/styles.css`            | Tailwind v4 theme, fonts, keyframes, CSS variables     |
+| `src/components/link.tsx`   | RAC `<Link>` via `createLink` — TanStack Router typed  |
+| `src/components/ui/`        | shadcn components (button, badge, input, field, etc.)  |
+| `src/lib/env.ts`            | `requireEnv()` helper for env vars                     |
+| `wrangler.jsonc`            | Cloudflare Workers config (KV, routes, bindings)       |
+| `worker-configuration.d.ts` | Auto-generated Worker types (run `npm run cf-typegen`) |
+| `components.json`           | shadcn registry config                                 |
 
 ## Gotchas
 

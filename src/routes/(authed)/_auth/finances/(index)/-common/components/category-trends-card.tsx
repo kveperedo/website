@@ -6,6 +6,7 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import type { TransactionCategory } from "@/generated/prisma/enums";
 
+import { setCategoryTrendsVisibleCategoriesFn } from "@/app/finance/preferences/functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -19,7 +20,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
-import { setCategoryTrendsVisibleCategoriesFn } from "@/utils/finance-preferences.function";
 
 import { Route } from "../..";
 import {

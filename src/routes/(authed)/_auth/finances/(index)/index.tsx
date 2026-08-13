@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { formatInTimeZone } from "date-fns-tz";
 
-import { getCategoryTrendsVisibleCategoriesFn } from "@/utils/finance-preferences.function";
-import { TIME_ZONE } from "@/utils/local-date";
-import { getUpcomingScheduledTransactionTemplatesFn } from "@/utils/scheduled-transactions.functions";
+import { TIME_ZONE } from "@/app/finance/local-date";
+import { getCategoryTrendsVisibleCategoriesFn } from "@/app/finance/preferences/functions";
+import { getUpcomingScheduledTransactionTemplatesFn } from "@/app/finance/scheduled-transactions/functions";
 import {
   getCategorySummaryFn,
   getCategoryTrendsFn,
   getMonthlyHistoryFn,
   getRecentTransactionsFn,
-} from "@/utils/transactions.function";
+} from "@/app/finance/transactions/functions";
 
 import { FinanceContainer } from "../-common/components/finance-container";
 import { CategorySummaryCard } from "./-common/components/category-summary-card";

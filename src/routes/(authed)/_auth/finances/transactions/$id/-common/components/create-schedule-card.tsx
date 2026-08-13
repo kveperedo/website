@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
+import { createScheduledTransactionTemplateFn } from "@/app/finance/scheduled-transactions/functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,7 +19,6 @@ import {
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { ScheduledFormSchema, type ScheduledFormData } from "@/schema/scheduled-transaction";
-import { createScheduledTransactionTemplateFn } from "@/utils/scheduled-transactions.functions";
 
 import { Route } from "../..";
 import {

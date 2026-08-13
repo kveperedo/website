@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 
-import { getCurrentUser, login, logout } from "./auth.server";
-import { createRateLimitMiddleware } from "./rate-limit.middleware";
+import { createRateLimitMiddleware } from "../infra/rate-limit/middleware";
+import { getCurrentUser, login, logout } from "./server";
 
 export const getCurrentUserFn = createServerFn({ method: "GET" }).handler(getCurrentUser);
 

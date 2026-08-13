@@ -3,9 +3,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 
+import { getTransactionByIdFn, updateTransactionFn } from "@/app/finance/transactions/functions";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { getTransactionByIdFn, updateTransactionFn } from "@/utils/transactions.function";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
 import {

@@ -3,15 +3,15 @@ import { z } from "zod";
 
 import { CreateScheduledTransactionInputSchema } from "@/schema/scheduled-transaction";
 
-import { authMiddleware } from "./auth.middleware";
-import { createRateLimitMiddleware } from "./rate-limit.middleware";
+import { authMiddleware } from "../../auth/middleware";
+import { createRateLimitMiddleware } from "../../infra/rate-limit/middleware";
 import {
   deleteScheduledTransactionTemplate,
   getScheduledTransactionTemplates,
   getUpcomingScheduledTransactionTemplates,
   createScheduledTransactionTemplate,
   toggleScheduledTransactionTemplate,
-} from "./scheduled-transactions.server";
+} from "./server";
 
 export const getScheduledTransactionTemplatesFn = createServerFn()
   .middleware([authMiddleware])

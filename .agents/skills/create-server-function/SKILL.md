@@ -1,6 +1,6 @@
 ---
 name: create-server-function
-description: Creation of server functions under `src/utils`. Use when: (1) Adding new server-side logic or database operations, (2) Creating TanStack Start server function wrappers accessible from route components
+description: Creation of server functions under `src/app`. Use when: (1) Adding new server-side logic or database operations, (2) Creating TanStack Start server function wrappers accessible from route components
 ---
 
 # Overview
@@ -9,22 +9,22 @@ Server-side logic is split across two co-located files per domain. Never mix raw
 
 # File Location
 
-All server function files live under `src/utils/`. No barrel files.
+All server function files live in their owning domain under `src/app/`. No barrel files.
 
 # File Naming
 
-Use the domain name in kebab-case as the base:
+Use a domain directory with role-based names:
 
-- `<domain>.server.ts` — raw database/auth logic, never imported by the client
-- `<domain>.function.ts` — `createServerFn` wrappers, safe to import from route components
+- `server.ts` — raw database/auth logic, never imported by the client
+- `functions.ts` — `createServerFn` wrappers, safe to import from route components
 
-Example: `transactions.server.ts` and `transactions.function.ts`.
+Example: `src/app/finance/transactions/server.ts` and `src/app/finance/transactions/functions.ts`.
 
 # General
 
 All exports should be named exports.
 
-# `*.server.ts` — Server Logic File
+# `server.ts` — Server Logic File
 
 Contains raw async functions that interact with the database or other server-only resources. No `createServerFn` here.
 
@@ -45,14 +45,14 @@ export const getTransactions = async () => {
 };
 ```
 
-# `*.function.ts` — Server Function Wrapper File
+# `functions.ts` — Server Function Wrapper File
 
-Contains `createServerFn` wrappers that call the corresponding `*.server.ts` functions.
+Contains `createServerFn` wrappers that call the corresponding `server.ts` functions.
 
 - Import `createServerFn` from `@tanstack/react-start`
 - Validate input with `zod` via `.inputValidator(schema)` when the function accepts arguments
 - Destructure validated input from `{ data }` in the handler
-- Apply `authMiddleware` via `.middleware([authMiddleware])` for any protected function; import it from `./auth.middleware`
+- Apply `authMiddleware` via `.middleware([authMiddleware])` for any protected function; import it from the auth domain
 - Specify `{ method: "POST" }` for all mutations (create / update / delete); omit for reads (GET is the default)
 - Suffix all exported function names with `Fn` (e.g. `getTransactionsFn`)
 
@@ -60,8 +60,8 @@ Contains `createServerFn` wrappers that call the corresponding `*.server.ts` fun
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 
-import { authMiddleware } from "./auth.middleware";
-import { createTransaction, getTransactions } from "./transactions.server";
+import { authMiddleware } from "@/app/auth/middleware";
+import { createTransaction, getTransactions } from "./server";
 
 // Protected read — GET is the default, no method option needed
 export const getTransactionsFn = createServerFn()
@@ -81,7 +81,7 @@ export const createTransactionFn = createServerFn({ method: "POST" })
 
 # Auth Middleware
 
-Import `authMiddleware` from `./auth.middleware` to protect server functions. Always use `.middleware([authMiddleware])` instead of manually calling `requireSession` inside the handler.
+Import `authMiddleware` from the auth domain to protect server functions. Always use `.middleware([authMiddleware])` instead of manually calling `requireSession` inside the handler.
 
 # Method Convention
 

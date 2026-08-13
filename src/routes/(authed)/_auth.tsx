@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
-import { getCurrentUserFn } from "@/utils/auth.functions";
-import { cacheControl } from "@/utils/cache-control";
+import { getCurrentUserFn } from "@/app/auth/functions";
+import { cacheControl } from "@/app/infra/cache-control";
 
 export const Route = createFileRoute("/(authed)/_auth")({
   headers: () => cacheControl("no-store"),

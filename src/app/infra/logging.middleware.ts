@@ -1,7 +1,7 @@
 import { isRedirect } from "@tanstack/react-router";
 import { createMiddleware } from "@tanstack/react-start";
 
-import { RateLimitError } from "./rate-limit-error";
+import { RateLimitError } from "./rate-limit/error";
 
 const SLOW_READ_THRESHOLD_MS = 500;
 
