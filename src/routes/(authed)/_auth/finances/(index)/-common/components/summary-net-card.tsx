@@ -1,6 +1,6 @@
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -129,9 +129,9 @@ export const SummaryNetCard = () => {
   return (
     <Card size="sm" className="min-w-0 flex-1">
       <CardContent className="flex flex-col gap-2">
-        <p className="font-mono text-xs text-muted-foreground">
+        <CardTitle className="text-muted-foreground">
           Your <span className="text-foreground">{current.label}</span> finances so far
-        </p>
+        </CardTitle>
         {isEmpty ? (
           <Empty>
             <EmptyHeader>

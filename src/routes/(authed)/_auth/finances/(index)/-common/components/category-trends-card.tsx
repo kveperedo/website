@@ -184,7 +184,7 @@ export const CategoryTrendsCard = () => {
     <Card data-testid="category-trends-card" className={cn("flex-1 gap-0 py-0", isEmpty && "pt-6")}>
       {!isEmpty && (
         <CardHeader className="flex items-center justify-between px-4 py-4">
-          <CardTitle className="font-mono text-xs text-muted-foreground">Category trends</CardTitle>
+          <CardTitle className="text-muted-foreground">Category trends</CardTitle>
           <CategoryFilter
             visibleCategories={visibleCategories}
             onSelectionChange={handleSelectionChange}

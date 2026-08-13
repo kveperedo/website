@@ -16,9 +16,7 @@ export const RecentTransactionsCard = () => {
     <Card className={cn("gap-0 py-0 sm:flex-1", isTransactionListEmpty && "pt-6")}>
       {!isTransactionListEmpty && (
         <CardHeader className="flex flex-row items-center justify-between px-4 py-4">
-          <CardTitle className="font-mono text-xs text-muted-foreground">
-            Recent transactions
-          </CardTitle>
+          <CardTitle className="text-muted-foreground">Recent transactions</CardTitle>
           <TanstackLinkButton
             to="/finances/transactions"
             variant="ghost"
