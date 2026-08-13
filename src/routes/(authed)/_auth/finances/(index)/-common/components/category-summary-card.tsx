@@ -1,4 +1,4 @@
-import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -60,6 +60,7 @@ export const CategorySummaryCard = () => {
               margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
               barCategoryGap="20%"
             >
+              <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" />
               <YAxis
                 type="category"
                 dataKey="category"
