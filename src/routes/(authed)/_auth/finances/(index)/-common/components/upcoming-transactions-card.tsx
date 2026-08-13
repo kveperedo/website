@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 
 import { TanstackLinkButton } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +16,7 @@ export const UpcomingTransactionsCard = () => {
     <Card className="flex min-w-0 flex-1 flex-col p-2">
       <CardContent className="flex flex-col gap-2 p-2">
         <div className="flex items-center justify-between">
-          <p className="font-mono text-xs text-muted-foreground">Upcoming transactions</p>
+          <CardTitle className="text-muted-foreground">Upcoming transactions</CardTitle>
           <TanstackLinkButton
             variant="ghost"
             size="icon-sm"
