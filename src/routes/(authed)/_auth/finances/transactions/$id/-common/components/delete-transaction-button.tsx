@@ -31,7 +31,13 @@ export const DeleteTransactionButton = () => {
       await deleteTransaction({ data: transaction.id });
       router.navigate({
         to: "/finances/transactions",
-        search: { year: search.year, month: search.month, q: search.q || undefined },
+        search: {
+          year: search.year,
+          month: search.month,
+          q: search.q || undefined,
+          type: search.type,
+          categories: search.categories,
+        },
       });
     } catch {
       // TODO: Add snackbar for error

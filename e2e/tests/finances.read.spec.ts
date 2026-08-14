@@ -1,9 +1,14 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { addMonths, format, getDaysInMonth, subMonths } from "date-fns";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import { resetDatabase, seedDatabase, seedNetCardScenario } from "../helpers/database";
 import { openTransactionComposer } from "../helpers/transactions";
+
+async function openTransactionSearch(page: Page) {
+  await page.getByRole("button", { name: "Search transactions" }).click();
+  return page.getByLabel(/Search .* transactions/);
+}
 
 test.describe.configure({ mode: "serial" });
 
@@ -90,11 +95,14 @@ test.describe("transactions", () => {
     await expect(page.getByRole("main")).toBeVisible();
   });
 
-  test("transactions page has a title and search input for the current month", async ({ page }) => {
+  test("transactions page has a title and expandable search for the current month", async ({
+    page,
+  }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
     const monthLabel = format(new Date(), "MMMM yyyy");
     await expect(page).toHaveTitle(new RegExp(`${monthLabel} Transactions`));
+    await page.getByRole("button", { name: "Search transactions" }).click();
     await expect(page.getByLabel(`Search ${monthLabel} transactions`)).toBeVisible();
   });
 
@@ -105,7 +113,7 @@ test.describe("transactions", () => {
     await expect(page).toHaveURL(/\/finances\/transactions\?.*(year|month)=/);
 
     const prevLabel = format(subMonths(new Date(), 1), "MMMM yyyy");
-    await expect(page.getByLabel(`Search ${prevLabel} transactions`)).toBeVisible();
+    await expect(page.getByText(prevLabel, { exact: true })).toBeVisible();
   });
 
   test("next month navigation updates the URL and month label", async ({ page }) => {
@@ -118,17 +126,88 @@ test.describe("transactions", () => {
     await expect(page).toHaveURL(/\/finances\/transactions\?.*(year|month)=/);
 
     const nextLabel = format(addMonths(new Date(), 1), "MMMM yyyy");
-    await expect(page.getByLabel(`Search ${nextLabel} transactions`)).toBeVisible();
+    await expect(page.getByText(nextLabel, { exact: true })).toBeVisible();
   });
 
-  test("typing a search query updates the URL", async ({ page }) => {
+  test("typing a search query updates the URL without Enter", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    const search = page.getByLabel(/Search .* transactions/);
+    const search = await openTransactionSearch(page);
     await search.fill("coffee");
-    await search.press("Enter");
 
     await expect(page).toHaveURL(/q=coffee/);
+  });
+
+  test("Escape cancels pending search changes", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await page.clock.install();
+
+    const search = await openTransactionSearch(page);
+    await search.fill("coffee");
+    await search.press("Escape");
+
+    await expect(search).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Search transactions" })).toBeFocused();
+    await page.clock.fastForward(500);
+    await expect(page).not.toHaveURL(/q=coffee/);
+
+    await gotoAndWaitForHydration(page, "/finances/transactions?q=Client");
+    const editedSearch = page.getByLabel(/Search .* transactions/);
+    await editedSearch.fill("Client dinner");
+    await editedSearch.press("Escape");
+
+    await expect(editedSearch).toHaveValue("Client");
+    await expect(page).toHaveURL(/q=Client(?:$|&)/);
+    await page.clock.fastForward(500);
+    await expect(page).toHaveURL(/q=Client(?:$|&)/);
+  });
+
+  test("type and category filters update the results and URL", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+
+    await page.getByRole("radio", { name: "Expenses", exact: true }).click();
+    await expect(page).toHaveURL(/type=expense/);
+
+    await page.getByRole("button", { name: "Categories", exact: true }).click();
+    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
+    await expect(page).toHaveURL(/categories=.*food_drinks/);
+    await expect(page.getByRole("link", { name: /Client dinner/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Groceries run/ })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Salary/ })).toHaveCount(0);
+  });
+
+  test("Cancel returns to the filtered transaction list", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+
+    await page.getByRole("radio", { name: "Expenses", exact: true }).click();
+    await expect(page).toHaveURL(/type=expense/);
+    const search = await openTransactionSearch(page);
+    await search.fill("Client");
+    await expect(page).toHaveURL(/q=Client/);
+    await expect(page.getByRole("link", { name: /Client dinner/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Groceries run/ })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Categories", exact: true }).click();
+    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
+    await expect(page).toHaveURL(/categories=.*food_drinks/);
+    await expect(page.getByRole("menuitemcheckbox", { name: "Food & Drinks" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await page.keyboard.press("Escape");
+
+    const listUrl = page.url();
+    await page.getByRole("link", { name: /Client dinner/ }).click();
+    await expect(page).toHaveURL(/\/finances\/transactions\/.+/);
+    await expect(page).toHaveURL(/q=Client/);
+    await expect(page).toHaveURL(/type=expense/);
+    await expect(page).toHaveURL(/categories=.*food_drinks/);
+
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page).toHaveURL(listUrl);
+    await expect(page.getByRole("link", { name: /Client dinner/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Groceries run/ })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Salary/ })).toHaveCount(0);
   });
 
   test("clicking a transaction row opens the edit page", async ({ page }) => {
@@ -153,7 +232,7 @@ test.describe("transactions", () => {
     const transactionUrl = page.url();
     await page.getByTestId("description-input").fill("Unsaved description");
     await page.getByRole("button", { name: "Cancel" }).click();
-    await expect(page).toHaveURL(/\/finances\/transactions$/);
+    await expect(page).toHaveURL(/\/finances\/transactions\?year=\d+&month=\d+$/);
 
     await gotoAndWaitForHydration(page, transactionUrl);
     await expect(page.getByTestId("description-input")).toHaveValue(originalDescription);
@@ -162,22 +241,20 @@ test.describe("transactions", () => {
   test("clear search button removes the query from the URL and input", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    const search = page.getByLabel(/Search .* transactions/);
+    const search = await openTransactionSearch(page);
     await search.fill("coffee");
-    await search.press("Enter");
     await expect(page).toHaveURL(/q=coffee/);
 
     await page.getByRole("button", { name: "Clear search" }).click();
-    await expect(search).toHaveValue("");
+    await expect(search).toHaveCount(0);
     await expect(page).not.toHaveURL(/q=coffee/);
   });
 
   test("search with no matches shows an empty state", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    const search = page.getByLabel(/Search .* transactions/);
+    const search = await openTransactionSearch(page);
     await search.fill("zzqx_no_such_transaction_xyz");
-    await search.press("Enter");
 
     await expect(page.getByText(/No transactions match/i)).toBeVisible();
   });
@@ -195,7 +272,7 @@ test.describe("transactions", () => {
     await nextMonth.click();
 
     const currentLabel = format(new Date(), "MMMM yyyy");
-    await expect(page.getByLabel(`Search ${currentLabel} transactions`)).toBeVisible();
+    await expect(page.getByText(currentLabel, { exact: true })).toBeVisible();
   });
 });
 
@@ -235,7 +312,7 @@ test.describe("mobile finance layout", () => {
     await expect(saveChanges).toBeInViewport();
 
     await cancel.press("Enter");
-    await expect(page).toHaveURL(/\/finances\/transactions$/);
+    await expect(page).toHaveURL(/\/finances\/transactions\?year=\d+&month=\d+$/);
   });
 });
 

@@ -6,7 +6,7 @@ import type { TransactionInputType } from "@/generated/zod/schemas/variants/inpu
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 
 import { getDb } from "@/db/client";
-import { TransactionCategory } from "@/generated/prisma/enums";
+import { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/transaction";
 
 import {
@@ -37,7 +37,21 @@ export const getRecentTransactions = async () => {
   }));
 };
 
-export const getTransactionsByMonth = async (year: number, month: number, q?: string) => {
+type GetTransactionsByMonthInput = {
+  year: number;
+  month: number;
+  q?: string;
+  type?: TransactionType;
+  categories?: Array<TransactionCategory>;
+};
+
+export const getTransactionsByMonth = async ({
+  year,
+  month,
+  q,
+  type,
+  categories,
+}: GetTransactionsByMonthInput) => {
   const monthStart = startOfLocalMonth(year, month);
   const monthEnd = endOfLocalMonth(year, month);
 
@@ -45,6 +59,8 @@ export const getTransactionsByMonth = async (year: number, month: number, q?: st
     where: {
       transactedAt: { gte: monthStart, lt: monthEnd },
       ...(q ? { description: { contains: q, mode: "insensitive" } } : {}),
+      ...(type ? { type } : {}),
+      ...(categories?.length ? { category: { in: categories } } : {}),
     },
     orderBy: { transactedAt: "desc" },
   });

@@ -6,6 +6,8 @@ import { z } from "zod";
 import { getTransactionByIdFn, updateTransactionFn } from "@/app/finance/transactions/functions";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
+import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
 import {
@@ -18,6 +20,8 @@ const searchSchema = z.object({
   year: z.coerce.number().int().min(2020).max(2100).optional(),
   month: z.coerce.number().int().min(1).max(12).optional(),
   q: z.string().optional(),
+  type: TransactionTypeSchema.optional(),
+  categories: z.array(TransactionCategorySchema).optional(),
 });
 
 export const Route = createFileRoute("/(authed)/_auth/finances/transactions/$id/")({
@@ -49,7 +53,13 @@ function RouteComponent() {
   const handleBack = () => {
     router.navigate({
       to: "/finances/transactions",
-      search: { year: search.year, month: search.month, q: search.q || undefined },
+      search: {
+        year: search.year,
+        month: search.month,
+        q: search.q || undefined,
+        type: search.type,
+        categories: search.categories,
+      },
     });
   };
 

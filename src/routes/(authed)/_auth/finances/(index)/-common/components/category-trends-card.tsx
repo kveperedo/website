@@ -1,7 +1,6 @@
 import { useServerFn } from "@tanstack/react-start";
 import { debounce } from "es-toolkit/function";
-import { ChevronDownIcon } from "lucide-react";
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import type { TransactionCategory } from "@/generated/prisma/enums";
@@ -10,18 +9,11 @@ import { setCategoryTrendsVisibleCategoriesFn } from "@/app/finance/preferences/
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuGroup,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
+import { CategoryFilter } from "../../../-common/components/category-filter";
 import {
   CATEGORY_CHART_CONFIG,
   CATEGORIES,
@@ -84,79 +76,6 @@ function TrendsLegend({ visibleCategories }: { visibleCategories: Array<Transact
   );
 }
 
-function CategoryFilter({
-  visibleCategories,
-  onSelectionChange,
-}: {
-  visibleCategories: Array<TransactionCategory>;
-  onSelectionChange: (categories: Array<TransactionCategory>) => void;
-}) {
-  const selectedKeys = useMemo(() => new Set(visibleCategories), [visibleCategories]);
-  const areAllCategoriesVisible = visibleCategories.length === CATEGORIES.length;
-  const areNoCategoriesVisible = visibleCategories.length === 0;
-  return (
-    <DropdownMenuTrigger>
-      <Button variant="outline" size="sm" className="gap-1.5">
-        <span>Filter</span>
-        <ChevronDownIcon className="h-3.5 w-3.5" />
-      </Button>
-      <DropdownMenu className="w-40" placement="bottom end">
-        <DropdownMenuGroup aria-label="Bulk actions">
-          <DropdownMenuItem
-            isDisabled={areAllCategoriesVisible}
-            shouldCloseOnSelect={false}
-            onAction={() => {
-              onSelectionChange(CATEGORIES.map((category) => category.value));
-            }}
-          >
-            Select all
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            isDisabled={areNoCategoriesVisible}
-            shouldCloseOnSelect={false}
-            onAction={() => {
-              onSelectionChange([]);
-            }}
-          >
-            Deselect all
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup
-          selectionMode="multiple"
-          selectedKeys={selectedKeys}
-          onSelectionChange={(keys) => {
-            if (keys === "all") {
-              onSelectionChange(CATEGORIES.map((category) => category.value));
-              return;
-            }
-            onSelectionChange(
-              CATEGORIES.filter((category) => keys.has(category.value)).map(
-                (category) => category.value,
-              ),
-            );
-          }}
-        >
-          <DropdownMenuLabel className="px-2 py-1">Filter categories</DropdownMenuLabel>
-          {CATEGORIES.map((category) => (
-            <DropdownMenuItem
-              id={category.value}
-              key={category.value}
-              textValue={CATEGORY_LABELS[category.value]}
-            >
-              <span
-                className="mr-2 inline-block h-2 w-2 shrink-0 rounded-none"
-                style={{ backgroundColor: CATEGORY_CHART_COLORS[category.value] }}
-              />
-              {CATEGORY_LABELS[category.value]}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
-      </DropdownMenu>
-    </DropdownMenuTrigger>
-  );
-}
-
 export const CategoryTrendsCard = () => {
   const { categoryTrends, categoryTrendsVisibleCategories } = Route.useLoaderData();
   const setCategoryTrendsVisibleCategories = useServerFn(setCategoryTrendsVisibleCategoriesFn);
@@ -186,8 +105,9 @@ export const CategoryTrendsCard = () => {
         <CardHeader className="flex items-center justify-between px-4 py-4">
           <CardTitle className="text-muted-foreground">Category trends</CardTitle>
           <CategoryFilter
-            visibleCategories={visibleCategories}
+            selectedCategories={visibleCategories}
             onSelectionChange={handleSelectionChange}
+            label="Filter"
           />
         </CardHeader>
       )}
