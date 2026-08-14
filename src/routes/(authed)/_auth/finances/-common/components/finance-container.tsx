@@ -33,13 +33,12 @@ const FinanceContainerRoot = ({ header, footer, children }: FinanceContainerProp
     <div
       className={cn(
         "relative min-h-dvh",
-        header && "pt-14",
         footer &&
           "pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(4rem+env(safe-area-inset-bottom))]",
       )}
     >
       {header && (
-        <header className="fixed inset-x-0 top-0 z-30 border-b border-border bg-background/85 p-4 backdrop-blur">
+        <header className="sticky top-0 z-30 border-b border-border bg-background/85 p-4 backdrop-blur">
           <div className="container mx-auto flex flex-col">{header}</div>
         </header>
       )}

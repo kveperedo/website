@@ -2,30 +2,46 @@ import { useRouter } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { CalendarClock } from "lucide-react";
 
+import type { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
+import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
+
 import { cn } from "@/lib/utils";
 
 import { CATEGORY_COLORS, CATEGORY_LABELS, TRANSACTION_TYPE_COLORS } from "../constants";
 
-export type TransactionRow = {
+export type TransactionRow = Pick<
+  TransactionInputType,
+  "category" | "description" | "templateId" | "transactedAt" | "type"
+> & {
   id: string;
-  description: string;
   amount: number;
-  type: "expense" | "income";
-  category: string | null;
-  transactedAt: Date;
-  templateId: string | null;
 };
 
 type TransactionTableProps = {
   transactions: Array<TransactionRow>;
   label: string;
+  transactionSearch?: {
+    year: number;
+    month: number;
+    q?: string;
+    type?: TransactionType;
+    categories?: Array<TransactionCategory>;
+  };
 };
 
-export const TransactionTable = ({ transactions, label }: TransactionTableProps) => {
+export const TransactionTable = ({
+  transactions,
+  label,
+  transactionSearch,
+}: TransactionTableProps) => {
   const router = useRouter();
 
   const handleRowClick = (id: string) => {
-    router.navigate({ to: "/finances/transactions/$id", params: { id } });
+    router.navigate({
+      to: "/finances/transactions/$id",
+      params: { id },
+      search: transactionSearch,
+    });
   };
 
   return (

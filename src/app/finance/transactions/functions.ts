@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 import { TransactionInputSchema } from "@/generated/zod/schemas";
 import { CreateTransactionsInputSchema } from "@/schema/transaction";
 
@@ -57,10 +58,12 @@ export const getTransactionsByMonthFn = createServerFn()
       year: z.number().int().min(2020).max(2100),
       month: z.number().int().min(1).max(12),
       q: z.string().optional(),
+      type: z.enum(TransactionType).optional(),
+      categories: z.array(z.enum(TransactionCategory)).optional(),
     }),
   )
   .handler(async ({ data }) => {
-    return await getTransactionsByMonth(data.year, data.month, data.q);
+    return await getTransactionsByMonth(data);
   });
 
 export const parseTransactionWithAIFn = createServerFn({ method: "POST" })
