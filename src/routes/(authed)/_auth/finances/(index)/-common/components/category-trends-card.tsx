@@ -1,7 +1,7 @@
 import { useServerFn } from "@tanstack/react-start";
-import { debounce } from "es-toolkit/function";
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { useDebouncedCallback } from "use-debounce";
 
 import type { TransactionCategory } from "@/generated/prisma/enums";
 
@@ -57,6 +57,7 @@ function formatMonthLabel(yyyyMm: string): string {
 }
 
 const CHART_HEIGHT = 350;
+const CATEGORY_SELECTION_DEBOUNCE_MS = 300;
 
 function TrendsLegend({ visibleCategories }: { visibleCategories: Array<TransactionCategory> }) {
   return (
@@ -88,9 +89,10 @@ export const CategoryTrendsCard = () => {
   const persistSelection = useEffectEvent((categories: Array<TransactionCategory>) => {
     void setCategoryTrendsVisibleCategories({ data: categories });
   });
-  const debouncedPersistSelection = useRef(
-    debounce((categories: Array<TransactionCategory>) => persistSelection(categories), 300),
-  ).current;
+  const debouncedPersistSelection = useDebouncedCallback(
+    (categories: Array<TransactionCategory>) => persistSelection(categories),
+    CATEGORY_SELECTION_DEBOUNCE_MS,
+  );
 
   useEffect(() => () => debouncedPersistSelection.flush(), [debouncedPersistSelection]);
 

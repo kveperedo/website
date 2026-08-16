@@ -1,8 +1,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { addMonths, subMonths } from "date-fns";
-import { debounce } from "es-toolkit/function";
 import { ChevronLeft, ChevronRight, SearchIcon, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
 
 import type { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
@@ -28,6 +28,8 @@ const searchSchema = z.object({
   type: TransactionTypeSchema.optional(),
   categories: z.array(TransactionCategorySchema).optional(),
 });
+
+const SEARCH_DEBOUNCE_MS = 250;
 
 export const Route = createFileRoute("/(authed)/_auth/finances/transactions/(index)/")({
   validateSearch: searchSchema,
@@ -123,23 +125,21 @@ function TransactionHeader() {
     routeStateRef.current = { year, month, search };
   }, [year, month, search]);
 
-  const debouncedNavigate = useRef(
-    debounce((q?: string) => {
-      const { year, month, search } = routeStateRef.current;
-      submittedQueryRef.current = q;
-      router.navigate({
-        to: "/finances/transactions",
-        search: {
-          year,
-          month,
-          q,
-          type: search.type,
-          categories: search.categories?.length ? search.categories : undefined,
-        },
-        replace: true,
-      });
-    }, 250),
-  ).current;
+  const debouncedNavigate = useDebouncedCallback((q?: string) => {
+    const { year, month, search } = routeStateRef.current;
+    submittedQueryRef.current = q;
+    router.navigate({
+      to: "/finances/transactions",
+      search: {
+        year,
+        month,
+        q,
+        type: search.type,
+        categories: search.categories?.length ? search.categories : undefined,
+      },
+      replace: true,
+    });
+  }, SEARCH_DEBOUNCE_MS);
 
   useEffect(() => {
     if (search.q !== submittedQueryRef.current) {

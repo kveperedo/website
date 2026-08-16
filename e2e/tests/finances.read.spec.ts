@@ -138,6 +138,19 @@ test.describe("transactions", () => {
     await expect(page).toHaveURL(/q=coffee/);
   });
 
+  test("Enter immediately commits a transaction search", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await page.clock.install();
+
+    const search = await openTransactionSearch(page);
+    await search.fill("Client");
+    await expect(page).not.toHaveURL(/q=Client(?:$|&)/);
+    await search.press("Enter");
+
+    await expect(page).toHaveURL(/q=Client(?:$|&)/);
+    await expect(page.getByRole("link", { name: /Client dinner/ })).toBeVisible();
+  });
+
   test("Escape cancels pending search changes", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
     await page.clock.install();
