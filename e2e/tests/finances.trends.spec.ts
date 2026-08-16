@@ -1,16 +1,28 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+import path from "node:path";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import { seedTrendsData } from "../helpers/database";
 
 test.describe.configure({ mode: "serial" });
 
+function waitForPreferenceUpdate(page: Page) {
+  return page.waitForResponse(
+    (response) => response.request().method() === "POST" && response.ok(),
+  );
+}
+
 test.describe("category trends card", () => {
   test.beforeAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    await seedTrendsData(page);
-    await context.close();
+    const context = await browser.newContext({
+      storageState: path.join(import.meta.dirname, "..", ".auth", "user.json"),
+    });
+
+    try {
+      await seedTrendsData(await context.newPage());
+    } finally {
+      await context.close();
+    }
   });
 
   test("dashboard shows the category trends card", async ({ page }) => {
@@ -84,15 +96,43 @@ test.describe("category trends card", () => {
     await page.keyboard.press("Escape");
     await card.getByRole("button", { name: "Select all categories" }).click();
     await card.getByRole("button", { name: "Filter" }).click();
+    const persistedSelection = waitForPreferenceUpdate(page);
     await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
 
     await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
     await expect(legend.getByText("Transport", { exact: true })).toBeVisible();
-    await page.waitForTimeout(1000);
+    await persistedSelection;
 
     await gotoAndWaitForHydration(page, "/finances");
 
     await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
     await expect(legend.getByText("Transport", { exact: true })).toBeVisible();
+  });
+
+  test("category trends selection persists when leaving the dashboard", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances");
+
+    const card = page.getByTestId("category-trends-card");
+    const legend = page.getByTestId("category-trends-legend");
+    const navigation = page.getByRole("navigation", { name: "Finance navigation" });
+    await card.getByRole("button", { name: "Filter" }).click();
+    await page.getByRole("menuitem", { name: "Deselect all" }).click();
+    await page.keyboard.press("Escape");
+    const persistedBaseline = waitForPreferenceUpdate(page);
+    await card.getByRole("button", { name: "Select all categories" }).click();
+    await persistedBaseline;
+    await page.clock.install();
+    await card.getByRole("button", { name: "Filter" }).click();
+    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
+
+    await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    const persistedSelection = waitForPreferenceUpdate(page);
+    await navigation.getByRole("link", { name: "Transactions", exact: true }).click();
+    await persistedSelection;
+    await expect(page).toHaveURL(/\/finances\/transactions$/);
+    await navigation.getByRole("link", { name: "Dashboard", exact: true }).click();
+    await expect(page).toHaveURL(/\/finances$/);
+    await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
   });
 });
