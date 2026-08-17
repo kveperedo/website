@@ -20,7 +20,7 @@
 - Server functions: `*.server.ts` (raw db/auth) + `*.functions.ts` (`createServerFn` wrappers); use `authMiddleware` for protected endpoints. `serverFunctionLoggingMiddleware` is registered globally: log failures, successful mutations, and reads slower than 500 ms; never log request payloads or sensitive data. Do not log individual rate-limit rejections.
 - Import alias: `@/*` → `src/*`
 - Auth: session cookie (15-day max age), env vars `SESSION_SECRET` + `ADMIN_PASSWORD_HASH`
-- DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-pg` through a Cloudflare Hyperdrive binding; `DATABASE_URL` in `prisma.config.ts` is for Prisma CLI only
+- DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-pg` through a Cloudflare Hyperdrive binding; TCP connections support Prisma transactions. Start transactions at coordinated workflow boundaries and pass the transaction client to their write helpers. `DATABASE_URL` in `prisma.config.ts` is for Prisma CLI only
 - Prisma client outputs to `src/generated/prisma` (gitignored)
 - Validation: `zod` schema input validation on server functions (see `src/app/auth/functions.ts`)
 - **React Compiler** enabled via `@rolldown/plugin-babel`

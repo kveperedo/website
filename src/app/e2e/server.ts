@@ -11,7 +11,7 @@ import {
 
 import type { TransactionCategory } from "@/generated/prisma/enums";
 
-import { getDb } from "@/db/client";
+import { getDb, type DbTransactionClient } from "@/db/client";
 
 import { getCurrentYearMonth, startOfLocalMonth } from "../finance/local-date";
 
@@ -27,28 +27,29 @@ export function requireE2EAvailable() {
   }
 }
 
-export async function resetTestData() {
-  const db = getDb();
-  const [templates, transactions, preferences] = await Promise.all([
-    db.scheduledTransactionTemplate.findMany({ select: { id: true } }),
-    db.transaction.findMany({ select: { id: true } }),
-    db.financePreferences.findUnique({ where: { id: "default" }, select: { id: true } }),
-  ]);
+async function clearTestData(db: DbTransactionClient) {
+  await db.scheduledTransactionTemplate.deleteMany();
+  await db.transaction.deleteMany();
+  await db.financePreferences.deleteMany({ where: { id: "default" } });
+}
 
-  await Promise.all(
-    templates.map(({ id }) => db.scheduledTransactionTemplate.delete({ where: { id } })),
-  );
-  await Promise.all([
-    ...transactions.map(({ id }) => db.transaction.delete({ where: { id } })),
-    ...(preferences ? [db.financePreferences.delete({ where: { id: preferences.id } })] : []),
-  ]);
+export async function resetTestData() {
+  await getDb().$transaction(clearTestData);
 }
 
 export async function seedTestData(scenario?: NetCardScenario) {
-  if (scenario) {
-    return seedNetCardTestData(scenario);
-  }
+  await getDb().$transaction(async (db) => {
+    await clearTestData(db);
+    if (scenario) {
+      await seedNetCardTestData(db, scenario);
+      return;
+    }
 
+    await seedDefaultTestData(db);
+  });
+}
+
+async function seedDefaultTestData(db: DbTransactionClient) {
   const now = new Date();
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const monthStart = startOfMonth(now);
@@ -57,35 +58,30 @@ export async function seedTestData(scenario?: NetCardScenario) {
   const hasUpcomingCurrentMonth = now.getDate() < getDaysInMonth(now);
   const upcomingDay = hasUpcomingCurrentMonth ? now.getDate() + 1 : now.getDate();
 
-  const db = getDb();
-  await Promise.all([
-    db.transaction.create({
-      data: {
+  await db.transaction.createMany({
+    data: [
+      {
         description: "Salary",
         amount: 45000.0,
         type: "income",
         transactedAt: at(1),
       },
-    }),
-    db.transaction.create({
-      data: {
+      {
         description: "Groceries run",
         amount: 1500.0,
         type: "expense",
         category: "groceries_household",
         transactedAt: at(2),
       },
-    }),
-    db.transaction.create({
-      data: {
+      {
         description: "Client dinner",
         amount: 850.0,
         type: "expense",
         category: "food_drinks",
         transactedAt: at(5),
       },
-    }),
-  ]);
+    ],
+  });
 
   const dueScheduleDate = new Date(
     Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, today.getUTCDate()),
@@ -102,53 +98,51 @@ export async function seedTestData(scenario?: NetCardScenario) {
       isActive: false,
     },
   });
-  await db.transaction.create({
-    data: {
-      description: template.description,
-      amount: 750.0,
-      type: "expense",
-      category: "bills_utilities",
-      transactedAt: dueScheduleDate,
-      templateId: template.id,
-    },
-  });
-  await db.transaction.create({
-    data: {
-      description: template.description,
-      amount: 750.0,
-      type: "expense",
-      category: "bills_utilities",
-      transactedAt: today,
-      templateId: template.id,
-    },
+  await db.transaction.createMany({
+    data: [
+      {
+        description: template.description,
+        amount: 750.0,
+        type: "expense",
+        category: "bills_utilities",
+        transactedAt: dueScheduleDate,
+        templateId: template.id,
+      },
+      {
+        description: template.description,
+        amount: 750.0,
+        type: "expense",
+        category: "bills_utilities",
+        transactedAt: today,
+        templateId: template.id,
+      },
+    ],
   });
   await db.scheduledTransactionTemplate.update({
     where: { id: template.id },
     data: { isActive: true },
   });
 
-  const [, recordedTemplate] = await Promise.all([
-    db.scheduledTransactionTemplate.create({
-      data: {
-        description: "Spotify subscription",
-        amount: 320.0,
-        type: "expense",
-        category: "bills_utilities",
-        dayOfMonth: 1,
-        startDate: nextMonthStart,
-      },
-    }),
-    db.scheduledTransactionTemplate.create({
-      data: {
-        description: "Google One storage",
-        amount: 180.0,
-        type: "expense",
-        category: "bills_utilities",
-        dayOfMonth: upcomingDay,
-        startDate: monthStart,
-      },
-    }),
-  ]);
+  await db.scheduledTransactionTemplate.create({
+    data: {
+      description: "Spotify subscription",
+      amount: 320.0,
+      type: "expense",
+      category: "bills_utilities",
+      dayOfMonth: 1,
+      startDate: nextMonthStart,
+    },
+  });
+  const recordedTemplate = await db.scheduledTransactionTemplate.create({
+    data: {
+      description: "Google One storage",
+      amount: 180.0,
+      type: "expense",
+      category: "bills_utilities",
+      dayOfMonth: upcomingDay,
+      startDate: monthStart,
+    },
+  });
 
   await db.transaction.create({
     data: {
@@ -175,14 +169,11 @@ export async function seedTestData(scenario?: NetCardScenario) {
   }
 }
 
-async function seedNetCardTestData(scenario: NetCardScenario) {
-  await resetTestData();
-
+async function seedNetCardTestData(db: DbTransactionClient, scenario: NetCardScenario) {
   const { year, month } = getCurrentYearMonth();
   const currentMonthStart = startOfLocalMonth(year, month);
   const priorMonthStart = startOfLocalMonth(year, month - 1);
   const at = (monthStart: Date, day: number) => addHours(addDays(monthStart, day - 1), 9);
-  const db = getDb();
 
   const currentTransactions =
     scenario === "over-income"
@@ -196,35 +187,30 @@ async function seedNetCardTestData(scenario: NetCardScenario) {
           },
         ];
 
-  await Promise.all(
-    currentTransactions.map((transaction) =>
-      db.transaction.create({
-        data: {
-          ...transaction,
-          transactedAt: at(currentMonthStart, 1),
-        },
-      }),
-    ),
-  );
-
-  if (scenario !== "over-income" && scenario !== "no-history") {
-    await db.transaction.create({
-      data: {
-        description: "Historical expense",
-        amount: 500,
-        type: "expense",
-        transactedAt: at(priorMonthStart, 1),
-      },
-    });
-  }
+  await db.transaction.createMany({
+    data: [
+      ...currentTransactions.map((transaction) => ({
+        ...transaction,
+        transactedAt: at(currentMonthStart, 1),
+      })),
+      ...(scenario !== "over-income" && scenario !== "no-history"
+        ? [
+            {
+              description: "Historical expense",
+              amount: 500,
+              type: "expense" as const,
+              transactedAt: at(priorMonthStart, 1),
+            },
+          ]
+        : []),
+    ],
+  });
 }
 
 export async function seedTrendsTestData() {
-  await resetTestData();
   const { year, month } = getCurrentYearMonth();
   const at = (monthOffset: number, day: number) =>
     addHours(addDays(startOfLocalMonth(year, month + monthOffset), day - 1), 12);
-  const db = getDb();
 
   const trendsData: Array<{
     description: string;
@@ -497,27 +483,24 @@ export async function seedTrendsTestData() {
     { description: "April income", amount: 7_880, monthOffset: -4 },
   ];
 
-  await Promise.all([
-    ...trendsData.map((item) => {
-      return db.transaction.create({
-        data: {
+  await getDb().$transaction(async (db) => {
+    await clearTestData(db);
+    await db.transaction.createMany({
+      data: [
+        ...trendsData.map((item) => ({
           description: item.description,
           amount: item.amount,
-          type: "expense",
+          type: "expense" as const,
           category: item.category,
           transactedAt: at(item.monthOffset, item.day),
-        },
-      });
-    }),
-    ...netIncomeData.map((item) => {
-      return db.transaction.create({
-        data: {
+        })),
+        ...netIncomeData.map((item) => ({
           description: item.description,
           amount: item.amount,
-          type: "income",
+          type: "income" as const,
           transactedAt: at(item.monthOffset, 1),
-        },
-      });
-    }),
-  ]);
+        })),
+      ],
+    });
+  });
 }

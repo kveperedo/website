@@ -3,7 +3,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { getDb } from "@/db/client";
 
 import { createTransaction } from "../transactions/creation.server";
-import { generateScheduledTransactions, getUpcomingScheduledTransactionTemplates } from "./server";
+import {
+  createScheduledTransactionTemplate,
+  generateScheduledTransactions,
+  getUpcomingScheduledTransactionTemplates,
+  toggleScheduledTransactionTemplate,
+} from "./server";
 
 vi.mock("@/db/client", () => ({
   getDb: vi.fn(),
@@ -49,14 +54,22 @@ const mockGeneration = (
   templates: Array<ReturnType<typeof template>>,
   findFirst = vi.fn().mockResolvedValue(null),
 ) => {
-  vi.mocked(getDb).mockReturnValue({
+  const tx = {
     scheduledTransactionTemplate: {
-      findMany: vi.fn().mockResolvedValue(templates),
+      findUnique: vi.fn(({ where: { id } }) =>
+        Promise.resolve(templates.find((template) => template.id === id) ?? null),
+      ),
     },
     transaction: {
       count: vi.fn().mockResolvedValue(0),
       findFirst,
     },
+  };
+  vi.mocked(getDb).mockReturnValue({
+    scheduledTransactionTemplate: {
+      findMany: vi.fn().mockResolvedValue(templates),
+    },
+    $transaction: vi.fn((callback) => callback(tx)),
   } as never);
 };
 
@@ -132,6 +145,7 @@ describe("generateScheduledTransactions", () => {
 
     await generateScheduledTransactions(new Date("2026-07-01T00:05:00.000Z"));
     expect(createTransaction).toHaveBeenCalledWith(
+      expect.anything(),
       expect.objectContaining({ transactedAt: new Date("2026-07-01T00:00:00.000Z") }),
     );
   });
@@ -170,6 +184,7 @@ describe("generateScheduledTransactions", () => {
 
     expect(createTransaction).toHaveBeenCalledTimes(1);
     expect(createTransaction).toHaveBeenCalledWith(
+      expect.anything(),
       expect.objectContaining({ templateId: "current-month" }),
     );
   });
@@ -185,6 +200,7 @@ describe("generateScheduledTransactions", () => {
     await generateScheduledTransactions(new Date("2026-02-28T00:05:00.000Z"));
 
     expect(createTransaction).toHaveBeenCalledWith(
+      expect.anything(),
       expect.objectContaining({ transactedAt: new Date("2026-02-28T00:00:00.000Z") }),
     );
   });
@@ -205,5 +221,83 @@ describe("generateScheduledTransactions", () => {
     ).rejects.toThrow("Failed to generate 1 scheduled transaction(s).");
 
     expect(createTransaction).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("scheduled transaction mutations", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("conditionally links an existing transaction inside one transaction", async () => {
+    const original = {
+      ...template("transaction", 1),
+      templateId: null,
+      transactedAt: date("2026-07-01"),
+    };
+    const updated = { ...original, templateId: "template-id" };
+    const tx = {
+      transaction: {
+        findUniqueOrThrow: vi.fn().mockResolvedValueOnce(original).mockResolvedValueOnce(updated),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      scheduledTransactionTemplate: {
+        create: vi.fn().mockResolvedValue({ id: "template-id" }),
+      },
+    };
+    vi.mocked(getDb).mockReturnValue({
+      $transaction: vi.fn((callback) => callback(tx)),
+    } as never);
+    const schedule = { dayOfMonth: 1, endDate: null, maxOccurrences: null };
+
+    await expect(
+      createScheduledTransactionTemplate("transaction", schedule),
+    ).resolves.toMatchObject({
+      templateId: "template-id",
+    });
+
+    expect(tx.transaction.updateMany).toHaveBeenCalledWith({
+      where: { id: "transaction", templateId: null },
+      data: { templateId: "template-id" },
+    });
+  });
+
+  it("preserves scheduling validation errors", async () => {
+    const tx = {
+      transaction: {
+        findUniqueOrThrow: vi.fn().mockResolvedValue({ templateId: "template-id" }),
+      },
+    };
+    vi.mocked(getDb).mockReturnValue({
+      $transaction: vi.fn((callback) => callback(tx)),
+    } as never);
+
+    await expect(
+      createScheduledTransactionTemplate("transaction", {
+        dayOfMonth: 1,
+        endDate: null,
+        maxOccurrences: null,
+      }),
+    ).rejects.toThrow("This transaction is already scheduled.");
+  });
+
+  it("toggles a template through the transaction client", async () => {
+    const tx = {
+      scheduledTransactionTemplate: {
+        findUniqueOrThrow: vi.fn().mockResolvedValue({ isActive: true }),
+        update: vi.fn().mockResolvedValue({ ...template("template", 1), isActive: false }),
+      },
+    };
+    vi.mocked(getDb).mockReturnValue({
+      $transaction: vi.fn((callback) => callback(tx)),
+    } as never);
+
+    await expect(toggleScheduledTransactionTemplate("template")).resolves.toMatchObject({
+      isActive: false,
+    });
+    expect(tx.scheduledTransactionTemplate.update).toHaveBeenCalledWith({
+      where: { id: "template" },
+      data: { isActive: false },
+    });
   });
 });
