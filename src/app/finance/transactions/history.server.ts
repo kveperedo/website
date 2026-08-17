@@ -3,7 +3,7 @@ import { formatInTimeZone, fromZonedTime, toZonedTime } from "date-fns-tz";
 
 import { getDb } from "@/db/client";
 
-import { TIME_ZONE } from "../local-date";
+import { endOfLocalMonth, getCurrentYearMonth, startOfLocalMonth, TIME_ZONE } from "../local-date";
 
 export type MonthlyHistoryEntry = {
   label: string;
@@ -19,6 +19,15 @@ export type MonthlyHistory = {
   prior: Array<MonthlyHistoryEntry>;
   averagePriorExpenses: number | null;
   priorMonthCount: number;
+};
+
+export type MonthlyNetEntry = {
+  month: string;
+  income: number;
+  expenses: number;
+  net: number;
+  transactionCount: number;
+  isCurrentMonth: boolean;
 };
 
 export const getPartialMonthRanges = (historyMonths: number) => {
@@ -105,4 +114,41 @@ export const getMonthlyHistory = async (historyMonths = 3): Promise<MonthlyHisto
     averagePriorExpenses,
     priorMonthCount: priorWithData.length,
   };
+};
+
+const MONTHLY_NET_MONTHS = 6;
+
+export const getMonthlyNet = async (now = new Date()): Promise<Array<MonthlyNetEntry>> => {
+  const { year, month } = getCurrentYearMonth(now);
+  const zonedNow = toZonedTime(now, TIME_ZONE);
+  const currentDayEnd = fromZonedTime(new Date(year, month - 1, zonedNow.getDate() + 1), TIME_ZONE);
+  const db = getDb();
+
+  const monthlyNet = await Promise.all(
+    Array.from({ length: MONTHLY_NET_MONTHS }, async (_, index) => {
+      const monthOffset = index - (MONTHLY_NET_MONTHS - 1);
+      const monthStart = startOfLocalMonth(year, month + monthOffset);
+      const isCurrentMonth = monthOffset === 0;
+      const monthEnd = isCurrentMonth ? currentDayEnd : endOfLocalMonth(year, month + monthOffset);
+      const grouped = await db.transaction.groupBy({
+        by: ["type"],
+        where: { transactedAt: { gte: monthStart, lt: monthEnd } },
+        _sum: { amount: true },
+        _count: true,
+      });
+      const income = Number(grouped.find((g) => g.type === "income")?._sum.amount ?? 0);
+      const expenses = Number(grouped.find((g) => g.type === "expense")?._sum.amount ?? 0);
+
+      return {
+        month: formatInTimeZone(monthStart, TIME_ZONE, "yyyy-MM"),
+        income,
+        expenses,
+        net: income - expenses,
+        transactionCount: grouped.reduce((sum, g) => sum + g._count, 0),
+        isCurrentMonth,
+      };
+    }),
+  );
+
+  return monthlyNet.some((month) => month.transactionCount > 0) ? monthlyNet : [];
 };

@@ -20,41 +20,7 @@ import {
   CATEGORY_CHART_COLORS,
   CATEGORY_LABELS,
 } from "../../../-common/constants";
-
-const SHORT_MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-const FULL_MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-function formatMonthLabel(yyyyMm: string): string {
-  const [year, month] = yyyyMm.split("-").map(Number);
-  return `${FULL_MONTHS[month - 1]} ${year}`;
-}
+import { formatMonthLabel, SHORT_MONTHS } from "../months";
 
 const CHART_HEIGHT = 350;
 const CATEGORY_SELECTION_DEBOUNCE_MS = 300;
