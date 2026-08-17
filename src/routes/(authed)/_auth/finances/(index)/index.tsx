@@ -8,12 +8,14 @@ import {
   getCategorySummaryFn,
   getCategoryTrendsFn,
   getMonthlyHistoryFn,
+  getMonthlyNetFn,
   getRecentTransactionsFn,
 } from "@/app/finance/transactions/functions";
 
 import { FinanceContainer } from "../-common/components/finance-container";
 import { CategorySummaryCard } from "./-common/components/category-summary-card";
 import { CategoryTrendsCard } from "./-common/components/category-trends-card";
+import { MonthlyNetCard } from "./-common/components/monthly-net-card";
 import { RecentTransactionsCard } from "./-common/components/recent-transactions-card";
 import { SummaryNetCard } from "./-common/components/summary-net-card";
 import { UpcomingTransactionsCard } from "./-common/components/upcoming-transactions-card";
@@ -32,6 +34,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       categoryTrends,
       categoryTrendsVisibleCategories,
       history,
+      monthlyNet,
     ] = await Promise.all([
       getRecentTransactionsFn(),
       getCategorySummaryFn(),
@@ -39,6 +42,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       getCategoryTrendsFn(),
       getCategoryTrendsVisibleCategoriesFn(),
       getMonthlyHistoryFn(),
+      getMonthlyNetFn(),
     ]);
     const monthLabel = formatInTimeZone(new Date(), TIME_ZONE, "MMMM yyyy");
     return {
@@ -48,6 +52,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       categoryTrends,
       categoryTrendsVisibleCategories,
       history,
+      monthlyNet,
       monthLabel,
     };
   },
@@ -69,7 +74,10 @@ function RouteComponent() {
           <RecentTransactionsCard />
           <CategorySummaryCard />
         </div>
-        <CategoryTrendsCard />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+          <MonthlyNetCard />
+          <CategoryTrendsCard />
+        </div>
       </div>
     </FinanceContainer.Root>
   );

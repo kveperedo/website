@@ -7,12 +7,12 @@ import { CreateTransactionsInputSchema } from "@/schema/transaction";
 
 import { authMiddleware } from "../../auth/middleware";
 import { createRateLimitMiddleware } from "../../infra/rate-limit/middleware";
+import { getMonthlyHistory, getMonthlyNet } from "./history.server";
 import {
   createTransactions,
   deleteTransaction,
   getCategorySummary,
   getCategoryTrends,
-  getMonthlyHistory,
   getMonthlySummary,
   getRecentTransactions,
   getTransactionById,
@@ -37,6 +37,12 @@ export const getMonthlyHistoryFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async () => {
     return await getMonthlyHistory();
+  });
+
+export const getMonthlyNetFn = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async () => {
+    return await getMonthlyNet();
   });
 
 export const getCategorySummaryFn = createServerFn()

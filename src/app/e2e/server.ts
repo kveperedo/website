@@ -220,7 +220,10 @@ async function seedNetCardTestData(scenario: NetCardScenario) {
 }
 
 export async function seedTrendsTestData() {
-  const now = new Date();
+  await resetTestData();
+  const { year, month } = getCurrentYearMonth();
+  const at = (monthOffset: number, day: number) =>
+    addHours(addDays(startOfLocalMonth(year, month + monthOffset), day - 1), 12);
   const db = getDb();
 
   const trendsData: Array<{
@@ -449,7 +452,7 @@ export async function seedTrendsTestData() {
       amount: 3800,
       category: "groceries_household",
       monthOffset: 0,
-      day: 4,
+      day: 1,
     },
     {
       description: "Market haul",
@@ -489,19 +492,32 @@ export async function seedTrendsTestData() {
     },
   ];
 
-  await Promise.all(
-    trendsData.map((item) => {
-      const targetMonth = addMonths(now, item.monthOffset);
-      const transactedAt = setHours(setDate(startOfMonth(targetMonth), item.day), 12);
+  const netIncomeData = [
+    { description: "March income", amount: 10_000, monthOffset: -5 },
+    { description: "April income", amount: 7_880, monthOffset: -4 },
+  ];
+
+  await Promise.all([
+    ...trendsData.map((item) => {
       return db.transaction.create({
         data: {
           description: item.description,
           amount: item.amount,
           type: "expense",
           category: item.category,
-          transactedAt,
+          transactedAt: at(item.monthOffset, item.day),
         },
       });
     }),
-  );
+    ...netIncomeData.map((item) => {
+      return db.transaction.create({
+        data: {
+          description: item.description,
+          amount: item.amount,
+          type: "income",
+          transactedAt: at(item.monthOffset, 1),
+        },
+      });
+    }),
+  ]);
 }

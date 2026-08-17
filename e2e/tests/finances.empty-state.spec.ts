@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import { resetDatabase } from "../helpers/database";
@@ -19,6 +19,9 @@ test.describe("empty states", () => {
 
     await expect(page.getByText("No transactions this month.")).toHaveCount(2);
     await expect(page.getByText("No expenses recorded this month.")).toBeVisible();
+    await expect(
+      page.getByTestId("monthly-net-card").getByText("No monthly data yet."),
+    ).toBeVisible();
   });
 
   test("dashboard links from empty upcoming transactions to scheduled management", async ({
@@ -37,7 +40,7 @@ test.describe("empty states", () => {
   test("transactions list shows an empty state for the current month", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    const monthLabel = format(new Date(), "MMMM yyyy");
+    const monthLabel = formatInTimeZone(new Date(), "Asia/Manila", "MMMM yyyy");
     await expect(page.getByText(`No transactions in ${monthLabel}.`)).toBeVisible();
   });
 
