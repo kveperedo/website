@@ -210,13 +210,32 @@ type CreateTransactionsInput = Omit<TransactionInputType, "template" | "template
 };
 
 export const createTransactions = async (data: Array<CreateTransactionsInput>) => {
-  const transactions = await Promise.all(
-    data.map(({ schedule, ...transaction }) =>
-      schedule ? createScheduledTransaction(transaction, schedule) : createTransaction(transaction),
-    ),
-  );
+  const db = getDb();
 
-  return { count: transactions.length };
+  if (data.every(({ schedule }) => !schedule)) {
+    const result = await db.$transaction((tx) =>
+      tx.transaction.createMany({
+        data: data.map(({ schedule: _schedule, ...transaction }) => ({
+          ...transaction,
+          category: transaction.category ?? undefined,
+        })),
+      }),
+    );
+
+    return { count: result.count };
+  }
+
+  await db.$transaction(async (tx) => {
+    for (const { schedule, ...transaction } of data) {
+      if (schedule) {
+        await createScheduledTransaction(tx, transaction, schedule);
+      } else {
+        await createTransaction(tx, transaction);
+      }
+    }
+  });
+
+  return { count: data.length };
 };
 
 export const getTransactionById = async (id: string) => {

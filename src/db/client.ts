@@ -1,7 +1,9 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 
-import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaClient, type Prisma } from "@/generated/prisma/client";
 import { getBinding } from "@/lib/env";
+
+export type DbTransactionClient = Prisma.TransactionClient;
 
 export function getDb(): PrismaClient {
   const { connectionString } = getBinding("HYPERDRIVE");

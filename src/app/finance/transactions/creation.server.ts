@@ -1,11 +1,10 @@
+import type { DbTransactionClient } from "@/db/client";
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
-
-import { getDb } from "@/db/client";
 
 type CreateTransactionInput = Omit<TransactionInputType, "template">;
 
-export const createTransaction = async (data: CreateTransactionInput) => {
-  const transaction = await getDb().transaction.create({
+export const createTransaction = async (db: DbTransactionClient, data: CreateTransactionInput) => {
+  const transaction = await db.transaction.create({
     data: {
       description: data.description,
       amount: data.amount,

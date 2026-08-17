@@ -4,7 +4,7 @@ import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 
-import { getDb } from "@/db/client";
+import { getDb, type DbTransactionClient } from "@/db/client";
 
 import {
   databaseDateToDateOnly,
@@ -44,6 +44,10 @@ const getErrorCode = (error: unknown) => {
 
 const isUniqueConstraintError = (error: unknown) => {
   return getErrorCode(error) === "P2002";
+};
+
+const isForeignKeyConstraintError = (error: unknown) => {
+  return getErrorCode(error) === "P2003";
 };
 
 export const getScheduledTransactionTemplates = async () => {
@@ -140,14 +144,14 @@ export const getUpcomingScheduledTransactionTemplates = async () => {
 };
 
 export const createScheduledTransaction = async (
+  db: DbTransactionClient,
   data: Omit<TransactionInputType, "template">,
   schedule: ScheduledTransactionInput,
 ) => {
   const endDate = schedule.endDate ? dateOnlyToDatabaseDate(schedule.endDate) : undefined;
-  let templateId: string | undefined;
 
   try {
-    const template = await getDb().scheduledTransactionTemplate.create({
+    const template = await db.scheduledTransactionTemplate.create({
       data: {
         description: data.description,
         amount: data.amount,
@@ -160,18 +164,8 @@ export const createScheduledTransaction = async (
         isActive: true,
       },
     });
-    templateId = template.id;
-
-    return await createTransaction({ ...data, templateId });
+    return await createTransaction(db, { ...data, templateId: template.id });
   } catch (err) {
-    if (templateId) {
-      try {
-        await deleteScheduledTransactionTemplate(templateId);
-      } catch (cleanupErr) {
-        console.error("Failed to remove unlinked scheduled transaction template:", cleanupErr);
-      }
-    }
-
     console.error(err);
     throw new Error("Failed to create scheduled transaction.");
   }
@@ -182,45 +176,51 @@ export const createScheduledTransactionTemplate = async (
   schedule: ScheduledTransactionInput,
 ) => {
   const endDate = schedule.endDate ? dateOnlyToDatabaseDate(schedule.endDate) : undefined;
-  const transaction = await getDb().transaction.findUniqueOrThrow({
-    where: { id },
-  });
-  if (transaction.templateId) {
-    throw new Error("This transaction is already scheduled.");
-  }
-  if (schedule.endDate && schedule.endDate < transaction.transactedAt.toISOString().slice(0, 10)) {
-    throw new Error("End date cannot be before the transaction date.");
-  }
 
-  let templateId: string | undefined;
   try {
-    const template = await getDb().scheduledTransactionTemplate.create({
-      data: {
-        description: transaction.description,
-        amount: transaction.amount,
-        type: transaction.type,
-        category: transaction.category ?? undefined,
-        dayOfMonth: schedule.dayOfMonth,
-        startDate: transaction.transactedAt,
-        endDate,
-        maxOccurrences: schedule.maxOccurrences ?? undefined,
-        isActive: true,
-      },
-    });
-    templateId = template.id;
-
-    const updatedTransaction = await getDb().transaction.update({
-      where: { id },
-      data: { templateId },
-    });
-    return { ...updatedTransaction, amount: updatedTransaction.amount.toNumber() };
-  } catch (err) {
-    if (templateId) {
-      try {
-        await deleteScheduledTransactionTemplate(templateId);
-      } catch (cleanupErr) {
-        console.error("Failed to remove unlinked scheduled transaction template:", cleanupErr);
+    return await getDb().$transaction(async (db) => {
+      const transaction = await db.transaction.findUniqueOrThrow({ where: { id } });
+      if (transaction.templateId) {
+        throw new Error("This transaction is already scheduled.");
       }
+      if (
+        schedule.endDate &&
+        schedule.endDate < transaction.transactedAt.toISOString().slice(0, 10)
+      ) {
+        throw new Error("End date cannot be before the transaction date.");
+      }
+
+      const template = await db.scheduledTransactionTemplate.create({
+        data: {
+          description: transaction.description,
+          amount: transaction.amount,
+          type: transaction.type,
+          category: transaction.category ?? undefined,
+          dayOfMonth: schedule.dayOfMonth,
+          startDate: transaction.transactedAt,
+          endDate,
+          maxOccurrences: schedule.maxOccurrences ?? undefined,
+          isActive: true,
+        },
+      });
+      const result = await db.transaction.updateMany({
+        where: { id, templateId: null },
+        data: { templateId: template.id },
+      });
+      if (result.count !== 1) {
+        throw new Error("This transaction is already scheduled.");
+      }
+      const updatedTransaction = await db.transaction.findUniqueOrThrow({ where: { id } });
+
+      return { ...updatedTransaction, amount: updatedTransaction.amount.toNumber() };
+    });
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      (err.message === "This transaction is already scheduled." ||
+        err.message === "End date cannot be before the transaction date.")
+    ) {
+      throw err;
     }
 
     console.error(err);
@@ -229,15 +229,17 @@ export const createScheduledTransactionTemplate = async (
 };
 
 export const toggleScheduledTransactionTemplate = async (id: string) => {
-  const current = await getDb().scheduledTransactionTemplate.findUniqueOrThrow({
-    where: { id },
-    select: { isActive: true },
-  });
-  const template = await getDb().scheduledTransactionTemplate.update({
-    where: { id },
-    data: {
-      isActive: !current.isActive,
-    },
+  const template = await getDb().$transaction(async (db) => {
+    const current = await db.scheduledTransactionTemplate.findUniqueOrThrow({
+      where: { id },
+      select: { isActive: true },
+    });
+    return await db.scheduledTransactionTemplate.update({
+      where: { id },
+      data: {
+        isActive: !current.isActive,
+      },
+    });
   });
 
   return {
@@ -255,7 +257,8 @@ export const generateScheduledTransactions = async (date: Date) => {
   const { year, month } = getCurrentYearMonth(date);
   const today = startOfUtcDay(date);
 
-  const templates = await getDb().scheduledTransactionTemplate.findMany({
+  const db = getDb();
+  const templates = await db.scheduledTransactionTemplate.findMany({
     where: {
       isActive: true,
       startDate: { lt: monthEnd },
@@ -264,51 +267,56 @@ export const generateScheduledTransactions = async (date: Date) => {
 
   let failedCount = 0;
 
-  for (const template of templates) {
-    const transactedAt = getDayInMonth(year, month, template.dayOfMonth);
-
-    if (
-      isAfter(transactedAt, today) ||
-      !isOccurrenceWithinTemplateRange(transactedAt, template.startDate, template.endDate)
-    ) {
-      continue;
-    }
-
-    const [count, existing] = await Promise.all([
-      getDb().transaction.count({ where: { templateId: template.id } }),
-      getDb().transaction.findFirst({
-        where: {
-          templateId: template.id,
-          transactedAt: { gte: monthStart, lt: monthEnd },
-        },
-      }),
-    ]);
-
-    if (template.maxOccurrences !== null && count >= template.maxOccurrences) {
-      continue;
-    }
-
-    if (existing) {
-      continue;
-    }
-
+  for (const { id, dayOfMonth } of templates) {
+    const transactedAt = getDayInMonth(year, month, dayOfMonth);
     try {
-      await createTransaction({
-        description: template.description,
-        amount: template.amount.toNumber(),
-        type: template.type,
-        category: template.category,
-        transactedAt,
-        templateId: template.id,
+      await db.$transaction(async (tx) => {
+        const template = await tx.scheduledTransactionTemplate.findUnique({ where: { id } });
+        if (!template?.isActive) {
+          return;
+        }
+
+        const scheduledAt = getDayInMonth(year, month, template.dayOfMonth);
+        if (
+          isAfter(scheduledAt, today) ||
+          !isOccurrenceWithinTemplateRange(scheduledAt, template.startDate, template.endDate)
+        ) {
+          return;
+        }
+
+        const [count, existing] = await Promise.all([
+          tx.transaction.count({ where: { templateId: template.id } }),
+          tx.transaction.findFirst({
+            where: {
+              templateId: template.id,
+              transactedAt: { gte: monthStart, lt: monthEnd },
+            },
+          }),
+        ]);
+        if (template.maxOccurrences !== null && count >= template.maxOccurrences) {
+          return;
+        }
+        if (existing) {
+          return;
+        }
+
+        await createTransaction(tx, {
+          description: template.description,
+          amount: template.amount.toNumber(),
+          type: template.type,
+          category: template.category,
+          transactedAt: scheduledAt,
+          templateId: template.id,
+        });
       });
     } catch (err) {
-      if (isUniqueConstraintError(err)) {
+      if (isUniqueConstraintError(err) || isForeignKeyConstraintError(err)) {
         continue;
       }
 
       failedCount += 1;
       console.error("Failed to generate scheduled transaction.", {
-        templateId: template.id,
+        templateId: id,
         transactedAt: transactedAt.toISOString(),
         errorCode: getErrorCode(err),
       });
