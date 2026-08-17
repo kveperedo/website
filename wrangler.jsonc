@@ -10,6 +10,12 @@
       "id": "94d69b877a7144539d99db18f3a589c5",
     },
   ],
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "e733925e7579448693ac467f43c746d2",
+    },
+  ],
   "workers_dev": true,
   "triggers": {
     "crons": ["5 0 * * *"],
@@ -24,6 +30,23 @@
     "logs": {
       "enabled": true,
       "invocation_logs": true,
+    },
+  },
+  "env": {
+    "preview": {
+      "routes": [],
+      "kv_namespaces": [
+        {
+          "binding": "website-rate-limit",
+          "id": "22d6a87333af45d88e10b7f3989cfac8",
+        },
+      ],
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "2a21ccdb16bd4c8798afc79a759667de",
+        },
+      ],
     },
   },
 }

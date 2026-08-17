@@ -20,7 +20,6 @@ import { Route } from "../..";
 
 export const DeleteTransactionButton = () => {
   const { transaction } = Route.useLoaderData();
-  const search = Route.useSearch();
   const router = useRouter();
   const deleteTransaction = useServerFn(deleteTransactionFn);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -31,13 +30,7 @@ export const DeleteTransactionButton = () => {
       await deleteTransaction({ data: transaction.id });
       router.navigate({
         to: "/finances/transactions",
-        search: {
-          year: search.year,
-          month: search.month,
-          q: search.q || undefined,
-          type: search.type,
-          categories: search.categories,
-        },
+        search: (current) => ({ ...current }),
       });
     } catch {
       // TODO: Add snackbar for error

@@ -1,12 +1,13 @@
-import { PrismaNeonHttp } from "@prisma/adapter-neon";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "@/generated/prisma/client";
-import { requireEnv } from "@/lib/env";
+import { getBinding } from "@/lib/env";
 
 export function getDb(): PrismaClient {
-  const connectionString = requireEnv("DATABASE_URL");
+  const { connectionString } = getBinding("HYPERDRIVE");
+
   return new PrismaClient({
-    adapter: new PrismaNeonHttp(connectionString, {}),
+    adapter: new PrismaPg({ connectionString, max: 1 }),
     log: ["warn", "error"],
   });
 }

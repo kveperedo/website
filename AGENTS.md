@@ -9,9 +9,9 @@
 - `npm run test` — Vitest unit tests
 - `npm run build` — outputs a Cloudflare Workers bundle (via `@cloudflare/vite-plugin`)
 - `npm run deploy` — runs `npm run build && wrangler deploy` (production → `kevinperedo.com`)
-- **Preview deploy**: `npm run deploy:preview -- "pr-<slug>"` — uploads a version with an aliased preview URL at `pr-<slug>-website-preview.kveperedo.workers.dev`
-- `npm run deploy:preview` is equivalent to `npm run build && npx wrangler versions upload --name website-preview --preview-alias`
-- `npm run cf-typegen` — regenerates `worker-configuration.d.ts` from `wrangler.jsonc`
+- **Preview deploy**: `npm run deploy:preview -- "pr-<slug>"` — uploads to the isolated preview Worker with an aliased URL at `pr-<slug>-website-preview.kveperedo.workers.dev`
+- `npm run deploy:preview` is equivalent to `npm run build:preview && npx wrangler versions upload --preview-alias`
+- `npm run cf:generate` — regenerates `worker-configuration.d.ts` from `wrangler.jsonc`
 
 ## Architecture
 
@@ -20,7 +20,7 @@
 - Server functions: `*.server.ts` (raw db/auth) + `*.functions.ts` (`createServerFn` wrappers); use `authMiddleware` for protected endpoints. `serverFunctionLoggingMiddleware` is registered globally: log failures, successful mutations, and reads slower than 500 ms; never log request payloads or sensitive data. Do not log individual rate-limit rejections.
 - Import alias: `@/*` → `src/*`
 - Auth: session cookie (15-day max age), env vars `SESSION_SECRET` + `ADMIN_PASSWORD_HASH`
-- DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-neon`; config in `prisma.config.ts` (not `schema.prisma` datasource)
+- DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-pg` through a Cloudflare Hyperdrive binding; `DATABASE_URL` in `prisma.config.ts` is for Prisma CLI only
 - Prisma client outputs to `src/generated/prisma` (gitignored)
 - Validation: `zod` schema input validation on server functions (see `src/app/auth/functions.ts`)
 - **React Compiler** enabled via `@rolldown/plugin-babel`
@@ -44,28 +44,28 @@
 
 ## Key Files
 
-| File                        | Purpose                                                |
-| --------------------------- | ------------------------------------------------------ |
-| `src/db/client.ts`          | Prisma client singleton (Neon adapter)                 |
-| `src/app/auth/`             | Session logic, server functions, and auth middleware   |
-| `src/app/finance/`          | Finance-domain services and server functions           |
-| `src/app/infra/`            | Cache control, logging, and rate limiting              |
-| `src/app/e2e/`              | E2E fixture seeding and server functions               |
-| `prisma/schema.prisma`      | Single model: `Expense`                                |
-| `src/styles.css`            | Tailwind v4 theme, fonts, keyframes, CSS variables     |
-| `src/components/link.tsx`   | RAC `<Link>` via `createLink` — TanStack Router typed  |
-| `src/components/ui/`        | shadcn components (button, badge, input, field, etc.)  |
-| `src/lib/env.ts`            | `requireEnv()` helper for env vars                     |
-| `wrangler.jsonc`            | Cloudflare Workers config (KV, routes, bindings)       |
-| `worker-configuration.d.ts` | Auto-generated Worker types (run `npm run cf-typegen`) |
-| `components.json`           | shadcn registry config                                 |
+| File                        | Purpose                                                 |
+| --------------------------- | ------------------------------------------------------- |
+| `src/db/client.ts`          | Prisma client factory (Hyperdrive-backed pg adapter)    |
+| `src/app/auth/`             | Session logic, server functions, and auth middleware    |
+| `src/app/finance/`          | Finance-domain services and server functions            |
+| `src/app/infra/`            | Cache control, logging, and rate limiting               |
+| `src/app/e2e/`              | E2E fixture seeding and server functions                |
+| `prisma/schema.prisma`      | Single model: `Expense`                                 |
+| `src/styles.css`            | Tailwind v4 theme, fonts, keyframes, CSS variables      |
+| `src/components/link.tsx`   | RAC `<Link>` via `createLink` — TanStack Router typed   |
+| `src/components/ui/`        | shadcn components (button, badge, input, field, etc.)   |
+| `src/lib/env.ts`            | `requireEnv()` helper for env vars                      |
+| `wrangler.jsonc`            | Cloudflare Workers config (KV, routes, bindings)        |
+| `worker-configuration.d.ts` | Auto-generated Worker types (run `npm run cf:generate`) |
+| `components.json`           | shadcn registry config                                  |
 
 ## Gotchas
 
 - Build artifacts (`.output`, `.tanstack`) are all gitignored
 - Oxlint ignores `src/routeTree.gen.ts`; oxfmt ignores it plus `.agents/*` and skill files
 - Skills in `.agents/skills/`; remotely-sourced skills mirrored in `skills-lock.json`
-- Prisma `*Many` operations (`createMany`, `updateMany`, `deleteMany`) are unsupported with `@prisma/adapter-neon` (HTTP mode); use individual calls batched with `Promise.all` instead
+- The deployed Worker must use the `HYPERDRIVE` binding; `DATABASE_URL` is reserved for local development and Prisma CLI commands
 - `.env.example` documents required env vars; use `tsx` to run TypeScript scripts locally
 - `"use client"` directive needed in any file that uses browser APIs (e.g., `label.tsx`)
 - Navigation: use `<Link>` from `@/components/link` for internal routes (TanStack Router typed `to`/`search`/`params`), `<LinkButton>` from `@/components/ui/button` for external `href` links
