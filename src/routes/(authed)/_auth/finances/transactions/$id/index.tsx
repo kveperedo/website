@@ -45,7 +45,6 @@ export const Route = createFileRoute("/(authed)/_auth/finances/transactions/$id/
 
 function RouteComponent() {
   const router = useRouter();
-  const search = Route.useSearch();
   const { transaction } = Route.useLoaderData();
   const updateTransaction = useServerFn(updateTransactionFn);
   const [isSaving, setIsSaving] = useState(false);
@@ -53,13 +52,7 @@ function RouteComponent() {
   const handleBack = () => {
     router.navigate({
       to: "/finances/transactions",
-      search: {
-        year: search.year,
-        month: search.month,
-        q: search.q || undefined,
-        type: search.type,
-        categories: search.categories,
-      },
+      search: (current) => ({ ...current }),
     });
   };
 

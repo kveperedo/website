@@ -184,6 +184,7 @@ test.describe("transactions", () => {
     await page.getByRole("button", { name: "Categories", exact: true }).click();
     await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
     await expect(page).toHaveURL(/categories=.*food_drinks/);
+    await expect(page).toHaveURL(/type=expense/);
     await expect(page.getByRole("link", { name: /Client dinner/ })).toBeVisible();
     await expect(page.getByRole("link", { name: /Groceries run/ })).toHaveCount(0);
     await expect(page.getByRole("link", { name: /Salary/ })).toHaveCount(0);

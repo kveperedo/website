@@ -119,24 +119,17 @@ function TransactionHeader() {
   const [isOpen, setIsOpen] = useState(Boolean(search.q));
   const buttonRef = useRef<HTMLButtonElement>(null);
   const submittedQueryRef = useRef(search.q);
-  const routeStateRef = useRef({ year, month, search });
-
-  useEffect(() => {
-    routeStateRef.current = { year, month, search };
-  }, [year, month, search]);
 
   const debouncedNavigate = useDebouncedCallback((q?: string) => {
-    const { year, month, search } = routeStateRef.current;
     submittedQueryRef.current = q;
     router.navigate({
       to: "/finances/transactions",
-      search: {
-        year,
-        month,
+      search: (current) => ({
+        ...current,
+        year: current.year ?? year,
+        month: current.month ?? month,
         q,
-        type: search.type,
-        categories: search.categories?.length ? search.categories : undefined,
-      },
+      }),
       replace: true,
     });
   }, SEARCH_DEBOUNCE_MS);
@@ -224,13 +217,12 @@ function TransactionHeader() {
               submittedQueryRef.current = undefined;
               router.navigate({
                 to: "/finances/transactions",
-                search: {
-                  year,
-                  month,
+                search: (current) => ({
+                  ...current,
+                  year: current.year ?? year,
+                  month: current.month ?? month,
                   q: undefined,
-                  type: search.type,
-                  categories: search.categories?.length ? search.categories : undefined,
-                },
+                }),
                 replace: true,
               });
               focusButton();
@@ -258,17 +250,19 @@ function TransactionFilters() {
       categories?: Array<TransactionCategory>;
     } = {},
   ) => {
-    const type = "type" in next ? next.type : search.type;
-    const categories = "categories" in next ? next.categories : selectedCategories;
-
     router.navigate({
       to: "/finances/transactions",
-      search: {
-        year,
-        month,
-        q: search.q || undefined,
-        type,
-        categories: categories?.length ? categories : undefined,
+      search: (current) => {
+        const type = "type" in next ? next.type : current.type;
+        const categories = ("categories" in next ? next.categories : current.categories) ?? [];
+
+        return {
+          ...current,
+          year: current.year ?? year,
+          month: current.month ?? month,
+          type,
+          categories: categories.length ? categories : undefined,
+        };
       },
     });
   };
