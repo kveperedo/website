@@ -75,8 +75,13 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Build Worker
+      - name: Build production Worker
+        if: github.event_name == 'push'
         run: npm run build
+
+      - name: Build preview Worker
+        if: github.event_name == 'pull_request'
+        run: npm run build:preview
 
       - name: Deploy to production
         if: github.event_name == 'push'
@@ -87,7 +92,6 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           npx wrangler versions upload \
-            --name website-preview \
             --preview-alias "pr-${{ github.event.number }}" \
             --message "Preview for PR #${{ github.event.number }}"
 
@@ -128,7 +132,6 @@ jobs:
         env:
           BASE_URL: ${{ needs.deploy.outputs.url }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Upload Playwright report
         if: always()

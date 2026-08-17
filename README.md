@@ -7,7 +7,7 @@ The personal website for [Kevin Von Erich Peredo](https://kevinperedo.com). It i
 - React 19, TypeScript, and TanStack Start
 - Vite and Cloudflare Workers
 - Tailwind CSS 4, shadcn/ui, and React Aria Components
-- PostgreSQL, Prisma 7, and the Neon driver adapter
+- PostgreSQL, Prisma 7, `pg`, and Cloudflare Hyperdrive
 - Vitest and Playwright
 
 ## Requirements
@@ -34,16 +34,17 @@ The site is available at [http://localhost:3000](http://localhost:3000).
 
 Set these values in `.env`:
 
-| Variable              | Purpose                                                                            |
-| --------------------- | ---------------------------------------------------------------------------------- |
-| `SESSION_SECRET`      | Long, random secret used to sign session cookies.                                  |
-| `ADMIN_PASSWORD_HASH` | bcrypt hash of the password for the admin login.                                   |
-| `DATABASE_URL`        | PostgreSQL connection string.                                                      |
-| `OPENAI_API_KEY`      | OpenAI API key for AI-powered features.                                            |
-| `BASE_URL`            | Base URL for Playwright tests. Defaults to `http://localhost:3000`.                |
-| `E2E_PASSWORD`        | Plaintext admin password for local E2E tests; it must match `ADMIN_PASSWORD_HASH`. |
+| Variable                                                   | Purpose                                                                            |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `SESSION_SECRET`                                           | Long, random secret used to sign session cookies.                                  |
+| `ADMIN_PASSWORD_HASH`                                      | bcrypt hash of the password for the admin login.                                   |
+| `DATABASE_URL`                                             | Direct PostgreSQL connection string for Prisma CLI commands only.                  |
+| `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` | Direct PostgreSQL connection string for local Worker development.                  |
+| `OPENAI_API_KEY`                                           | OpenAI API key for AI-powered features.                                            |
+| `BASE_URL`                                                 | Base URL for Playwright tests. Defaults to `http://localhost:3000`.                |
+| `E2E_PASSWORD`                                             | Plaintext admin password for local E2E tests; it must match `ADMIN_PASSWORD_HASH`. |
 
-Use `.env.example` as the source of truth for the local environment template. Production secrets are configured with Wrangler rather than committed to the repository.
+Use `.env.example` as the source of truth for the local environment template. Deployed Workers use the `HYPERDRIVE` binding rather than a database URL; production and preview configurations target separate databases.
 
 ## Project Structure
 
@@ -60,7 +61,7 @@ prisma/           Prisma schema and committed database migrations
 
 ## Database
 
-The project uses Prisma with PostgreSQL. Generate the client after dependency or schema changes, then use the appropriate migration command for the environment.
+The project uses Prisma with PostgreSQL. Workers connect through Cloudflare Hyperdrive; Prisma CLI commands connect directly through `DATABASE_URL`. Generate the client after dependency or schema changes, then use the appropriate migration command for the environment.
 
 ```bash
 # Generate Prisma client and Zod schemas
