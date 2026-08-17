@@ -479,7 +479,7 @@ export async function seedTrendsTestData() {
   ];
 
   const netIncomeData = [
-    { description: "March income", amount: 10_000, monthOffset: -5 },
+    { description: "March income", amount: 10_000.01, monthOffset: -5 },
     { description: "April income", amount: 7_880, monthOffset: -4 },
   ];
 

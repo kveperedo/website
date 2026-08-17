@@ -157,6 +157,9 @@ test.describe("monthly net card", () => {
     const barAtOffset = (offset: number) =>
       card.getByTestId(`monthly-net-bar-${formatMonthAtOffset(offset, "yyyy-MM")}`);
     await expect(card.getByText("Monthly net")).toBeVisible();
+    await expect(card.getByRole("application", { name: "Monthly net by month" })).toContainText(
+      "0",
+    );
     await expect(card.getByTestId(/monthly-net-bar-/)).toHaveCount(5);
     await expect(card.getByText(formatMonthAtOffset(-4, "MMM"), { exact: true })).toBeVisible();
     const [monthlyNetBounds, categoryTrendsBounds] = await Promise.all([
@@ -168,8 +171,8 @@ test.describe("monthly net card", () => {
     await barAtOffset(-5).hover();
     await expect(card.getByText("Income", { exact: true })).toBeVisible();
     await expect(card.getByText("Expenses", { exact: true })).toBeVisible();
-    await expect(card.getByText("+₱2,300.00", { exact: true })).toBeVisible();
-    await expect(card.getByText("₱10,000.00", { exact: true })).toBeVisible();
+    await expect(card.getByText("+₱2,300.01", { exact: true })).toBeVisible();
+    await expect(card.getByText("₱10,000.01", { exact: true })).toBeVisible();
     await expect(card.getByText("₱7,700.00", { exact: true })).toBeVisible();
 
     await barAtOffset(-3).hover();

@@ -71,7 +71,7 @@ export const MonthlyNetCard = () => {
                   axisLine={false}
                   tick={{ fontSize: 11 }}
                   width={54}
-                  domain={[(min) => Math.min(min, 0), (max) => Math.max(max, 0)]}
+                  domain={["auto", "auto"]}
                   tickFormatter={(value) => {
                     const prefix = value > 0 ? "+" : "";
                     return `${prefix}${value >= 1000 || value <= -1000 ? `${(value / 1000).toFixed(0)}K` : value}`;
