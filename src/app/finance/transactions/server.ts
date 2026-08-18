@@ -42,6 +42,8 @@ type GetTransactionsByMonthInput = {
   categories?: Array<TransactionCategory>;
 };
 
+type GetMonthlySummaryByMonthInput = Pick<GetTransactionsByMonthInput, "year" | "month">;
+
 export const getTransactionsByMonth = async ({
   year,
   month,
@@ -68,8 +70,9 @@ export const getTransactionsByMonth = async ({
   }));
 };
 
-export const getMonthlySummary = async () => {
-  const { monthStart, monthEnd } = getCurrentMonthRange();
+export const getMonthlySummaryByMonth = async ({ year, month }: GetMonthlySummaryByMonthInput) => {
+  const monthStart = startOfLocalMonth(year, month);
+  const monthEnd = endOfLocalMonth(year, month);
 
   const grouped = await getDb().transaction.groupBy({
     by: ["type"],
@@ -82,7 +85,12 @@ export const getMonthlySummary = async () => {
   const expenses = Number(grouped.find((g) => g.type === "expense")?._sum.amount ?? 0);
   const transactionCount = grouped.reduce((sum, g) => sum + g._count, 0);
 
-  return { income, expenses, net: income - expenses, transactionCount };
+  return { income, expenses, transactionCount };
+};
+
+export const getMonthlySummary = async () => {
+  const summary = await getMonthlySummaryByMonth(getCurrentYearMonth());
+  return { ...summary, net: summary.income - summary.expenses };
 };
 
 export const getCategorySummary = async () => {
