@@ -3,6 +3,7 @@ import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
@@ -71,16 +72,12 @@ export const CategorySummaryCard = () => {
                 type="number"
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) =>
-                  value >= 1000 ? `${(value / 1000).toFixed(0)}K` : String(value)
-                }
+                tickFormatter={(value) => formatCurrency(Number(value), { compact: true })}
               />
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    formatter={(value) => [
-                      `₱${Number(value).toLocaleString("en-PH", { minimumFractionDigits: 2 })}`,
-                    ]}
+                    formatter={(value) => [formatCurrency(Number(value))]}
                     indicator="dot"
                   />
                 }

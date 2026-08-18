@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
 import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
+import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { CategoryFilter } from "@/routes/(authed)/_auth/finances/-common/components/category-filter";
 import { TransactionTable } from "@/routes/(authed)/_auth/finances/-common/components/transaction-table";
@@ -320,8 +321,6 @@ function TransactionSummary() {
     return null;
   }
 
-  const formatCurrency = (amount: number) =>
-    `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
   return (
     <Card data-testid="transaction-summary" size="sm" className="gap-0 py-0">
       <CardContent className="p-0">

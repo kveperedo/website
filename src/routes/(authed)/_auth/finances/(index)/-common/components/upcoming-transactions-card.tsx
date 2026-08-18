@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { TanstackLinkButton } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
@@ -58,8 +59,9 @@ export const UpcomingTransactionsCard = () => {
                                 : TRANSACTION_TYPE_COLORS.expense,
                             )}
                           >
-                            {t.type === "income" ? "+" : "-"}₱
-                            {t.amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+                            {formatCurrency(t.amount, {
+                              sign: t.type === "income" ? "positive" : "negative",
+                            })}
                           </span>
                         </div>
                       </li>

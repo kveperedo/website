@@ -4,6 +4,7 @@ import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, XAxis, YAxis } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
@@ -11,11 +12,6 @@ import { formatMonthLabel, SHORT_MONTHS } from "../months";
 
 const NET_CHART_CONFIG = {
   net: { label: "Net" },
-};
-
-const formatCurrency = (value: number, includeSign = false) => {
-  const sign = includeSign && value > 0 ? "+" : value < 0 ? "-" : "";
-  return `${sign}₱${Math.abs(value).toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
 };
 
 export const MonthlyNetCard = () => {
@@ -73,8 +69,11 @@ export const MonthlyNetCard = () => {
                   width={54}
                   domain={["auto", "auto"]}
                   tickFormatter={(value) => {
-                    const prefix = value > 0 ? "+" : "";
-                    return `${prefix}${value >= 1000 || value <= -1000 ? `${(value / 1000).toFixed(0)}K` : value}`;
+                    const net = Number(value);
+                    return formatCurrency(net, {
+                      compact: true,
+                      sign: net > 0 ? "positive" : net < 0 ? "negative" : undefined,
+                    });
                   }}
                 />
                 <ReferenceLine y={0} stroke="var(--muted-foreground)" strokeOpacity={0.5} />
@@ -87,12 +86,15 @@ export const MonthlyNetCard = () => {
                       }}
                       formatter={(value, _name, _item, _index, payload) => {
                         const data = payload as unknown as { income: number; expenses: number };
+                        const net = Number(value);
                         return (
                           <div className="grid w-full gap-1.5 font-mono">
                             <div className="flex justify-between gap-4">
                               <span className="text-muted-foreground">Net</span>
                               <span className="font-medium text-foreground">
-                                {formatCurrency(Number(value), true)}
+                                {formatCurrency(net, {
+                                  sign: net > 0 ? "positive" : net < 0 ? "negative" : undefined,
+                                })}
                               </span>
                             </div>
                             <div className="flex justify-between gap-4">

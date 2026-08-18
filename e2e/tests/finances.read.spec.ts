@@ -403,11 +403,11 @@ test.describe("dashboard with data", () => {
       (now.getDate() >= 2 ? 1500 : 0) +
       (now.getDate() >= 5 ? 850 : 0) +
       (now.getDate() === getDaysInMonth(now) ? 180 : 0);
-    const formatCurrency = (amount: number) =>
-      `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
-
     await expect(
-      page.getByText(`${formatCurrency(45000 - expenses)} left`, { exact: true }),
+      page.getByText(
+        `₱${(45000 - expenses).toLocaleString("en-PH", { minimumFractionDigits: 2 })} left`,
+        { exact: true },
+      ),
     ).toBeVisible();
     await expect(
       page.getByText(`Expenses are ${Math.round((expenses / 45000) * 100)}% of income`, {
@@ -415,13 +415,19 @@ test.describe("dashboard with data", () => {
       }),
     ).toBeVisible();
     await expect(
-      page.getByText(`${formatCurrency(expenses)} / ${formatCurrency(45000)}`, { exact: true }),
+      page.getByText(
+        `₱${expenses.toLocaleString("en-PH", { minimumFractionDigits: 2 })} / ₱45,000.00`,
+        { exact: true },
+      ),
     ).toBeVisible();
     await expect(
       page.getByRole("progressbar", { name: "Expenses as a percentage of income" }),
     ).toHaveAttribute("aria-valuenow", String(Math.round((expenses / 45000) * 100)));
     await expect(
-      page.getByText(`${formatCurrency(expenses - 750)} above your 1-month pace`, { exact: true }),
+      page.getByText(
+        `₱${(expenses - 750).toLocaleString("en-PH", { minimumFractionDigits: 2 })} above your 1-month pace`,
+        { exact: true },
+      ),
     ).toBeVisible();
     await expect(page.getByText("₱750.00", { exact: true })).toBeVisible();
     await expect(page.getByText(/spent$/)).toHaveCount(0);

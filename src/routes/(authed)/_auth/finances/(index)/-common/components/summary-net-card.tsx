@@ -4,6 +4,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
@@ -19,7 +20,7 @@ function NetHeadline() {
 
   return (
     <p className={cn("font-mono text-lg sm:text-xl", netColor)}>
-      ₱{Math.abs(current.net).toLocaleString("en-PH", { minimumFractionDigits: 2 })} {netLabel}
+      {formatCurrency(Math.abs(current.net))} {netLabel}
     </p>
   );
 }
@@ -59,8 +60,7 @@ function ExpenseBreakdown() {
           )}
         />
         <span className="text-xxs whitespace-nowrap text-muted-foreground">
-          ₱{current.expenses.toLocaleString("en-PH", { minimumFractionDigits: 2 })} / ₱
-          {current.income.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+          {formatCurrency(current.expenses)} / {formatCurrency(current.income)}
         </span>
       </div>
     </div>
@@ -95,8 +95,7 @@ function PaceComparison() {
             <TrendingDownIcon className="size-3 shrink-0" />
           )}
           <span>
-            ₱{Math.abs(paceDiff).toLocaleString("en-PH", { minimumFractionDigits: 2 })}{" "}
-            {paceDiff > 0 ? "above" : "below"}{" "}
+            {formatCurrency(Math.abs(paceDiff))} {paceDiff > 0 ? "above" : "below"}{" "}
             <span className="text-muted-foreground">your {priorMonthCount}-month pace</span>
           </span>
         </p>
@@ -107,9 +106,7 @@ function PaceComparison() {
             {index > 0 && <span className="text-muted-foreground/50">·</span>}
             <span className="text-muted-foreground">{month.label.split(" ")[0].slice(0, 3)}</span>
             {month.transactionCount > 0 ? (
-              <span className="text-foreground">
-                ₱{month.expenses.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-              </span>
+              <span className="text-foreground">{formatCurrency(month.expenses)}</span>
             ) : (
               <span className="text-muted-foreground">—</span>
             )}

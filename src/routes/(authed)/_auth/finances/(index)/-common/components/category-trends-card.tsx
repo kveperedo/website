@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
@@ -132,9 +133,7 @@ export const CategoryTrendsCard = () => {
                 <YAxis
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) =>
-                    value >= 1000 ? `${(value / 1000).toFixed(0)}K` : String(value)
-                  }
+                  tickFormatter={(value) => formatCurrency(Number(value), { compact: true })}
                   tick={{ fontSize: 11 }}
                   width={48}
                 />
@@ -158,7 +157,7 @@ export const CategoryTrendsCard = () => {
                               {config?.label ?? String(name)}
                             </span>
                             <span className="ml-auto font-medium text-foreground">
-                              ₱{Number(value).toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+                              {formatCurrency(Number(value))}
                             </span>
                           </span>,
                         ];
