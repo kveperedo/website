@@ -8,7 +8,10 @@ import { z } from "zod";
 import type { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 
 import { formatLocal, getCurrentYearMonth } from "@/app/finance/local-date";
-import { getTransactionsByMonthFn } from "@/app/finance/transactions/functions";
+import {
+  getMonthlySummaryByMonthFn,
+  getTransactionsByMonthFn,
+} from "@/app/finance/transactions/functions";
 import { Button, TanstackLinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
@@ -16,8 +19,10 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
 import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
+import { cn } from "@/lib/utils";
 import { CategoryFilter } from "@/routes/(authed)/_auth/finances/-common/components/category-filter";
 import { TransactionTable } from "@/routes/(authed)/_auth/finances/-common/components/transaction-table";
+import { TRANSACTION_TYPE_COLORS } from "@/routes/(authed)/_auth/finances/-common/constants";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
 
@@ -44,17 +49,24 @@ export const Route = createFileRoute("/(authed)/_auth/finances/transactions/(ind
     const { year: currentYear, month: currentMonth } = getCurrentYearMonth();
     const year = deps.year ?? currentYear;
     const month = deps.month ?? currentMonth;
-    const transactions = await getTransactionsByMonthFn({
-      data: {
-        year,
-        month,
-        q: deps.q || undefined,
-        type: deps.type,
-        categories: deps.type === "income" ? undefined : deps.categories,
-      },
-    });
+    const summaryPromise =
+      !deps.type && !deps.categories?.length
+        ? getMonthlySummaryByMonthFn({ data: { year, month } })
+        : Promise.resolve(null);
+    const [transactions, summary] = await Promise.all([
+      getTransactionsByMonthFn({
+        data: {
+          year,
+          month,
+          q: deps.q || undefined,
+          type: deps.type,
+          categories: deps.type === "income" ? undefined : deps.categories,
+        },
+      }),
+      summaryPromise,
+    ]);
     const monthLabel = formatLocal(new Date(year, month - 1, 15), "MMMM yyyy");
-    return { transactions, monthLabel, year, month };
+    return { transactions, summary, monthLabel, year, month };
   },
   head: ({ loaderData }) => {
     const { year, month } = loaderData!;
@@ -301,6 +313,52 @@ function TransactionFilters() {
   );
 }
 
+function TransactionSummary() {
+  const { monthLabel, summary } = Route.useLoaderData();
+
+  if (!summary) {
+    return null;
+  }
+
+  const formatCurrency = (amount: number) =>
+    `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
+  return (
+    <Card data-testid="transaction-summary" size="sm" className="gap-0 py-0">
+      <CardContent className="p-0">
+        <dl
+          className="grid grid-cols-2 divide-x divide-border"
+          aria-label={`Financial summary for ${monthLabel}`}
+        >
+          <div className="min-w-0 px-3 py-2 sm:px-4">
+            <dt className="text-muted-foreground">Expenses</dt>
+            <dd
+              data-testid="transaction-summary-expenses"
+              className={cn(
+                "mt-1 font-mono text-sm font-medium break-all sm:text-base",
+                TRANSACTION_TYPE_COLORS.expense,
+              )}
+            >
+              {formatCurrency(summary.expenses)}
+            </dd>
+          </div>
+          <div className="min-w-0 px-3 py-2 sm:px-4">
+            <dt className="text-muted-foreground">Income</dt>
+            <dd
+              data-testid="transaction-summary-income"
+              className={cn(
+                "mt-1 font-mono text-sm font-medium break-all sm:text-base",
+                TRANSACTION_TYPE_COLORS.income,
+              )}
+            >
+              {formatCurrency(summary.income)}
+            </dd>
+          </div>
+        </dl>
+      </CardContent>
+    </Card>
+  );
+}
+
 function RouteComponent() {
   const { transactions, monthLabel, year, month } = Route.useLoaderData();
   const search = Route.useSearch();
@@ -336,6 +394,7 @@ function RouteComponent() {
       footer={<FinanceContainer.Footer />}
     >
       <div className="container mx-auto flex flex-1 flex-col gap-4 px-4 py-4 sm:px-0">
+        <TransactionSummary />
         {hasNoResults ? (
           <Card className="py-6">
             <Empty>

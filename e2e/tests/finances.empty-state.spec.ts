@@ -42,6 +42,8 @@ test.describe("empty states", () => {
 
     const monthLabel = formatInTimeZone(new Date(), "Asia/Manila", "MMMM yyyy");
     await expect(page.getByText(`No transactions in ${monthLabel}.`)).toBeVisible();
+    await expect(page.getByTestId("transaction-summary-income")).toHaveText("₱0.00");
+    await expect(page.getByTestId("transaction-summary-expenses")).toHaveText("₱0.00");
   });
 
   test("search with no matches shows an empty state", async ({ page }) => {

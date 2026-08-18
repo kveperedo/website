@@ -14,6 +14,7 @@ import {
   getCategorySummary,
   getCategoryTrends,
   getMonthlySummary,
+  getMonthlySummaryByMonth,
   getRecentTransactions,
   getTransactionById,
   getTransactionsByMonth,
@@ -31,6 +32,18 @@ export const getMonthlySummaryFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async () => {
     return await getMonthlySummary();
+  });
+
+export const getMonthlySummaryByMonthFn = createServerFn()
+  .middleware([authMiddleware])
+  .inputValidator(
+    z.object({
+      year: z.number().int().min(2020).max(2100),
+      month: z.number().int().min(1).max(12),
+    }),
+  )
+  .handler(async ({ data }) => {
+    return await getMonthlySummaryByMonth(data);
   });
 
 export const getMonthlyHistoryFn = createServerFn()
