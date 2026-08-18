@@ -35,6 +35,16 @@
   }
 }
 
+@keyframes route-loading {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
+}
+
 @utility animation-delay-2000 {
   animation-delay: 2s;
 }
