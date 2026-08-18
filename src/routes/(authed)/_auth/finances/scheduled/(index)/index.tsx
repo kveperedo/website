@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
@@ -176,9 +177,8 @@ function RouteComponent() {
                               : TRANSACTION_TYPE_COLORS.expense,
                           )}
                         >
-                          {template.type === "income" ? "+" : "-"}₱
-                          {template.amount.toLocaleString("en-PH", {
-                            minimumFractionDigits: 2,
+                          {formatCurrency(template.amount, {
+                            sign: template.type === "income" ? "positive" : "negative",
                           })}
                         </span>
                         {template.category && (

@@ -5,6 +5,7 @@ import { CalendarClock } from "lucide-react";
 import type { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
+import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { CATEGORY_COLORS, CATEGORY_LABELS, TRANSACTION_TYPE_COLORS } from "../constants";
@@ -113,8 +114,9 @@ export const TransactionTable = ({
                   : TRANSACTION_TYPE_COLORS.expense,
               )}
             >
-              {t.type === "income" ? "+" : "-"}₱
-              {t.amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+              {formatCurrency(t.amount, {
+                sign: t.type === "income" ? "positive" : "negative",
+              })}
             </td>
           </tr>
         ))}
