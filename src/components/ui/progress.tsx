@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   Label as LabelPrimitive,
   ProgressBar as ProgressPrimitive,
+  composeRenderProps,
   type LabelProps,
   type ProgressBarProps as ProgressPrimitiveProps,
 } from "react-aria-components";
@@ -52,14 +53,15 @@ function Progress({
   className,
   children,
   ...props
-}: Omit<ProgressPrimitiveProps, "children" | "className"> & {
+}: Omit<ProgressPrimitiveProps, "children"> & {
   children?: React.ReactNode;
-  className?: string;
 }) {
   return (
     <ProgressPrimitive
       data-slot="progress"
-      className={cn("flex flex-wrap gap-3", className)}
+      className={composeRenderProps(className, (className) =>
+        cn("flex flex-wrap gap-3", className),
+      )}
       {...props}
     >
       {({ percentage, valueText, isIndeterminate }) => (

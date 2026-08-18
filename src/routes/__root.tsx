@@ -4,7 +4,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { useEffect } from "react";
 
 import { Background } from "../components/background";
-import { LoadingDots } from "../components/loading-dots";
+import { RouteProgress } from "../components/route-progress";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -51,7 +51,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="relative wrap-anywhere antialiased">
-        <LoadingDots />
+        <RouteProgress />
         <Background />
         {children}
         <TanStackDevtools
