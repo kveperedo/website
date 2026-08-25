@@ -28,10 +28,18 @@ test.beforeAll(async ({ browser }) => {
   }
 });
 
-function waitForPreferenceUpdate(page: Page) {
-  return page.waitForResponse(
-    (response) => response.request().method() === "POST" && response.ok(),
-  );
+function waitForPreferenceUpdate(page: Page, predicate: (body: string) => boolean = () => true) {
+  return page.waitForResponse((response) => {
+    if (response.request().method() !== "POST" || !response.ok()) {
+      return false;
+    }
+    const postData = response.request().postData();
+    return postData ? predicate(postData) : false;
+  });
+}
+
+function excludesFoodAndDrinks(body: string) {
+  return !body.includes("food_drinks") && body.includes("transportation");
 }
 
 test.describe("category trends card", () => {
@@ -106,7 +114,7 @@ test.describe("category trends card", () => {
     await page.keyboard.press("Escape");
     await card.getByRole("button", { name: "Select all categories" }).click();
     await card.getByRole("button", { name: "Filter" }).click();
-    const persistedSelection = waitForPreferenceUpdate(page);
+    const persistedSelection = waitForPreferenceUpdate(page, excludesFoodAndDrinks);
     await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
 
     await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
@@ -128,7 +136,7 @@ test.describe("category trends card", () => {
     await card.getByRole("button", { name: "Filter" }).click();
     await page.getByRole("menuitem", { name: "Deselect all" }).click();
     await page.keyboard.press("Escape");
-    const persistedBaseline = waitForPreferenceUpdate(page);
+    const persistedBaseline = waitForPreferenceUpdate(page, (body) => body.includes("food_drinks"));
     await card.getByRole("button", { name: "Select all categories" }).click();
     await persistedBaseline;
     await page.clock.install();
@@ -137,7 +145,7 @@ test.describe("category trends card", () => {
 
     await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
     await page.keyboard.press("Escape");
-    const persistedSelection = waitForPreferenceUpdate(page);
+    const persistedSelection = waitForPreferenceUpdate(page, excludesFoodAndDrinks);
     await navigation.getByRole("link", { name: "Transactions", exact: true }).click();
     await persistedSelection;
     await expect(page).toHaveURL(/\/finances\/transactions$/);
