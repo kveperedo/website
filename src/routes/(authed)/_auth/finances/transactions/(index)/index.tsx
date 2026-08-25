@@ -50,21 +50,16 @@ export const Route = createFileRoute("/(authed)/_auth/finances/transactions/(ind
     const { year: currentYear, month: currentMonth } = getCurrentYearMonth();
     const year = deps.year ?? currentYear;
     const month = deps.month ?? currentMonth;
-    const summaryPromise =
-      !deps.type && !deps.categories?.length
-        ? getMonthlySummaryByMonthFn({ data: { year, month } })
-        : Promise.resolve(null);
+    const monthQuery = {
+      year,
+      month,
+      q: deps.q || undefined,
+      type: deps.type,
+      categories: deps.type === "income" ? undefined : deps.categories,
+    };
     const [transactions, summary] = await Promise.all([
-      getTransactionsByMonthFn({
-        data: {
-          year,
-          month,
-          q: deps.q || undefined,
-          type: deps.type,
-          categories: deps.type === "income" ? undefined : deps.categories,
-        },
-      }),
-      summaryPromise,
+      getTransactionsByMonthFn({ data: monthQuery }),
+      getMonthlySummaryByMonthFn({ data: monthQuery }),
     ]);
     const monthLabel = formatLocal(new Date(year, month - 1, 15), "MMMM yyyy");
     return { transactions, summary, monthLabel, year, month };
@@ -316,10 +311,10 @@ function TransactionFilters() {
 
 function TransactionSummary() {
   const { monthLabel, summary } = Route.useLoaderData();
+  const search = Route.useSearch();
 
-  if (!summary) {
-    return null;
-  }
+  const expensesDimmed = search.type === "income";
+  const incomeDimmed = search.type === "expense";
 
   return (
     <Card data-testid="transaction-summary" size="sm" className="gap-0 py-0">
@@ -328,7 +323,15 @@ function TransactionSummary() {
           className="grid grid-cols-2 divide-x divide-border"
           aria-label={`Financial summary for ${monthLabel}`}
         >
-          <div className="min-w-0 px-3 py-2 sm:px-4">
+          <div
+            data-testid="transaction-summary-expenses-panel"
+            data-dimmed={expensesDimmed ? "" : undefined}
+            aria-disabled={expensesDimmed || undefined}
+            className={cn(
+              "min-w-0 px-3 py-2 transition-opacity duration-200 sm:px-4",
+              expensesDimmed && "opacity-50",
+            )}
+          >
             <dt className="text-muted-foreground">Expenses</dt>
             <dd
               data-testid="transaction-summary-expenses"
@@ -340,7 +343,15 @@ function TransactionSummary() {
               {formatCurrency(summary.expenses)}
             </dd>
           </div>
-          <div className="min-w-0 px-3 py-2 sm:px-4">
+          <div
+            data-testid="transaction-summary-income-panel"
+            data-dimmed={incomeDimmed ? "" : undefined}
+            aria-disabled={incomeDimmed || undefined}
+            className={cn(
+              "min-w-0 px-3 py-2 transition-opacity duration-200 sm:px-4",
+              incomeDimmed && "opacity-50",
+            )}
+          >
             <dt className="text-muted-foreground">Income</dt>
             <dd
               data-testid="transaction-summary-income"

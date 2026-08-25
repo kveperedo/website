@@ -42,7 +42,15 @@ type GetTransactionsByMonthInput = {
   categories?: Array<TransactionCategory>;
 };
 
-type GetMonthlySummaryByMonthInput = Pick<GetTransactionsByMonthInput, "year" | "month">;
+const buildTransactionFilters = ({
+  q,
+  type,
+  categories,
+}: Omit<GetTransactionsByMonthInput, "year" | "month">) => ({
+  ...(q ? { description: { contains: q, mode: "insensitive" as const } } : {}),
+  ...(type ? { type } : {}),
+  ...(categories?.length ? { category: { in: categories } } : {}),
+});
 
 export const getTransactionsByMonth = async ({
   year,
@@ -57,9 +65,7 @@ export const getTransactionsByMonth = async ({
   const transactions = await getDb().transaction.findMany({
     where: {
       transactedAt: { gte: monthStart, lt: monthEnd },
-      ...(q ? { description: { contains: q, mode: "insensitive" } } : {}),
-      ...(type ? { type } : {}),
-      ...(categories?.length ? { category: { in: categories } } : {}),
+      ...buildTransactionFilters({ q, type, categories }),
     },
     orderBy: { transactedAt: "desc" },
   });
@@ -70,13 +76,22 @@ export const getTransactionsByMonth = async ({
   }));
 };
 
-export const getMonthlySummaryByMonth = async ({ year, month }: GetMonthlySummaryByMonthInput) => {
+export const getMonthlySummaryByMonth = async ({
+  year,
+  month,
+  q,
+  type,
+  categories,
+}: GetTransactionsByMonthInput) => {
   const monthStart = startOfLocalMonth(year, month);
   const monthEnd = endOfLocalMonth(year, month);
 
   const grouped = await getDb().transaction.groupBy({
     by: ["type"],
-    where: { transactedAt: { gte: monthStart, lt: monthEnd } },
+    where: {
+      transactedAt: { gte: monthStart, lt: monthEnd },
+      ...buildTransactionFilters({ q, type, categories }),
+    },
     _sum: { amount: true },
     _count: true,
   });

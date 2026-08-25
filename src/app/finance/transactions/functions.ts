@@ -34,14 +34,17 @@ export const getMonthlySummaryFn = createServerFn()
     return await getMonthlySummary();
   });
 
+const monthQuerySchema = z.object({
+  year: z.number().int().min(2020).max(2100),
+  month: z.number().int().min(1).max(12),
+  q: z.string().optional(),
+  type: z.enum(TransactionType).optional(),
+  categories: z.array(z.enum(TransactionCategory)).optional(),
+});
+
 export const getMonthlySummaryByMonthFn = createServerFn()
   .middleware([authMiddleware])
-  .inputValidator(
-    z.object({
-      year: z.number().int().min(2020).max(2100),
-      month: z.number().int().min(1).max(12),
-    }),
-  )
+  .inputValidator(monthQuerySchema)
   .handler(async ({ data }) => {
     return await getMonthlySummaryByMonth(data);
   });
@@ -72,15 +75,7 @@ export const getCategoryTrendsFn = createServerFn()
 
 export const getTransactionsByMonthFn = createServerFn()
   .middleware([authMiddleware])
-  .inputValidator(
-    z.object({
-      year: z.number().int().min(2020).max(2100),
-      month: z.number().int().min(1).max(12),
-      q: z.string().optional(),
-      type: z.enum(TransactionType).optional(),
-      categories: z.array(z.enum(TransactionCategory)).optional(),
-    }),
-  )
+  .inputValidator(monthQuerySchema)
   .handler(async ({ data }) => {
     return await getTransactionsByMonth(data);
   });
