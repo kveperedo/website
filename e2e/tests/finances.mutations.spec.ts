@@ -136,7 +136,7 @@ test.describe("transaction mutations", () => {
       await page.getByRole("link", { name: "Manage scheduled transactions" }).click();
       await expect(page).toHaveURL(/\/finances\/scheduled$/);
 
-      const template = page.getByRole("group", { name: description });
+      const template = page.getByRole("listitem", { name: description });
       await expect(template).toBeVisible();
       await expect(template.getByText("1/3 occurrences")).toBeVisible();
     } finally {
@@ -161,7 +161,7 @@ test.describe("transaction mutations", () => {
       id = await createScheduledTransaction(page, description, { endType: "none" });
       await gotoAndWaitForHydration(page, "/finances/scheduled");
 
-      const template = page.getByRole("group", { name: description });
+      const template = page.getByRole("listitem", { name: description });
       await expect(template).toBeVisible();
       await expect(template.getByText("No end", { exact: true })).toBeVisible();
     } finally {
@@ -195,7 +195,7 @@ test.describe("transaction mutations", () => {
         id = await createScheduledTransaction(page, description, { endType: "date", endDate });
         await gotoAndWaitForHydration(page, "/finances/scheduled");
 
-        const template = page.getByRole("group", { name: description });
+        const template = page.getByRole("listitem", { name: description });
         await expect(template).toBeVisible();
         await expect(
           template.getByText(`Until ${format(endDate, "MMM d, yyyy")}`, { exact: true }),
@@ -229,7 +229,7 @@ test.describe("transaction mutations", () => {
       await expect(page.getByRole("heading", { name: "Make recurring" })).toHaveCount(0);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const template = page.getByRole("group", { name: description });
+      const template = page.getByRole("listitem", { name: description });
       await expect(template).toBeVisible();
       await template.getByRole("button", { name: "Pause" }).click();
       await expect(template.getByRole("button", { name: "Resume" })).toBeVisible();

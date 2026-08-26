@@ -19,11 +19,9 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
 import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
-import { formatCurrency } from "@/lib/currency";
-import { cn } from "@/lib/utils";
 import { CategoryFilter } from "@/routes/(authed)/_auth/finances/-common/components/category-filter";
+import { SummaryCard } from "@/routes/(authed)/_auth/finances/-common/components/summary-card";
 import { TransactionTable } from "@/routes/(authed)/_auth/finances/-common/components/transaction-table";
-import { TRANSACTION_TYPE_COLORS } from "@/routes/(authed)/_auth/finances/-common/constants";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
 
@@ -309,68 +307,8 @@ function TransactionFilters() {
   );
 }
 
-function TransactionSummary() {
-  const { monthLabel, summary } = Route.useLoaderData();
-  const search = Route.useSearch();
-
-  const expensesDimmed = search.type === "income";
-  const incomeDimmed = search.type === "expense";
-
-  return (
-    <Card data-testid="transaction-summary" size="sm" className="gap-0 py-0">
-      <CardContent className="p-0">
-        <dl
-          className="grid grid-cols-2 divide-x divide-border"
-          aria-label={`Financial summary for ${monthLabel}`}
-        >
-          <div
-            data-testid="transaction-summary-expenses-panel"
-            data-dimmed={expensesDimmed ? "" : undefined}
-            aria-disabled={expensesDimmed || undefined}
-            className={cn(
-              "min-w-0 px-3 py-2 transition-opacity duration-200 sm:px-4",
-              expensesDimmed && "opacity-50",
-            )}
-          >
-            <dt className="text-muted-foreground">Expenses</dt>
-            <dd
-              data-testid="transaction-summary-expenses"
-              className={cn(
-                "mt-1 font-mono text-sm font-medium break-all sm:text-base",
-                TRANSACTION_TYPE_COLORS.expense,
-              )}
-            >
-              {formatCurrency(summary.expenses)}
-            </dd>
-          </div>
-          <div
-            data-testid="transaction-summary-income-panel"
-            data-dimmed={incomeDimmed ? "" : undefined}
-            aria-disabled={incomeDimmed || undefined}
-            className={cn(
-              "min-w-0 px-3 py-2 transition-opacity duration-200 sm:px-4",
-              incomeDimmed && "opacity-50",
-            )}
-          >
-            <dt className="text-muted-foreground">Income</dt>
-            <dd
-              data-testid="transaction-summary-income"
-              className={cn(
-                "mt-1 font-mono text-sm font-medium break-all sm:text-base",
-                TRANSACTION_TYPE_COLORS.income,
-              )}
-            >
-              {formatCurrency(summary.income)}
-            </dd>
-          </div>
-        </dl>
-      </CardContent>
-    </Card>
-  );
-}
-
 function RouteComponent() {
-  const { transactions, monthLabel, year, month } = Route.useLoaderData();
+  const { transactions, summary, monthLabel, year, month } = Route.useLoaderData();
   const search = Route.useSearch();
   const router = useRouter();
   const selectedCategories = search.categories ?? [];
@@ -404,7 +342,13 @@ function RouteComponent() {
       footer={<FinanceContainer.Footer />}
     >
       <div className="container mx-auto flex flex-1 flex-col gap-4 px-4 py-4 sm:px-0">
-        <TransactionSummary />
+        <SummaryCard
+          expenses={summary.expenses}
+          income={summary.income}
+          label={monthLabel}
+          expensesDimmed={search.type === "income"}
+          incomeDimmed={search.type === "expense"}
+        />
         {hasNoResults ? (
           <Card className="py-6">
             <Empty>
