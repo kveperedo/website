@@ -126,7 +126,7 @@ export async function deleteTransaction(page: Page, id: string) {
 export async function deleteScheduledTransactionTemplate(page: Page, description: string) {
   await gotoAndWaitForHydration(page, "/finances/scheduled");
 
-  const template = page.getByRole("group", { name: description });
+  const template = page.getByRole("listitem", { name: description });
   if ((await template.count()) === 0) {
     return;
   }
