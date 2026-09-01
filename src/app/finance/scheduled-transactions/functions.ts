@@ -1,16 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { CreateScheduledTransactionInputSchema } from "@/schema/scheduled-transaction";
+import {
+  CreateScheduledTransactionInputSchema,
+  UpdateScheduledTransactionInputSchema,
+} from "@/schema/scheduled-transaction";
 
 import { authMiddleware } from "../../auth/middleware";
 import { createRateLimitMiddleware } from "../../infra/rate-limit/middleware";
 import {
   deleteScheduledTransactionTemplate,
+  getScheduledTransactionTemplateById,
   getScheduledTransactionTemplates,
   getUpcomingScheduledTransactionTemplates,
   createScheduledTransactionTemplate,
   toggleScheduledTransactionTemplate,
+  updateScheduledTransactionTemplate,
 } from "./server";
 
 export const getScheduledTransactionTemplatesFn = createServerFn()
@@ -41,7 +46,21 @@ export const createScheduledTransactionTemplateFn = createServerFn({ method: "PO
 
 export const deleteScheduledTransactionTemplateFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(z.string().uuid())
+  .inputValidator(z.uuid())
   .handler(async ({ data }) => {
     return await deleteScheduledTransactionTemplate(data);
+  });
+
+export const getScheduledTransactionTemplateByIdFn = createServerFn()
+  .middleware([authMiddleware])
+  .inputValidator(z.uuid())
+  .handler(async ({ data }) => {
+    return await getScheduledTransactionTemplateById(data);
+  });
+
+export const updateScheduledTransactionTemplateFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware, createRateLimitMiddleware()])
+  .inputValidator(UpdateScheduledTransactionInputSchema)
+  .handler(async ({ data }) => {
+    return await updateScheduledTransactionTemplate(data.id, data.data);
   });

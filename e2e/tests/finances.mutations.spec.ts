@@ -8,7 +8,9 @@ import {
   deleteScheduledTransactionTemplate,
   deleteTransaction,
   deleteTransactionByDescription,
+  getScheduledTemplateId,
   getTransactionId,
+  openScheduledTemplateForEdit,
   openTransactionComposer,
   openTransactionForEdit,
 } from "../helpers/transactions";
@@ -136,7 +138,7 @@ test.describe("transaction mutations", () => {
       await page.getByRole("link", { name: "Manage scheduled transactions" }).click();
       await expect(page).toHaveURL(/\/finances\/scheduled$/);
 
-      const template = page.getByRole("listitem", { name: description });
+      const template = page.getByRole("listitem").filter({ hasText: description });
       await expect(template).toBeVisible();
       await expect(template.getByText("1/3 occurrences")).toBeVisible();
     } finally {
@@ -161,7 +163,7 @@ test.describe("transaction mutations", () => {
       id = await createScheduledTransaction(page, description, { endType: "none" });
       await gotoAndWaitForHydration(page, "/finances/scheduled");
 
-      const template = page.getByRole("listitem", { name: description });
+      const template = page.getByRole("listitem").filter({ hasText: description });
       await expect(template).toBeVisible();
       await expect(template.getByText("No end", { exact: true })).toBeVisible();
     } finally {
@@ -195,7 +197,7 @@ test.describe("transaction mutations", () => {
         id = await createScheduledTransaction(page, description, { endType: "date", endDate });
         await gotoAndWaitForHydration(page, "/finances/scheduled");
 
-        const template = page.getByRole("listitem", { name: description });
+        const template = page.getByRole("listitem").filter({ hasText: description });
         await expect(template).toBeVisible();
         await expect(
           template.getByText(`Until ${format(endDate, "MMM d, yyyy")}`, { exact: true }),
@@ -229,7 +231,7 @@ test.describe("transaction mutations", () => {
       await expect(page.getByRole("heading", { name: "Make recurring" })).toHaveCount(0);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const template = page.getByRole("listitem", { name: description });
+      const template = page.getByRole("listitem").filter({ hasText: description });
       await expect(template).toBeVisible();
       await template.getByRole("button", { name: "Pause" }).click();
       await expect(template.getByRole("button", { name: "Resume" })).toBeVisible();
@@ -264,6 +266,232 @@ test.describe("transaction mutations", () => {
         await deleteTransaction(page, id);
       } else {
         await deleteTransactionByDescription(page, description);
+      }
+    }
+  });
+});
+
+test.describe("scheduled template editing", () => {
+  test("clicking a scheduled row navigates to the edit page", async ({ page }) => {
+    const description = "Edit navigation test";
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+      id = await createScheduledTransaction(page, description);
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const templateId = await getScheduledTemplateId(page, description);
+
+      await openScheduledTemplateForEdit(page, templateId);
+      await expect(page).toHaveURL(new RegExp(`/finances/scheduled/${templateId}`));
+      await expect(page.getByRole("button", { name: "Save Changes" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
+    } finally {
+      if (id) {
+        await deleteScheduledTransactionTemplate(page, description);
+        await deleteTransaction(page, id);
+      }
+    }
+  });
+
+  test("edit form loads with correct default values", async ({ page }) => {
+    const description = "Default values test";
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+      id = await createScheduledTransaction(page, description, {
+        endType: "count",
+        maxOccurrences: 5,
+      });
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const templateId = await getScheduledTemplateId(page, description);
+
+      await openScheduledTemplateForEdit(page, templateId);
+      await expect(page.getByTestId("description-input")).toHaveValue(description);
+      await expect(page.getByTestId("expense-radio-item")).toHaveAttribute("data-selected", "true");
+    } finally {
+      if (id) {
+        await deleteScheduledTransactionTemplate(page, description);
+        await deleteTransaction(page, id);
+      }
+    }
+  });
+
+  test("editing a scheduled transaction persists changes", async ({ page }) => {
+    const description = "Persist edit test";
+    const updated = "Persist edit updated";
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+      id = await createScheduledTransaction(page, description);
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const templateId = await getScheduledTemplateId(page, description);
+
+      await openScheduledTemplateForEdit(page, templateId);
+      await page.getByTestId("description-input").fill(updated);
+
+      const saveButton = page.getByRole("button", { name: "Save Changes" });
+      await saveButton.click();
+      await expect(saveButton).toBeDisabled();
+      await expect(saveButton).toBeEnabled();
+
+      await gotoAndWaitForHydration(page, `/finances/scheduled/${templateId}`);
+      await expect(page.getByTestId("description-input")).toHaveValue(updated);
+    } finally {
+      if (id) {
+        await deleteScheduledTransactionTemplate(page, description);
+        await deleteTransaction(page, id);
+      }
+    }
+  });
+
+  test("cancel on edit page navigates back to scheduled list", async ({ page }) => {
+    const description = "Cancel navigation test";
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+      id = await createScheduledTransaction(page, description);
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const templateId = await getScheduledTemplateId(page, description);
+
+      await openScheduledTemplateForEdit(page, templateId);
+      await page.getByRole("button", { name: "Cancel" }).click();
+      await expect(page).toHaveURL(/\/finances\/scheduled$/);
+    } finally {
+      if (id) {
+        await deleteScheduledTransactionTemplate(page, description);
+        await deleteTransaction(page, id);
+      }
+    }
+  });
+
+  test("delete from edit page with confirmation", async ({ page }) => {
+    const description = "Delete from edit test";
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+      id = await createScheduledTransaction(page, description);
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const templateId = await getScheduledTemplateId(page, description);
+
+      await openScheduledTemplateForEdit(page, templateId);
+      await page.getByRole("button", { name: "Delete Schedule" }).click();
+      await expect(page.getByText("Delete this scheduled transaction?")).toBeVisible();
+
+      await page.getByRole("button", { name: "Delete", exact: true }).click();
+      await page.waitForURL(/\/finances\/scheduled$/);
+
+      await expect(page.getByRole("listitem").filter({ hasText: description })).toHaveCount(0);
+    } finally {
+      if (id) {
+        await deleteTransaction(page, id);
+      }
+    }
+  });
+
+  test("delete confirmation Cancel dismisses dialog", async ({ page }) => {
+    const description = "Delete cancel test";
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+      id = await createScheduledTransaction(page, description);
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const templateId = await getScheduledTemplateId(page, description);
+
+      await openScheduledTemplateForEdit(page, templateId);
+      await page.getByRole("button", { name: "Delete Schedule" }).click();
+      await page.getByText("Delete this scheduled transaction?").waitFor();
+      await page
+        .getByLabel("Delete this scheduled")
+        .getByRole("button", { name: "Cancel" })
+        .click();
+      await expect(page.getByText("Delete this scheduled transaction?")).toHaveCount(0);
+      await expect(page).toHaveURL(new RegExp(`/finances/scheduled/${templateId}`));
+    } finally {
+      if (id) {
+        await deleteScheduledTransactionTemplate(page, description);
+        await deleteTransaction(page, id);
+      }
+    }
+  });
+
+  test("summary card shows scheduled badge and occurrence count", async ({ page }) => {
+    const description = "Summary card test";
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+      id = await createScheduledTransaction(page, description, {
+        endType: "count",
+        maxOccurrences: 3,
+      });
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const templateId = await getScheduledTemplateId(page, description);
+
+      await openScheduledTemplateForEdit(page, templateId);
+      await expect(page.getByText("Scheduled", { exact: true })).toBeVisible();
+      await expect(page.getByText("1/3 occurrences")).toBeVisible();
+    } finally {
+      if (id) {
+        await deleteScheduledTransactionTemplate(page, description);
+        await deleteTransaction(page, id);
+      }
+    }
+  });
+
+  test("summary card shows paused badge for inactive template", async ({ page }) => {
+    const description = "Paused badge test";
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+      id = await createScheduledTransaction(page, description);
+
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const templateId = await getScheduledTemplateId(page, description);
+
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const template = page.getByRole("listitem").filter({ hasText: description });
+      await template.getByRole("button", { name: "Pause" }).click();
+      await expect(template.getByRole("button", { name: "Resume" })).toBeVisible();
+
+      await openScheduledTemplateForEdit(page, templateId);
+      await expect(page.getByText("Paused", { exact: true })).toBeVisible();
+    } finally {
+      if (id) {
+        await deleteScheduledTransactionTemplate(page, description);
+        await deleteTransaction(page, id);
+      }
+    }
+  });
+
+  test("income type hides category field on edit form", async ({ page }) => {
+    const description = "Income category test";
+    let id: string | undefined;
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances");
+      id = await createScheduledTransaction(page, description);
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      const templateId = await getScheduledTemplateId(page, description);
+
+      await openScheduledTemplateForEdit(page, templateId);
+      await expect(page.getByText("Category", { exact: true })).toBeVisible();
+
+      await page.getByTestId("income-radio-item").click();
+      await expect(page.getByText("Category", { exact: true })).toHaveCount(0);
+
+      await page.getByTestId("expense-radio-item").click();
+      await expect(page.getByText("Category", { exact: true })).toBeVisible();
+    } finally {
+      if (id) {
+        await deleteScheduledTransactionTemplate(page, description);
+        await deleteTransaction(page, id);
       }
     }
   });
