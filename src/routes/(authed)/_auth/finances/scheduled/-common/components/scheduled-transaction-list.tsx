@@ -1,3 +1,4 @@
+import { useRouter } from "@tanstack/react-router";
 import { format, parseISO } from "date-fns";
 import { PauseIcon, PlayIcon, Trash2 } from "lucide-react";
 
@@ -36,7 +37,15 @@ export const ScheduledTransactionList = ({
   onDelete,
 }: ScheduledTransactionListProps) => {
   const { templates } = Route.useLoaderData();
+  const router = useRouter();
   const isEmpty = templates.length === 0;
+
+  const handleRowClick = (id: string) => {
+    router.navigate({
+      to: "/finances/scheduled/$id",
+      params: { id },
+    });
+  };
 
   return (
     <Card className="flex min-w-0 flex-1 flex-col p-2">
@@ -61,8 +70,18 @@ export const ScheduledTransactionList = ({
                 <li
                   key={template.id}
                   data-template-id={template.id}
-                  className={cn("flex min-w-0 items-stretch", !template.isActive && "opacity-50")}
-                  aria-label={`${template.description}, scheduled monthly on day ${template.dayOfMonth}`}
+                  className={cn(
+                    "flex min-w-0 cursor-pointer items-stretch hover:bg-muted/50",
+                    !template.isActive && "opacity-50",
+                  )}
+                  onClick={() => handleRowClick(template.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleRowClick(template.id);
+                    }
+                  }}
+                  tabIndex={0}
                 >
                   <div className="flex size-9 shrink-0 items-center justify-center bg-muted px-2 font-mono text-xs text-foreground tabular-nums">
                     <span aria-hidden="true">{day}</span>
@@ -101,6 +120,8 @@ export const ScheduledTransactionList = ({
                       size="icon-sm"
                       isDisabled={isLoading === template.id}
                       onPress={() => onToggle(template.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
                       aria-label={template.isActive ? "Pause" : "Resume"}
                     >
                       {template.isActive ? (
@@ -114,6 +135,8 @@ export const ScheduledTransactionList = ({
                         variant="ghost"
                         size="icon-sm"
                         isDisabled={isDeleting === template.id}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
                         aria-label="Delete template"
                       >
                         <Trash2 className="size-3.5 text-destructive" />

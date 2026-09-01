@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
+import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
+
 export const ScheduledTransactionInputSchema = z.object({
   dayOfMonth: z.number().int().min(1).max(31),
   endDate: z.iso.date().nullable(),
@@ -13,7 +16,23 @@ export const CreateScheduledTransactionInputSchema = z.object({
   schedule: ScheduledTransactionInputSchema,
 });
 
-const ScheduledFormEndTypeSchema = z.discriminatedUnion("endType", [
+export const UpdateScheduledTransactionInputSchema = z.object({
+  id: z.uuid(),
+  data: z.object({
+    description: z.string().min(1).max(255),
+    amount: z.number().positive(),
+    type: TransactionTypeSchema,
+    category: TransactionCategorySchema.nullable(),
+    dayOfMonth: z.number().int().min(1).max(31),
+    endDate: z.iso.date().nullable(),
+    maxOccurrences: z.number().int().min(1).nullable(),
+    isActive: z.boolean(),
+  }),
+});
+
+export type UpdateScheduledTransactionInput = z.infer<typeof UpdateScheduledTransactionInputSchema>;
+
+export const ScheduledFormEndTypeSchema = z.discriminatedUnion("endType", [
   z.object({
     endType: z.literal("none"),
   }),
@@ -32,3 +51,16 @@ export const ScheduledFormSchema = z
   .and(ScheduledFormEndTypeSchema);
 
 export type ScheduledFormData = z.infer<typeof ScheduledFormSchema>;
+
+export const ScheduledFormEditSchema = z
+  .object({
+    description: z.string().min(1).max(255),
+    amount: z.number().positive(),
+    type: TransactionTypeSchema,
+    category: TransactionCategorySchema.nullable(),
+    dayOfMonth: z.number().int().min(1).max(31),
+    isActive: z.boolean(),
+  })
+  .and(ScheduledFormEndTypeSchema);
+
+export type ScheduledFormEditData = z.infer<typeof ScheduledFormEditSchema>;

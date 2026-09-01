@@ -126,13 +126,15 @@ export async function deleteTransaction(page: Page, id: string) {
 export async function deleteScheduledTransactionTemplate(page: Page, description: string) {
   await gotoAndWaitForHydration(page, "/finances/scheduled");
 
-  const template = page.getByRole("listitem", { name: description });
+  const template = page.getByRole("listitem").filter({ hasText: description });
   if ((await template.count()) === 0) {
     return;
   }
 
   await template.getByRole("button", { name: "Delete template" }).click();
-  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  const deleteButton = page.getByRole("button", { name: "Delete", exact: true });
+  await expect(deleteButton).toBeEnabled();
+  await deleteButton.click({ timeout: 10000 });
   await expect(template).toHaveCount(0);
 }
 
@@ -150,4 +152,20 @@ export async function deleteTransactionByDescription(page: Page, description: st
   }
 
   await deleteTransaction(page, id);
+}
+
+export async function getScheduledTemplateId(page: Page, description: string): Promise<string> {
+  const item = page.getByRole("listitem").filter({ hasText: description });
+  await expect(item).toHaveCount(1);
+
+  const id = await item.evaluate((el) => el.getAttribute("data-template-id"));
+  if (!id) {
+    throw new Error(`Could not find the id for scheduled template: ${description}`);
+  }
+  return id;
+}
+
+export async function openScheduledTemplateForEdit(page: Page, id: string) {
+  await gotoAndWaitForHydration(page, `/finances/scheduled/${id}`);
+  await expect(page.getByRole("button", { name: "Delete Schedule" })).toBeVisible();
 }

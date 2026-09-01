@@ -447,12 +447,26 @@ test.describe("dashboard with data", () => {
     await expect(
       page.getByRole("progressbar", { name: "Expenses as a percentage of income" }),
     ).toHaveAttribute("aria-valuenow", String(Math.round((expenses / 45000) * 100)));
-    await expect(
-      page.getByText(
-        `₱${(expenses - 750).toLocaleString("en-PH", { minimumFractionDigits: 2 })} above your 1-month pace`,
-        { exact: true },
-      ),
-    ).toBeVisible();
+    const paceDiff = expenses - 750;
+    if (paceDiff === 0) {
+      await expect(
+        page.getByText("On pace with your 1-month average", { exact: true }),
+      ).toBeVisible();
+    } else if (paceDiff > 0) {
+      await expect(
+        page.getByText(
+          `₱${paceDiff.toLocaleString("en-PH", { minimumFractionDigits: 2 })} above your 1-month pace`,
+          { exact: true },
+        ),
+      ).toBeVisible();
+    } else {
+      await expect(
+        page.getByText(
+          `₱${Math.abs(paceDiff).toLocaleString("en-PH", { minimumFractionDigits: 2 })} below your 1-month pace`,
+          { exact: true },
+        ),
+      ).toBeVisible();
+    }
     await expect(page.getByText("₱750.00", { exact: true })).toBeVisible();
     await expect(page.getByText(/spent$/)).toHaveCount(0);
   });

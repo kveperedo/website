@@ -1,8 +1,12 @@
 import { addMonths, isAfter, isBefore } from "date-fns";
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 
+import type { TransactionCategory } from "@/generated/prisma/enums";
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
-import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
+import type {
+  ScheduledTransactionInput,
+  UpdateScheduledTransactionInput,
+} from "@/schema/scheduled-transaction";
 
 import { getDb, type DbTransactionClient } from "@/db/client";
 
@@ -156,7 +160,7 @@ export const createScheduledTransaction = async (
         description: data.description,
         amount: data.amount,
         type: data.type,
-        category: data.category ?? undefined,
+        category: (data.category as TransactionCategory) ?? undefined,
         dayOfMonth: schedule.dayOfMonth,
         startDate: data.transactedAt,
         endDate,
@@ -250,6 +254,52 @@ export const toggleScheduledTransactionTemplate = async (id: string) => {
 
 export const deleteScheduledTransactionTemplate = async (id: string) => {
   await getDb().scheduledTransactionTemplate.delete({ where: { id } });
+};
+
+export const getScheduledTransactionTemplateById = async (id: string) => {
+  const template = await getDb().scheduledTransactionTemplate.findUnique({
+    where: { id },
+    include: {
+      _count: { select: { transactions: true } },
+    },
+  });
+
+  if (!template) {
+    throw new Error("Template not found");
+  }
+
+  return {
+    ...template,
+    amount: template.amount.toNumber(),
+    endDate: template.endDate ? databaseDateToDateOnly(template.endDate) : null,
+  };
+};
+
+export const updateScheduledTransactionTemplate = async (
+  id: string,
+  data: UpdateScheduledTransactionInput["data"],
+) => {
+  const endDate = data.endDate ? dateOnlyToDatabaseDate(data.endDate) : null;
+
+  const template = await getDb().scheduledTransactionTemplate.update({
+    where: { id },
+    data: {
+      description: data.description,
+      amount: data.amount,
+      type: data.type,
+      category: data.type === "income" ? null : (data.category ?? null),
+      dayOfMonth: data.dayOfMonth,
+      endDate,
+      maxOccurrences: data.maxOccurrences ?? null,
+      isActive: data.isActive,
+    },
+  });
+
+  return {
+    ...template,
+    amount: template.amount.toNumber(),
+    endDate: template.endDate ? databaseDateToDateOnly(template.endDate) : null,
+  };
 };
 
 export const generateScheduledTransactions = async (date: Date) => {
