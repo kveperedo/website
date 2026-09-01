@@ -16,7 +16,7 @@
     "deploy:preview": "npm run build:preview && wrangler versions upload --preview-alias",
     "cf:generate": "wrangler types",
     "test": "vitest run",
-    "test:e2e": "playwright test --config e2e/playwright.config.ts --max-failures=1",
+    "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
