@@ -12,8 +12,8 @@
     "build": "vite build",
     "build:preview": "CLOUDFLARE_ENV=preview vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler deploy",
-    "deploy:preview": "npm run build:preview && wrangler versions upload --preview-alias",
+    "deploy": "pnpm run build && wrangler deploy",
+    "deploy:preview": "pnpm run build:preview && wrangler versions upload --preview-alias",
     "cf:generate": "wrangler types",
     "test": "vitest run",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
@@ -91,10 +91,5 @@
     "vitest": "^4.1.9",
     "wrangler": "^4.107.0"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss"
-    ]
-  }
+  "packageManager": "pnpm@11.25.0"
 }

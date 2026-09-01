@@ -2,16 +2,16 @@
 
 ## Commands
 
-- **npm** (not pnpm — lockfile is `package-lock.json`)
-- `npm run dev` — port 3000, `--host` for network access
-- `npm run lint` / `npm run format:check` — pre-commit runs both
-- `npm run db:generate` → `npm run db:deploy` — required before build if schema changed
-- `npm run test` — Vitest unit tests
-- `npm run build` — outputs a Cloudflare Workers bundle (via `@cloudflare/vite-plugin`)
-- `npm run deploy` — runs `npm run build && wrangler deploy` (production → `kevinperedo.com`)
-- **Preview deploy**: `npm run deploy:preview -- "pr-<slug>"` — uploads to the isolated preview Worker with an aliased URL at `pr-<slug>-website-preview.kveperedo.workers.dev`
-- `npm run deploy:preview` is equivalent to `npm run build:preview && npx wrangler versions upload --preview-alias`
-- `npm run cf:generate` — regenerates `worker-configuration.d.ts` from `wrangler.jsonc`
+- **pnpm** (lockfile is `pnpm-lock.yaml`)
+- `pnpm run dev` — port 3000, `--host` for network access
+- `pnpm run lint` / `pnpm run format:check` — pre-commit runs both
+- `pnpm run db:generate` → `pnpm run db:deploy` — required before build if schema changed
+- `pnpm run test` — Vitest unit tests
+- `pnpm run build` — outputs a Cloudflare Workers bundle (via `@cloudflare/vite-plugin`)
+- `pnpm run deploy` — runs `pnpm run build && wrangler deploy` (production → `kevinperedo.com`)
+- **Preview deploy**: `pnpm run deploy:preview -- "pr-<slug>"` — uploads to the isolated preview Worker with an aliased URL at `pr-<slug>-website-preview.kveperedo.workers.dev`
+- `pnpm run deploy:preview` is equivalent to `pnpm run build:preview && npx wrangler versions upload --preview-alias`
+- `pnpm run cf:generate` — regenerates `worker-configuration.d.ts` from `wrangler.jsonc`
 
 ## Architecture
 
@@ -44,21 +44,21 @@
 
 ## Key Files
 
-| File                        | Purpose                                                 |
-| --------------------------- | ------------------------------------------------------- |
-| `src/db/client.ts`          | Prisma client factory (Hyperdrive-backed pg adapter)    |
-| `src/app/auth/`             | Session logic, server functions, and auth middleware    |
-| `src/app/finance/`          | Finance-domain services and server functions            |
-| `src/app/infra/`            | Cache control, logging, and rate limiting               |
-| `src/app/e2e/`              | E2E fixture seeding and server functions                |
-| `prisma/schema.prisma`      | Single model: `Expense`                                 |
-| `src/styles.css`            | Tailwind v4 theme, fonts, keyframes, CSS variables      |
-| `src/components/link.tsx`   | RAC `<Link>` via `createLink` — TanStack Router typed   |
-| `src/components/ui/`        | shadcn components (button, badge, input, field, etc.)   |
-| `src/lib/env.ts`            | `requireEnv()` helper for env vars                      |
-| `wrangler.jsonc`            | Cloudflare Workers config (KV, routes, bindings)        |
-| `worker-configuration.d.ts` | Auto-generated Worker types (run `npm run cf:generate`) |
-| `components.json`           | shadcn registry config                                  |
+| File                        | Purpose                                                  |
+| --------------------------- | -------------------------------------------------------- |
+| `src/db/client.ts`          | Prisma client factory (Hyperdrive-backed pg adapter)     |
+| `src/app/auth/`             | Session logic, server functions, and auth middleware     |
+| `src/app/finance/`          | Finance-domain services and server functions             |
+| `src/app/infra/`            | Cache control, logging, and rate limiting                |
+| `src/app/e2e/`              | E2E fixture seeding and server functions                 |
+| `prisma/schema.prisma`      | Single model: `Expense`                                  |
+| `src/styles.css`            | Tailwind v4 theme, fonts, keyframes, CSS variables       |
+| `src/components/link.tsx`   | RAC `<Link>` via `createLink` — TanStack Router typed    |
+| `src/components/ui/`        | shadcn components (button, badge, input, field, etc.)    |
+| `src/lib/env.ts`            | `requireEnv()` helper for env vars                       |
+| `wrangler.jsonc`            | Cloudflare Workers config (KV, routes, bindings)         |
+| `worker-configuration.d.ts` | Auto-generated Worker types (run `pnpm run cf:generate`) |
+| `components.json`           | shadcn registry config                                   |
 
 ## Gotchas
 
@@ -73,9 +73,9 @@
 
 ## Testing
 
-- **Vitest** for unit tests (`npm run test`): `environment: "node"`, runs in `checks` CI job
-- **Playwright** for E2E tests (`npm run test:e2e`): runs against the deployed Cloudflare Workers preview URL in CI
+- **Vitest** for unit tests (`pnpm run test`): `environment: "node"`, runs in `checks` CI job
+- **Playwright** for E2E tests (`pnpm run test:e2e`): runs against the deployed Cloudflare Workers preview URL in CI
 - E2E tests live in `e2e/tests/`; Playwright config at `e2e/playwright.config.ts`
 - Auth helper at `e2e/helpers/auth.ts` navigates to `/login`, fills password from `E2E_PASSWORD` (sourced from `.env` locally or injected as a CI secret), and waits for redirect to `/finances`
 - Vitest SSR plugins (`tanstackStart`, `nitro`, `devtools`) are disabled when `VITEST=true` to avoid transform conflicts
-- For local E2E: start `npm run dev`, then `npm run test:e2e`. `BASE_URL` and `E2E_PASSWORD` are loaded from `.env` (see `.env.example`); the standalone `e2e/.env.test` file no longer exists
+- For local E2E: start `pnpm run dev`, then `pnpm run test:e2e`. `BASE_URL` and `E2E_PASSWORD` are loaded from `.env` (see `.env.example`); the standalone `e2e/.env.test` file no longer exists

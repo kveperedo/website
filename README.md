@@ -13,7 +13,7 @@ The personal website for [Kevin Von Erich Peredo](https://kevinperedo.com). It i
 ## Requirements
 
 - Node.js 22+
-- npm
+- pnpm
 - A PostgreSQL database
 
 ## Local Development
@@ -21,11 +21,11 @@ The personal website for [Kevin Von Erich Peredo](https://kevinperedo.com). It i
 Install dependencies, create your local environment file, generate the Prisma client, apply migrations, and start the development server:
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env
-npm run db:generate
-npm run db:deploy
-npm run dev
+pnpm run db:generate
+pnpm run db:deploy
+pnpm run dev
 ```
 
 The site is available at [http://localhost:3000](http://localhost:3000).
@@ -65,34 +65,34 @@ The project uses Prisma with PostgreSQL. Workers connect through Cloudflare Hype
 
 ```bash
 # Generate Prisma client and Zod schemas
-npm run db:generate
+pnpm run db:generate
 
 # Create and apply a development migration
-npm run db:migrate
+pnpm run db:migrate
 
 # Apply committed migrations
-npm run db:deploy
+pnpm run db:deploy
 
 # Validate the schema, push a schema directly, or inspect the database
-npm run db:check
-npm run db:push
-npm run db:studio
+pnpm run db:check
+pnpm run db:push
+pnpm run db:studio
 ```
 
 ## Quality Checks
 
 ```bash
-npm run lint
-npm run format:check
-npm run typecheck
-npm run test
+pnpm run lint
+pnpm run format:check
+pnpm run typecheck
+pnpm run test
 ```
 
 Run E2E tests against a running local server:
 
 ```bash
-npm run dev
-npm run test:e2e
+pnpm run dev
+pnpm run test:e2e
 ```
 
 ## Build And Deploy
@@ -100,19 +100,19 @@ npm run test:e2e
 Create a production build locally:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 Deploy the Worker to production:
 
 ```bash
-npm run deploy
+pnpm run deploy
 ```
 
 Create an aliased preview deployment:
 
 ```bash
-npm run deploy:preview -- "pr-<slug>"
+pnpm run deploy:preview -- "pr-<slug>"
 ```
 
 The Worker configuration, custom domain, KV-backed rate limiting, cron trigger, and observability settings are defined in `wrangler.jsonc`.

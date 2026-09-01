@@ -23,14 +23,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/setup@v2
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run format:check
-      - run: npm run test
+          runtime: node@22
+          cache: true
+      - run: pnpm run lint
+      - run: pnpm run format:check
+      - run: pnpm run test
 
   migrate:
     name: Migrate
@@ -40,15 +39,14 @@ jobs:
     environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/setup@v2
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run db:generate
+          runtime: node@22
+          cache: true
+      - run: pnpm run db:generate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: npm run db:deploy
+      - run: pnpm run db:deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
@@ -64,34 +62,33 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/setup@v2
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
+          runtime: node@22
+          cache: true
 
       - name: Generate Prisma client
-        run: npm run db:generate
+        run: pnpm run db:generate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Build production Worker
         if: github.event_name == 'push'
-        run: npm run build
+        run: pnpm run build
 
       - name: Build preview Worker
         if: github.event_name == 'pull_request'
-        run: npm run build:preview
+        run: pnpm run build:preview
 
       - name: Deploy to production
         if: github.event_name == 'push'
-        run: npx wrangler deploy
+        run: pnpm dlx wrangler deploy
 
       - name: Deploy to preview
         id: deploy
         if: github.event_name == 'pull_request'
         run: |
-          npx wrangler versions upload \
+          pnpm dlx wrangler versions upload \
             --preview-alias "pr-${{ github.event.number }}" \
             --message "Preview for PR #${{ github.event.number }}"
 
@@ -113,22 +110,21 @@ jobs:
     environment: preview
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/setup@v2
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
+          runtime: node@22
+          cache: true
 
       - name: Generate Prisma client
-        run: npm run db:generate
+        run: pnpm run db:generate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Install Playwright
-        run: npx playwright install chromium --with-deps
+        run: pnpm dlx playwright install chromium --with-deps
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: pnpm run test:e2e
         env:
           BASE_URL: ${{ needs.deploy.outputs.url }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}

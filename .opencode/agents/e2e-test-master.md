@@ -83,8 +83,8 @@ Before doing either, ground yourself in the project's actual conventions:
 - Read the existing specs (`e2e/tests/*.spec.ts`) as the canonical reference for
   style: `finances.spec.ts`, `finances-transaction-mutations.spec.ts`,
   `login.spec.ts`, `home.spec.ts`.
-- Check `AGENTS.md` and `.env.example` for how E2E runs (`npm run dev` then
-  `npm run test:e2e`, `BASE_URL` + `E2E_PASSWORD` loaded from `.env`, run against
+- Check `AGENTS.md` and `.env.example` for how E2E runs (`pnpm run dev` then
+  `pnpm run test:e2e`, `BASE_URL` + `E2E_PASSWORD` loaded from `.env`, run against
   the deployed Cloudflare Workers preview URL in CI).
 
 ---
@@ -110,7 +110,7 @@ Recommend an E2E test **when** the change is user-observable behavior, especiall
 Recommend **against** E2E (and suggest Vitest unit tests instead) when:
 
 - The change is purely server-side logic with no UI surface (validation, DB
-  queries) — covered by `npm run test` (Vitest, `environment: "node"`).
+  queries) — covered by `pnpm run test` (Vitest, `environment: "node"`).
 - It is a pure styling/theme tweak with no behavioral change.
 - It is internal refactoring that preserves existing observable behavior (then
   flag if existing E2E already covers it).
