@@ -13,9 +13,11 @@ function RouteProgress() {
   useEffect(() => {
     if (isLoading) {
       const timer = setTimeout(() => setShow(true), LOADING_DELAY_MS);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        setShow(false);
+      };
     }
-    setShow(false);
   }, [isLoading]);
 
   if (!show) {

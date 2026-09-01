@@ -9,18 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as authedAuthRouteImport } from './routes/(authed)/_auth'
 import { Route as publicIndexRouteImport } from './routes/(public)/index'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
-import { Route as authedAuthRouteImport } from './routes/(authed)/_auth'
 import { Route as publicConfigIndexRouteImport } from './routes/(public)/config/index'
 import { Route as authedAuthE2eIndexRouteImport } from './routes/(authed)/_auth/e2e/index'
 import { Route as authedAuthFinancesindexIndexRouteImport } from './routes/(authed)/_auth/finances/(index)/index'
-import { Route as authedAuthFinancesTransactionsNewIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/new/index'
-import { Route as authedAuthFinancesTransactionsindexIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/(index)/index'
-import { Route as authedAuthFinancesTransactionsIdIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/$id/index'
-import { Route as authedAuthFinancesScheduledindexIndexRouteImport } from './routes/(authed)/_auth/finances/scheduled/(index)/index'
 import { Route as authedAuthFinancesScheduledIdIndexRouteImport } from './routes/(authed)/_auth/finances/scheduled/$id/index'
+import { Route as authedAuthFinancesScheduledindexIndexRouteImport } from './routes/(authed)/_auth/finances/scheduled/(index)/index'
+import { Route as authedAuthFinancesTransactionsIdIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/$id/index'
+import { Route as authedAuthFinancesTransactionsindexIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/(index)/index'
+import { Route as authedAuthFinancesTransactionsNewIndexRouteImport } from './routes/(authed)/_auth/finances/transactions/new/index'
 
+const authedAuthRoute = authedAuthRouteImport.update({
+  id: '/(authed)/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const publicIndexRoute = publicIndexRouteImport.update({
   id: '/(public)/',
   path: '/',
@@ -29,10 +33,6 @@ const publicIndexRoute = publicIndexRouteImport.update({
 const publicLoginRoute = publicLoginRouteImport.update({
   id: '/(public)/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const authedAuthRoute = authedAuthRouteImport.update({
-  id: '/(authed)/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const publicConfigIndexRoute = publicConfigIndexRouteImport.update({
@@ -51,22 +51,10 @@ const authedAuthFinancesindexIndexRoute =
     path: '/finances/',
     getParentRoute: () => authedAuthRoute,
   } as any)
-const authedAuthFinancesTransactionsNewIndexRoute =
-  authedAuthFinancesTransactionsNewIndexRouteImport.update({
-    id: '/finances/transactions/new/',
-    path: '/finances/transactions/new/',
-    getParentRoute: () => authedAuthRoute,
-  } as any)
-const authedAuthFinancesTransactionsindexIndexRoute =
-  authedAuthFinancesTransactionsindexIndexRouteImport.update({
-    id: '/finances/transactions/(index)/',
-    path: '/finances/transactions/',
-    getParentRoute: () => authedAuthRoute,
-  } as any)
-const authedAuthFinancesTransactionsIdIndexRoute =
-  authedAuthFinancesTransactionsIdIndexRouteImport.update({
-    id: '/finances/transactions/$id/',
-    path: '/finances/transactions/$id/',
+const authedAuthFinancesScheduledIdIndexRoute =
+  authedAuthFinancesScheduledIdIndexRouteImport.update({
+    id: '/finances/scheduled/$id/',
+    path: '/finances/scheduled/$id/',
     getParentRoute: () => authedAuthRoute,
   } as any)
 const authedAuthFinancesScheduledindexIndexRoute =
@@ -75,10 +63,22 @@ const authedAuthFinancesScheduledindexIndexRoute =
     path: '/finances/scheduled/',
     getParentRoute: () => authedAuthRoute,
   } as any)
-const authedAuthFinancesScheduledIdIndexRoute =
-  authedAuthFinancesScheduledIdIndexRouteImport.update({
-    id: '/finances/scheduled/$id/',
-    path: '/finances/scheduled/$id/',
+const authedAuthFinancesTransactionsIdIndexRoute =
+  authedAuthFinancesTransactionsIdIndexRouteImport.update({
+    id: '/finances/transactions/$id/',
+    path: '/finances/transactions/$id/',
+    getParentRoute: () => authedAuthRoute,
+  } as any)
+const authedAuthFinancesTransactionsindexIndexRoute =
+  authedAuthFinancesTransactionsindexIndexRouteImport.update({
+    id: '/finances/transactions/(index)/',
+    path: '/finances/transactions/',
+    getParentRoute: () => authedAuthRoute,
+  } as any)
+const authedAuthFinancesTransactionsNewIndexRoute =
+  authedAuthFinancesTransactionsNewIndexRouteImport.update({
+    id: '/finances/transactions/new/',
+    path: '/finances/transactions/new/',
     getParentRoute: () => authedAuthRoute,
   } as any)
 
@@ -169,6 +169,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/(authed)/_auth': {
+      id: '/(authed)/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof authedAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(public)/': {
       id: '/(public)/'
       path: '/'
@@ -181,13 +188,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof publicLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(authed)/_auth': {
-      id: '/(authed)/_auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof authedAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(public)/config/': {
@@ -211,25 +211,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authedAuthFinancesindexIndexRouteImport
       parentRoute: typeof authedAuthRoute
     }
-    '/(authed)/_auth/finances/transactions/new/': {
-      id: '/(authed)/_auth/finances/transactions/new/'
-      path: '/finances/transactions/new'
-      fullPath: '/finances/transactions/new/'
-      preLoaderRoute: typeof authedAuthFinancesTransactionsNewIndexRouteImport
-      parentRoute: typeof authedAuthRoute
-    }
-    '/(authed)/_auth/finances/transactions/(index)/': {
-      id: '/(authed)/_auth/finances/transactions/(index)/'
-      path: '/finances/transactions'
-      fullPath: '/finances/transactions/'
-      preLoaderRoute: typeof authedAuthFinancesTransactionsindexIndexRouteImport
-      parentRoute: typeof authedAuthRoute
-    }
-    '/(authed)/_auth/finances/transactions/$id/': {
-      id: '/(authed)/_auth/finances/transactions/$id/'
-      path: '/finances/transactions/$id'
-      fullPath: '/finances/transactions/$id/'
-      preLoaderRoute: typeof authedAuthFinancesTransactionsIdIndexRouteImport
+    '/(authed)/_auth/finances/scheduled/$id/': {
+      id: '/(authed)/_auth/finances/scheduled/$id/'
+      path: '/finances/scheduled/$id'
+      fullPath: '/finances/scheduled/$id/'
+      preLoaderRoute: typeof authedAuthFinancesScheduledIdIndexRouteImport
       parentRoute: typeof authedAuthRoute
     }
     '/(authed)/_auth/finances/scheduled/(index)/': {
@@ -239,11 +225,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authedAuthFinancesScheduledindexIndexRouteImport
       parentRoute: typeof authedAuthRoute
     }
-    '/(authed)/_auth/finances/scheduled/$id/': {
-      id: '/(authed)/_auth/finances/scheduled/$id/'
-      path: '/finances/scheduled/$id'
-      fullPath: '/finances/scheduled/$id/'
-      preLoaderRoute: typeof authedAuthFinancesScheduledIdIndexRouteImport
+    '/(authed)/_auth/finances/transactions/$id/': {
+      id: '/(authed)/_auth/finances/transactions/$id/'
+      path: '/finances/transactions/$id'
+      fullPath: '/finances/transactions/$id/'
+      preLoaderRoute: typeof authedAuthFinancesTransactionsIdIndexRouteImport
+      parentRoute: typeof authedAuthRoute
+    }
+    '/(authed)/_auth/finances/transactions/(index)/': {
+      id: '/(authed)/_auth/finances/transactions/(index)/'
+      path: '/finances/transactions'
+      fullPath: '/finances/transactions/'
+      preLoaderRoute: typeof authedAuthFinancesTransactionsindexIndexRouteImport
+      parentRoute: typeof authedAuthRoute
+    }
+    '/(authed)/_auth/finances/transactions/new/': {
+      id: '/(authed)/_auth/finances/transactions/new/'
+      path: '/finances/transactions/new'
+      fullPath: '/finances/transactions/new/'
+      preLoaderRoute: typeof authedAuthFinancesTransactionsNewIndexRouteImport
       parentRoute: typeof authedAuthRoute
     }
   }
