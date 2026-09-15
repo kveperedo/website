@@ -16,6 +16,7 @@ import {
   getCurrentMonthRange,
   getCurrentYearMonth,
   startOfLocalMonth,
+  startOfNextLocalMonth,
   TIME_ZONE,
 } from "../local-date";
 import { createTransaction } from "../transactions/creation.server";
@@ -24,6 +25,25 @@ const getDayInMonth = (year: number, month: number, dayOfMonth: number) => {
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const day = Math.min(dayOfMonth, daysInMonth);
   return new Date(Date.UTC(year, month - 1, day));
+};
+
+const isRecordedOn = (transactions: Array<{ transactedAt: Date }>, occurrenceDateOnly: string) => {
+  return transactions.some(
+    (transaction) => databaseDateToDateOnly(transaction.transactedAt) === occurrenceDateOnly,
+  );
+};
+
+const hasReachedMaxOccurrences = (template: {
+  maxOccurrences: number | null;
+  _count: { transactions: number };
+}) => {
+  return (
+    template.maxOccurrences !== null && template._count.transactions >= template.maxOccurrences
+  );
+};
+
+const isFutureOccurrence = (occurrence: Date, nowDateOnly: string) => {
+  return databaseDateToDateOnly(occurrence) > nowDateOnly;
 };
 
 const startOfUtcDay = (date: Date) => {
@@ -92,12 +112,11 @@ export const getUpcomingScheduledTransactionTemplates = async () => {
     },
   });
 
+  const nowDateOnly = databaseDateToDateOnly(now);
+
   const upcomingTransactions = templates
     .flatMap((template) => {
-      if (
-        template.maxOccurrences !== null &&
-        template._count.transactions >= template.maxOccurrences
-      ) {
+      if (hasReachedMaxOccurrences(template)) {
         return [];
       }
 
@@ -106,17 +125,12 @@ export const getUpcomingScheduledTransactionTemplates = async () => {
         const year = zoned.getFullYear();
         const month = zoned.getMonth() + 1;
         const occurrence = getDayInMonth(year, month, template.dayOfMonth);
-        const nextOccurrenceMonthStart = startOfLocalMonth(year, month + 1);
-        const isRecorded = template.transactions.some(
-          (transaction) =>
-            transaction.transactedAt >= occurrenceMonthStart &&
-            transaction.transactedAt < nextOccurrenceMonthStart,
-        );
+        const occurrenceDateOnly = databaseDateToDateOnly(occurrence);
 
         if (
-          isAfter(occurrence, now) &&
+          isFutureOccurrence(occurrence, nowDateOnly) &&
           isOccurrenceWithinTemplateRange(occurrence, template.startDate, template.endDate) &&
-          !isRecorded
+          !isRecordedOn(template.transactions, occurrenceDateOnly)
         ) {
           return [{ occurrence, template }];
         }
@@ -145,6 +159,52 @@ export const getUpcomingScheduledTransactionTemplates = async () => {
         return { ...templateData, amount: template.amount.toNumber() };
       }),
     }));
+};
+
+export const getScheduledExpensesForCurrentMonth = async () => {
+  const now = new Date();
+  const { year, month } = getCurrentYearMonth(now);
+  const monthStart = startOfLocalMonth(year, month);
+  const nextMonthStart = startOfNextLocalMonth(year, month);
+  const nowDateOnly = databaseDateToDateOnly(now);
+  const db = getDb();
+
+  const templates = await db.scheduledTransactionTemplate.findMany({
+    where: {
+      isActive: true,
+      type: "expense",
+      startDate: { lt: nextMonthStart },
+      OR: [{ endDate: null }, { endDate: { gte: monthStart } }],
+    },
+    include: {
+      _count: { select: { transactions: true } },
+      transactions: {
+        where: { transactedAt: { gte: monthStart, lt: nextMonthStart } },
+        select: { transactedAt: true },
+      },
+    },
+  });
+
+  let scheduledExpenses = 0;
+  let scheduledCount = 0;
+
+  for (const template of templates) {
+    if (hasReachedMaxOccurrences(template)) {
+      continue;
+    }
+    const occurrence = getDayInMonth(year, month, template.dayOfMonth);
+    const occurrenceDateOnly = databaseDateToDateOnly(occurrence);
+    if (
+      isFutureOccurrence(occurrence, nowDateOnly) &&
+      isOccurrenceWithinTemplateRange(occurrence, template.startDate, template.endDate) &&
+      !isRecordedOn(template.transactions, occurrenceDateOnly)
+    ) {
+      scheduledExpenses += template.amount.toNumber();
+      scheduledCount += 1;
+    }
+  }
+
+  return { scheduledExpenses, scheduledCount };
 };
 
 export const createScheduledTransaction = async (

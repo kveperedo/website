@@ -11,10 +11,10 @@ import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/tr
 
 import {
   databaseDateToDateOnly,
-  endOfLocalMonth,
   getCurrentMonthRange,
   getCurrentYearMonth,
   startOfLocalMonth,
+  startOfNextLocalMonth,
 } from "../local-date";
 import { createScheduledTransaction } from "../scheduled-transactions/server";
 import { createTransaction } from "./creation.server";
@@ -24,7 +24,7 @@ export const getRecentTransactions = async () => {
 
   const transactions = await getDb().transaction.findMany({
     where: { transactedAt: { gte: monthStart, lt: monthEnd } },
-    orderBy: { transactedAt: "desc" },
+    orderBy: [{ transactedAt: "desc" }, { createdAt: "desc" }],
     take: 10,
   });
 
@@ -60,14 +60,14 @@ export const getTransactionsByMonth = async ({
   categories,
 }: GetTransactionsByMonthInput) => {
   const monthStart = startOfLocalMonth(year, month);
-  const monthEnd = endOfLocalMonth(year, month);
+  const monthEnd = startOfNextLocalMonth(year, month);
 
   const transactions = await getDb().transaction.findMany({
     where: {
       transactedAt: { gte: monthStart, lt: monthEnd },
       ...buildTransactionFilters({ q, type, categories }),
     },
-    orderBy: { transactedAt: "desc" },
+    orderBy: [{ transactedAt: "desc" }, { createdAt: "desc" }],
   });
 
   return transactions.map((t) => ({
@@ -84,7 +84,7 @@ export const getMonthlySummaryByMonth = async ({
   categories,
 }: GetTransactionsByMonthInput) => {
   const monthStart = startOfLocalMonth(year, month);
-  const monthEnd = endOfLocalMonth(year, month);
+  const monthEnd = startOfNextLocalMonth(year, month);
 
   const grouped = await getDb().transaction.groupBy({
     by: ["type"],
@@ -138,7 +138,7 @@ const emptyMonth = (): Record<TransactionCategory, number> =>
 export const getCategoryTrends = async () => {
   const { year, month } = getCurrentYearMonth();
   const trendsStart = startOfLocalMonth(year, month - (TREND_MONTHS - 1));
-  const trendsEnd = endOfLocalMonth(year, month);
+  const trendsEnd = startOfNextLocalMonth(year, month);
 
   const rows = await getDb().$queryRaw<
     Array<{ month: string; category: TransactionCategory; total: number }>

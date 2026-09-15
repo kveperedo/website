@@ -28,6 +28,7 @@ export const DeleteTemplateButton = () => {
     setIsDeleting(true);
     try {
       await deleteTemplate({ data: template.id });
+      await router.invalidate({ sync: true });
       router.navigate({ to: "/finances/scheduled" });
     } catch {
       // TODO: Add snackbar for error

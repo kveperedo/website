@@ -154,7 +154,13 @@ export async function deleteTransactionByDescription(page: Page, description: st
   await deleteTransaction(page, id);
 }
 
+/**
+ * Navigates to /finances/scheduled and returns the template id for the given description.
+ * Callers need not pre-navigate — this helper self-navigates. Avoid double navigation
+ * by not calling gotoAndWaitForHydration before this helper.
+ */
 export async function getScheduledTemplateId(page: Page, description: string): Promise<string> {
+  await gotoAndWaitForHydration(page, "/finances/scheduled");
   const item = page.getByRole("listitem").filter({ hasText: description });
   await expect(item).toHaveCount(1);
 

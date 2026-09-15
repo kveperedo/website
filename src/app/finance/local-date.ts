@@ -27,9 +27,12 @@ export const startOfLocalMonth = (year: number, month: number) => {
   return fromZonedTime(new Date(year, month - 1, 1), TIME_ZONE);
 };
 
-export const endOfLocalMonth = (year: number, month: number) => {
+export const startOfNextLocalMonth = (year: number, month: number) => {
   return fromZonedTime(new Date(year, month, 1), TIME_ZONE);
 };
+
+/** @deprecated Use startOfNextLocalMonth — returns start of next month (exclusive bound) */
+export const endOfLocalMonth = startOfNextLocalMonth;
 
 export const getCurrentMonthRange = (now = new Date()) => {
   const { year, month } = getCurrentYearMonth(now);

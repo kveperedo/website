@@ -28,6 +28,7 @@ export const DeleteTransactionButton = () => {
     setIsDeleting(true);
     try {
       await deleteTransaction({ data: transaction.id });
+      await router.invalidate({ sync: true });
       router.navigate({
         to: "/finances/transactions",
         search: (current) => ({ ...current }),

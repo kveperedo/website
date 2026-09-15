@@ -1,8 +1,8 @@
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
 
+import { getExpenseProgress } from "@/app/finance/expense-progress";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
@@ -25,9 +25,86 @@ function NetHeadline() {
   );
 }
 
+function ExpenseProgress() {
+  const {
+    history: { current },
+    scheduledProjection,
+  } = Route.useLoaderData();
+  if (!Number.isFinite(current.income) || current.income <= 0) {
+    return null;
+  }
+  const hasScheduled = scheduledProjection.scheduledCount > 0;
+  const {
+    expensesPercent,
+    projectedPercent,
+    actualBarPercent,
+    scheduledBarPercent,
+    isOverIncome,
+    isProjectedOverIncome,
+  } = getExpenseProgress(current.income, current.expenses, scheduledProjection.scheduledExpenses);
+
+  const remainingPercent = Math.max(
+    100 - actualBarPercent - (hasScheduled ? scheduledBarPercent : 0),
+    0,
+  );
+  const EMERALD = "var(--color-emerald-400)";
+  const DESTRUCTIVE = "var(--destructive)";
+  const actualFill = isOverIncome ? DESTRUCTIVE : EMERALD;
+  const scheduledFill = isProjectedOverIncome ? DESTRUCTIVE : EMERALD;
+  const scheduledOpacity = isProjectedOverIncome ? "40%" : "35%";
+  const scheduledTranslucent = `color-mix(in oklab, ${scheduledFill} ${scheduledOpacity}, transparent)`;
+  const hatchImage = `repeating-linear-gradient(45deg, transparent 0 4px, color-mix(in oklab, var(--foreground) 14%, transparent) 4px 8px)`;
+
+  return (
+    <div
+      role="progressbar"
+      aria-label={
+        hasScheduled
+          ? "Expenses as a percentage of income including scheduled"
+          : "Expenses as a percentage of income"
+      }
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.min(hasScheduled ? projectedPercent : expensesPercent, 100)}
+      aria-valuetext={
+        hasScheduled
+          ? `${expensesPercent}% of income, ${projectedPercent}% with scheduled`
+          : `${expensesPercent}% of income`
+      }
+      data-testid={hasScheduled ? "expense-progress-projected" : "expense-progress-single"}
+      className={cn("flex h-2 w-full overflow-hidden rounded-none sm:flex-1")}
+    >
+      <div
+        data-testid="expense-progress-actual"
+        style={{ width: `${actualBarPercent}%`, background: actualFill }}
+        className="h-full shrink-0 transition-all duration-300"
+      />
+      {hasScheduled && scheduledBarPercent > 0 ? (
+        <div
+          data-testid="expense-progress-scheduled"
+          style={{
+            width: `${scheduledBarPercent}%`,
+            backgroundColor: scheduledTranslucent,
+            backgroundImage: hatchImage,
+          }}
+          data-fill={scheduledFill}
+          data-opacity={scheduledOpacity}
+          className="h-full shrink-0 transition-all duration-300"
+        />
+      ) : null}
+      <div
+        data-testid="expense-progress-remaining"
+        style={{ width: `${remainingPercent}%` }}
+        className="h-full shrink-0 bg-muted transition-all duration-300"
+      />
+    </div>
+  );
+}
+
 function ExpenseBreakdown() {
   const {
     history: { current },
+    scheduledProjection,
   } = Route.useLoaderData();
   const hasIncome = current.income > 0;
 
@@ -39,8 +116,11 @@ function ExpenseBreakdown() {
     );
   }
 
-  const expensesRatio = current.expenses / current.income;
-  const expensesPercent = Math.round(expensesRatio * 100);
+  const { expensesPercent } = getExpenseProgress(
+    current.income,
+    current.expenses,
+    scheduledProjection.scheduledExpenses,
+  );
 
   return (
     <div className="flex flex-col gap-2 font-mono text-xs">
@@ -48,17 +128,7 @@ function ExpenseBreakdown() {
         Expenses are <span className="text-foreground">{expensesPercent}%</span> of income
       </p>
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
-        <Progress
-          aria-label="Expenses as a percentage of income"
-          aria-valuetext={`${expensesPercent}% of income`}
-          value={Math.min(expensesPercent, 100)}
-          className={cn(
-            "w-full **:data-[slot=progress-track]:h-2 sm:flex-1",
-            expensesRatio > 1
-              ? "**:data-[slot=progress-indicator]:bg-destructive"
-              : "**:data-[slot=progress-indicator]:bg-emerald-400",
-          )}
-        />
+        <ExpenseProgress />
         <span className="text-xxs whitespace-nowrap text-muted-foreground">
           {formatCurrency(current.expenses)} / {formatCurrency(current.income)}
         </span>
@@ -124,7 +194,7 @@ export const SummaryNetCard = () => {
   const isEmpty = current.transactionCount === 0;
 
   return (
-    <Card size="sm" className="min-w-0 flex-1">
+    <Card data-testid="summary-net-card" size="sm" className="min-w-0 flex-1">
       <CardContent className="flex flex-col gap-2">
         <CardTitle className="text-muted-foreground">
           Your <span className="text-foreground">{current.label}</span> finances so far

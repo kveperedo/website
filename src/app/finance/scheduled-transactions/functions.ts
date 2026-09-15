@@ -10,6 +10,7 @@ import { authMiddleware } from "../../auth/middleware";
 import { createRateLimitMiddleware } from "../../infra/rate-limit/middleware";
 import {
   deleteScheduledTransactionTemplate,
+  getScheduledExpensesForCurrentMonth,
   getScheduledTransactionTemplateById,
   getScheduledTransactionTemplates,
   getUpcomingScheduledTransactionTemplates,
@@ -63,4 +64,10 @@ export const updateScheduledTransactionTemplateFn = createServerFn({ method: "PO
   .inputValidator(UpdateScheduledTransactionInputSchema)
   .handler(async ({ data }) => {
     return await updateScheduledTransactionTemplate(data.id, data.data);
+  });
+
+export const getScheduledExpensesForCurrentMonthFn = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async () => {
+    return await getScheduledExpensesForCurrentMonth();
   });
