@@ -200,7 +200,7 @@ Examples:
 
   const agent = new Agent({
     name: "transaction_parser",
-    model: "gpt-5.4-nano",
+    model: "gpt-5.6-luna",
     instructions: `You are a transaction parser. The user's local date is ${localDate}. If no date is mentioned, transactedAt must be exactly ${localDate}. Parse the user's input into structured transactions by calling the parse_transactions tool. Always call the tool even for a single transaction.`,
     tools: [parseTransactionsTool],
   });
