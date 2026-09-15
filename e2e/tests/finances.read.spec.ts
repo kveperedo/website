@@ -83,8 +83,11 @@ test.describe("dashboard", () => {
   test("dashboard shows the category summary card", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances");
 
+    await expect(page.getByTestId("category-summary-card")).toBeVisible();
     await expect(
-      page.getByText(/Spending breakdown|No expenses recorded this month/i),
+      page
+        .getByTestId("category-summary-card")
+        .getByText(/Spending breakdown|No expenses recorded this month/i),
     ).toBeVisible();
   });
 });

@@ -48,8 +48,11 @@ function AmountField<TFieldValues extends FieldValues>({
       name={name}
       render={({ field, fieldState }) => (
         <Field>
-          <FieldLabel className="text-sm tracking-wide text-foreground">Amount</FieldLabel>
+          <FieldLabel htmlFor={name} className="text-sm tracking-wide text-foreground">
+            Amount
+          </FieldLabel>
           <Input
+            id={name}
             type="number"
             inputMode="decimal"
             value={field.value || ""}

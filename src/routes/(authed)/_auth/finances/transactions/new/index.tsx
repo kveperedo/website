@@ -1,10 +1,9 @@
-import type { RegisteredRouter } from "@tanstack/react-router";
-import type { RouteToPath } from "@tanstack/router-core";
-
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
+
+import type { FileRouteTypes } from "@/routeTree.gen";
 
 import { createTransactionsFn } from "@/app/finance/transactions/functions";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ import {
   type NewTransactionInput,
 } from "./-common/components/transaction-form";
 
-type AppRoutePath = RouteToPath<RegisteredRouter>;
+type AppRoutePath = FileRouteTypes["to"];
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
   { title: "Finances | Kevin Von Erich Peredo" },
@@ -72,6 +71,7 @@ function RouteComponent() {
           return transactionInput;
         }),
       });
+      await router.invalidate({ sync: true });
       router.navigate({ to: returnTo ?? "/finances" });
     } catch {
       // TODO: Add snackbar for error
