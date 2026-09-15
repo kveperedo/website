@@ -3,7 +3,10 @@ import { formatInTimeZone } from "date-fns-tz";
 
 import { TIME_ZONE } from "@/app/finance/local-date";
 import { getCategoryTrendsVisibleCategoriesFn } from "@/app/finance/preferences/functions";
-import { getUpcomingScheduledTransactionTemplatesFn } from "@/app/finance/scheduled-transactions/functions";
+import {
+  getScheduledExpensesForCurrentMonthFn,
+  getUpcomingScheduledTransactionTemplatesFn,
+} from "@/app/finance/scheduled-transactions/functions";
 import {
   getCategorySummaryFn,
   getCategoryTrendsFn,
@@ -35,6 +38,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       categoryTrendsVisibleCategories,
       history,
       monthlyNet,
+      scheduledProjection,
     ] = await Promise.all([
       getRecentTransactionsFn(),
       getCategorySummaryFn(),
@@ -43,6 +47,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       getCategoryTrendsVisibleCategoriesFn(),
       getMonthlyHistoryFn(),
       getMonthlyNetFn(),
+      getScheduledExpensesForCurrentMonthFn(),
     ]);
     const monthLabel = formatInTimeZone(new Date(), TIME_ZONE, "MMMM yyyy");
     return {
@@ -53,6 +58,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       categoryTrendsVisibleCategories,
       history,
       monthlyNet,
+      scheduledProjection,
       monthLabel,
     };
   },
