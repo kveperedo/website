@@ -3,12 +3,14 @@ import { z } from "zod";
 
 import {
   CreateScheduledTransactionInputSchema,
+  CreateStandaloneScheduledTemplateInputSchema,
   UpdateScheduledTransactionInputSchema,
 } from "@/schema/scheduled-transaction";
 
 import { authMiddleware } from "../../auth/middleware";
 import { createRateLimitMiddleware } from "../../infra/rate-limit/middleware";
 import {
+  createStandaloneScheduledTransactionTemplate,
   deleteScheduledTransactionTemplate,
   getScheduledExpensesForCurrentMonth,
   getScheduledTransactionTemplateById,
@@ -70,4 +72,11 @@ export const getScheduledExpensesForCurrentMonthFn = createServerFn()
   .middleware([authMiddleware])
   .handler(async () => {
     return await getScheduledExpensesForCurrentMonth();
+  });
+
+export const createStandaloneScheduledTemplateFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware, createRateLimitMiddleware()])
+  .validator(CreateStandaloneScheduledTemplateInputSchema)
+  .handler(async ({ data }) => {
+    return await createStandaloneScheduledTransactionTemplate(data);
   });

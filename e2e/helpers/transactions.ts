@@ -78,13 +78,20 @@ export async function createScheduledTransaction(
     await endDatePicker.click();
 
     const calendar = page.getByRole("dialog");
-    await calendar.locator('button[slot="next"]').click();
-    await calendar
-      .getByRole("gridcell", {
-        name: format(scheduleEnd.endDate, "EEEE, MMMM d, yyyy"),
-        exact: true,
-      })
-      .click();
+    await expect(calendar).toBeVisible();
+    const targetName = format(scheduleEnd.endDate, "EEEE, MMMM d, yyyy");
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const cell = calendar.getByRole("gridcell", { name: targetName, exact: true });
+      if ((await cell.count()) > 0) {
+        await cell.click();
+        break;
+      }
+      await calendar.locator('button[slot="next"]').click();
+      await expect(calendar).toBeVisible();
+      if (attempt === 11) {
+        throw new Error(`Could not find calendar cell for ${targetName}`);
+      }
+    }
     await expect(endDatePicker).toContainText(format(scheduleEnd.endDate, "PPP"));
   }
 
@@ -174,4 +181,91 @@ export async function getScheduledTemplateId(page: Page, description: string): P
 export async function openScheduledTemplateForEdit(page: Page, id: string) {
   await gotoAndWaitForHydration(page, `/finances/scheduled/${id}`);
   await expect(page.getByRole("button", { name: "Delete Schedule" })).toBeVisible();
+}
+
+export async function openNewScheduledPage(page: Page) {
+  await gotoAndWaitForHydration(page, "/finances/scheduled");
+  await page.getByRole("link", { name: "New schedule" }).click();
+  await page.waitForURL(/\/finances\/scheduled\/new/, { timeout: 30000 });
+  await expect(page.getByTestId("description-input")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create Schedule" })).toBeVisible();
+}
+
+type StandaloneScheduleOptions = {
+  amount?: number;
+  type?: "expense" | "income";
+  category?: string | null;
+  dayOfMonth?: number;
+  endType?: "none" | "date" | "count";
+  endDate?: Date;
+  maxOccurrences?: number;
+};
+
+export async function createStandaloneScheduledTemplate(
+  page: Page,
+  description: string,
+  options: StandaloneScheduleOptions = {},
+): Promise<void> {
+  await gotoAndWaitForHydration(page, "/finances/scheduled/new");
+  await expect(page.getByTestId("description-input")).toBeVisible();
+
+  await page.getByTestId("description-input").fill(description);
+
+  const amount = options.amount ?? 75;
+  await page.getByLabel("Amount").fill(String(amount));
+
+  const type = options.type ?? "expense";
+  if (type === "income") {
+    await page.getByTestId("income-radio-item").click();
+  } else {
+    await page.getByTestId("expense-radio-item").click();
+    if (options.category) {
+      await page.getByRole("radio", { name: options.category }).click();
+    }
+  }
+
+  if (options.dayOfMonth !== undefined) {
+    const dayInput = page.getByLabel("Day of month");
+    await dayInput.fill(String(options.dayOfMonth));
+  }
+
+  // Start date defaults to today; optionally override if provided
+  if (options.endType === "date" && options.endDate) {
+    await page.getByText("On date", { exact: true }).click();
+    const endDatePicker = page.getByRole("button", { name: "End date" });
+    await endDatePicker.click();
+    const calendar = page.getByRole("dialog");
+    await expect(calendar).toBeVisible();
+    const targetName = format(options.endDate, "EEEE, MMMM d, yyyy");
+    // Calendar may be on current month; loop next until target date appears (supports multi-month ahead)
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const cell = calendar.getByRole("gridcell", { name: targetName, exact: true });
+      if ((await cell.count()) > 0) {
+        await cell.click();
+        break;
+      }
+      await calendar.locator('button[slot="next"]').click();
+      await expect(calendar).toBeVisible();
+      // If last attempt still not found, throw to surface error
+      if (attempt === 11) {
+        throw new Error(`Could not find calendar cell for ${targetName}`);
+      }
+    }
+    await expect(endDatePicker).toContainText(format(options.endDate, "PPP"));
+  } else if (options.endType === "count" && options.maxOccurrences) {
+    await page.getByText("After N occurrences", { exact: true }).click();
+    await page.getByLabel("Number of occurrences").fill(String(options.maxOccurrences));
+  } else if (options.endType === "none") {
+    await page.getByText("Never", { exact: true }).click();
+  }
+
+  const createButton = page.getByRole("button", { name: "Create Schedule" });
+  await createButton.click();
+  await page.waitForURL(/\/finances\/scheduled$/, { timeout: 30000 });
+  const template = page.getByRole("listitem").filter({ hasText: description });
+  await expect(template).toBeVisible({ timeout: 15000 });
+}
+
+export async function getStandaloneTemplateId(page: Page, description: string): Promise<string> {
+  return getScheduledTemplateId(page, description);
 }
