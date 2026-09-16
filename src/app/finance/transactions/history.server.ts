@@ -3,7 +3,12 @@ import { formatInTimeZone, fromZonedTime, toZonedTime } from "date-fns-tz";
 
 import { getDb } from "@/db/client";
 
-import { endOfLocalMonth, getCurrentYearMonth, startOfLocalMonth, TIME_ZONE } from "../local-date";
+import {
+  getCurrentYearMonth,
+  startOfLocalMonth,
+  startOfNextLocalMonth,
+  TIME_ZONE,
+} from "../local-date";
 
 export type MonthlyHistoryEntry = {
   label: string;
@@ -129,7 +134,9 @@ export const getMonthlyNet = async (now = new Date()): Promise<Array<MonthlyNetE
       const monthOffset = index - (MONTHLY_NET_MONTHS - 1);
       const monthStart = startOfLocalMonth(year, month + monthOffset);
       const isCurrentMonth = monthOffset === 0;
-      const monthEnd = isCurrentMonth ? currentDayEnd : endOfLocalMonth(year, month + monthOffset);
+      const monthEnd = isCurrentMonth
+        ? currentDayEnd
+        : startOfNextLocalMonth(year, month + monthOffset);
       const grouped = await db.transaction.groupBy({
         by: ["type"],
         where: { transactedAt: { gte: monthStart, lt: monthEnd } },
