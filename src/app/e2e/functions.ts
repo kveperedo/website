@@ -30,7 +30,7 @@ export const resetTestDataFn = createServerFn({ method: "POST" })
 
 export const seedTestDataFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(NetCardScenarioSchema)
+  .validator(NetCardScenarioSchema)
   .handler(async ({ data }) => {
     requireE2EAvailable();
     await seedTestData(data);

@@ -12,9 +12,8 @@ concurrency:
   group: deploy-pipeline-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+permissions:
+  contents: read
 
 jobs:
   checks:
@@ -23,64 +22,50 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/setup@v2
-        with:
-          runtime: node@22
-          cache: true
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Lint
-        run: pnpm run lint
-      - name: Check formatting
-        run: pnpm run format:check
-      - name: Run unit tests
-        run: pnpm run test
-
-  migrate:
-    name: Migrate
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: checks
-    environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/setup@v2
-        with:
-          runtime: node@22
-          cache: true
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Generate Prisma client
-        run: pnpm run db:generate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - name: Deploy database migrations
-        run: pnpm run db:deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - uses: ./.github/actions/setup
+      - name: Run checks
+        run: pnpm run checks
 
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [checks, migrate]
+    needs: checks
     outputs:
       url: ${{ steps.deploy.outputs.url }}
     environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
     permissions:
       pull-requests: write
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/setup@v2
         with:
-          runtime: node@22
-          cache: true
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      # Conditional migrations: db:deploy runs only when prisma/** or prisma.config.ts change.
+      # This avoids redundant deploys on unrelated changes. If a migration fails, it
+      # won't retry until the next prisma change — re-run the job or push a prisma
+      # touch commit as needed.
+      - name: Detect prisma changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            prisma:
+              - 'prisma/**'
+              - 'prisma.config.ts'
 
       - name: Generate Prisma client
         run: pnpm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Deploy database migrations
+        if: steps.filter.outputs.prisma == 'true'
+        run: pnpm run db:deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
@@ -94,13 +79,13 @@ jobs:
 
       - name: Deploy to production
         if: github.event_name == 'push'
-        run: pnpm dlx wrangler deploy
+        run: pnpm exec wrangler deploy
 
       - name: Deploy to preview
         id: deploy
         if: github.event_name == 'pull_request'
         run: |
-          pnpm dlx wrangler versions upload \
+          pnpm exec wrangler versions upload \
             --preview-alias "pr-${{ github.event.number }}" \
             --message "Preview for PR #${{ github.event.number }}"
 
@@ -122,13 +107,15 @@ jobs:
     environment: preview
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/setup@v2
-        with:
-          runtime: node@22
-          cache: true
+      - uses: ./.github/actions/setup
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
 
       - name: Install Playwright
         run: pnpm exec playwright install --with-deps chromium chromium-headless-shell

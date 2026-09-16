@@ -8,7 +8,7 @@ export const getCurrentUserFn = createServerFn({ method: "GET" }).handler(getCur
 
 export const loginFn = createServerFn({ method: "POST" })
   .middleware([createRateLimitMiddleware({ limit: 10 })])
-  .inputValidator(z.string())
+  .validator(z.string())
   .handler(async ({ data: password }) => login(password));
 
 export const logoutFn = createServerFn({ method: "POST" })

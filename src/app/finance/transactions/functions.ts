@@ -44,7 +44,7 @@ const monthQuerySchema = z.object({
 
 export const getMonthlySummaryByMonthFn = createServerFn()
   .middleware([authMiddleware])
-  .inputValidator(monthQuerySchema)
+  .validator(monthQuerySchema)
   .handler(async ({ data }) => {
     return await getMonthlySummaryByMonth(data);
   });
@@ -75,14 +75,14 @@ export const getCategoryTrendsFn = createServerFn()
 
 export const getTransactionsByMonthFn = createServerFn()
   .middleware([authMiddleware])
-  .inputValidator(monthQuerySchema)
+  .validator(monthQuerySchema)
   .handler(async ({ data }) => {
     return await getTransactionsByMonth(data);
   });
 
 export const parseTransactionWithAIFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(
+  .validator(
     z.object({
       text: z.string().max(1000, "Input too long — max 1000 characters"),
       localDate: z.iso.date(),
@@ -94,21 +94,21 @@ export const parseTransactionWithAIFn = createServerFn({ method: "POST" })
 
 export const createTransactionsFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(CreateTransactionsInputSchema)
+  .validator(CreateTransactionsInputSchema)
   .handler(async ({ data }) => {
     return await createTransactions(data);
   });
 
 export const getTransactionByIdFn = createServerFn()
   .middleware([authMiddleware])
-  .inputValidator(z.uuid())
+  .validator(z.uuid())
   .handler(async ({ data }) => {
     return await getTransactionById(data);
   });
 
 export const updateTransactionFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(
+  .validator(
     z.object({
       id: z.uuid(),
       data: TransactionInputSchema,
@@ -120,7 +120,7 @@ export const updateTransactionFn = createServerFn({ method: "POST" })
 
 export const deleteTransactionFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(z.uuid())
+  .validator(z.uuid())
   .handler(async ({ data }) => {
     return await deleteTransaction(data);
   });

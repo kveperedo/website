@@ -50,7 +50,7 @@ export const getTransactions = async () => {
 Contains `createServerFn` wrappers that call the corresponding `server.ts` functions.
 
 - Import `createServerFn` from `@tanstack/react-start`
-- Validate input with `zod` via `.inputValidator(schema)` when the function accepts arguments
+- Validate input with `zod` via `.validator(schema)` when the function accepts arguments
 - Destructure validated input from `{ data }` in the handler
 - Apply `authMiddleware` via `.middleware([authMiddleware])` for any protected function; import it from the auth domain
 - Specify `{ method: "POST" }` for all mutations (create / update / delete); omit for reads (GET is the default)
@@ -73,7 +73,7 @@ export const getTransactionsFn = createServerFn()
 // Protected mutation — always specify POST
 export const createTransactionFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ description: z.string(), amount: z.number() }))
+  .validator(z.object({ description: z.string(), amount: z.number() }))
   .handler(async ({ data }) => {
     return await createTransaction(data);
   });

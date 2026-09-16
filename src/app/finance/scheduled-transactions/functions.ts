@@ -33,35 +33,35 @@ export const getUpcomingScheduledTransactionTemplatesFn = createServerFn()
 
 export const toggleScheduledTransactionTemplateFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(z.uuid())
+  .validator(z.uuid())
   .handler(async ({ data }) => {
     return await toggleScheduledTransactionTemplate(data);
   });
 
 export const createScheduledTransactionTemplateFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(CreateScheduledTransactionInputSchema)
+  .validator(CreateScheduledTransactionInputSchema)
   .handler(async ({ data }) => {
     return await createScheduledTransactionTemplate(data.id, data.schedule);
   });
 
 export const deleteScheduledTransactionTemplateFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(z.uuid())
+  .validator(z.uuid())
   .handler(async ({ data }) => {
     return await deleteScheduledTransactionTemplate(data);
   });
 
 export const getScheduledTransactionTemplateByIdFn = createServerFn()
   .middleware([authMiddleware])
-  .inputValidator(z.uuid())
+  .validator(z.uuid())
   .handler(async ({ data }) => {
     return await getScheduledTransactionTemplateById(data);
   });
 
 export const updateScheduledTransactionTemplateFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .inputValidator(UpdateScheduledTransactionInputSchema)
+  .validator(UpdateScheduledTransactionInputSchema)
   .handler(async ({ data }) => {
     return await updateScheduledTransactionTemplate(data.id, data.data);
   });

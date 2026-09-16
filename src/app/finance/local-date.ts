@@ -31,13 +31,10 @@ export const startOfNextLocalMonth = (year: number, month: number) => {
   return fromZonedTime(new Date(year, month, 1), TIME_ZONE);
 };
 
-/** @deprecated Use startOfNextLocalMonth — returns start of next month (exclusive bound) */
-export const endOfLocalMonth = startOfNextLocalMonth;
-
 export const getCurrentMonthRange = (now = new Date()) => {
   const { year, month } = getCurrentYearMonth(now);
   return {
     monthStart: startOfLocalMonth(year, month),
-    monthEnd: endOfLocalMonth(year, month),
+    monthEnd: startOfNextLocalMonth(year, month),
   };
 };
