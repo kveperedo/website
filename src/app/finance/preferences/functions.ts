@@ -15,7 +15,7 @@ export const getCategoryTrendsVisibleCategoriesFn = createServerFn()
 
 export const setCategoryTrendsVisibleCategoriesFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware({ limit: 120, keyPrefix: "preferences" })])
-  .inputValidator(z.array(z.enum(TransactionCategory)))
+  .validator(z.array(z.enum(TransactionCategory)))
   .handler(async ({ data }) => {
     await setCategoryTrendsVisibleCategories(data);
   });
