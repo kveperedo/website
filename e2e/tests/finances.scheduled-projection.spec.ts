@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { getDaysInMonth } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 
+import { formatCurrency } from "../../src/lib/currency";
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import { resetDatabase, seedDatabase, seedNetCardScenario } from "../helpers/database";
 import {
@@ -62,6 +63,21 @@ async function updateScheduledDayOfMonth(
   await expect(page.getByText("Will generate on the last day")).toHaveCount(
     dayOfMonth > 28 ? 1 : 0,
   );
+}
+
+async function createFutureScheduled(page: import("@playwright/test").Page, description: string) {
+  const futureDay = await getFutureDayOfMonth(page);
+  await createScheduledTransaction(page, description, { endType: "none" });
+  await updateScheduledDayOfMonth(page, description, futureDay);
+}
+
+async function cleanupBreakdown(page: import("@playwright/test").Page, description?: string) {
+  if (description) {
+    await deleteScheduledTransactionTemplate(page, description);
+    await deleteTransactionByDescription(page, description);
+  }
+  await resetDatabase(page);
+  await seedDatabase(page);
 }
 
 test.describe("scheduled expense projection in summary net card", () => {
@@ -313,6 +329,94 @@ test.describe("scheduled expense projection in summary net card", () => {
     } finally {
       await resetDatabase(page);
       await seedDatabase(page);
+    }
+  });
+});
+
+test.describe("expense breakdown label in summary net card", () => {
+  test("shows current expenses foreground without scheduled projection", async ({ page }) => {
+    try {
+      await seedNetCardScenario(page, "on-pace");
+      await gotoAndWaitForHydration(page, "/finances");
+
+      const monthLabel = formatInTimeZone(new Date(), TIME_ZONE, "MMMM yyyy");
+      await expect(page.getByText(`Your ${monthLabel} finances so far`)).toBeVisible();
+
+      const label = page.getByTestId("expense-breakdown-label");
+      await expect(label).toBeVisible();
+      await expect(label).toHaveText(`${formatCurrency(500)} / ${formatCurrency(1000)}`);
+
+      const current = page.getByTestId("expense-breakdown-current");
+      await expect(current).toBeVisible();
+      await expect(current).toHaveText(formatCurrency(500));
+      await expect(current).toHaveClass(/text-foreground/);
+
+      await expect(page.getByTestId("expense-breakdown-scheduled")).toHaveCount(0);
+      await expect(label).not.toContainText("scheduled");
+      await expect(label).not.toContainText("(+");
+      await expect(label).toHaveClass(/text-muted-foreground/);
+      await expect(label).toHaveClass(/tabular-nums/);
+    } finally {
+      await cleanupBreakdown(page);
+    }
+  });
+
+  test("shows projected amount beside current expenses and reverts after delete", async ({
+    page,
+  }) => {
+    const description = `Breakdown E2E ${Date.now()}`;
+
+    try {
+      await seedNetCardScenario(page, "on-pace");
+      await gotoAndWaitForHydration(page, "/finances");
+      await createFutureScheduled(page, description);
+      await gotoAndWaitForHydration(page, "/finances");
+
+      // on-pace 500/1000 + 75 scheduled creates 575 transaction, projection adds another 75
+      const label = page.getByTestId("expense-breakdown-label");
+      await expect(label).toBeVisible();
+      await expect(label).toHaveText(
+        `${formatCurrency(575)} (+${formatCurrency(75)}) / ${formatCurrency(1000)}`,
+      );
+
+      const current = page.getByTestId("expense-breakdown-current");
+      await expect(current).toHaveText(formatCurrency(575));
+      await expect(current).toHaveClass(/text-foreground/);
+
+      const scheduled = page.getByTestId("expense-breakdown-scheduled");
+      await expect(scheduled).toBeVisible();
+      await expect(scheduled).toHaveText(` (+${formatCurrency(75)})`);
+      await expect(scheduled).not.toHaveClass(/text-foreground/);
+      await expect(scheduled).toHaveAttribute(
+        "title",
+        "Plus scheduled expenses remaining this month",
+      );
+      await expect(label).toHaveClass(/text-muted-foreground/);
+      await expect(label).toHaveClass(/tabular-nums/);
+      await expect(label).not.toContainText("scheduled");
+
+      // revert: delete template and verify breakdown returns to baseline
+      await deleteScheduledTransactionTemplate(page, description);
+      await deleteTransactionByDescription(page, description);
+      await gotoAndWaitForHydration(page, "/finances");
+      await expect(label).toHaveText(`${formatCurrency(500)} / ${formatCurrency(1000)}`);
+      await expect(page.getByTestId("expense-breakdown-scheduled")).toHaveCount(0);
+    } finally {
+      await cleanupBreakdown(page, description);
+    }
+  });
+
+  test("hides breakdown label when no income is recorded", async ({ page }) => {
+    try {
+      await seedNetCardScenario(page, "over-income");
+      await gotoAndWaitForHydration(page, "/finances");
+
+      await expect(page.getByText("No income recorded this month")).toBeVisible();
+      await expect(page.getByTestId("expense-breakdown-label")).toHaveCount(0);
+      await expect(page.getByTestId("expense-breakdown-current")).toHaveCount(0);
+      await expect(page.getByTestId("expense-breakdown-scheduled")).toHaveCount(0);
+    } finally {
+      await cleanupBreakdown(page);
     }
   });
 });

@@ -25,6 +25,10 @@ function NetHeadline() {
   );
 }
 
+function hasScheduledProjection(projection: { scheduledCount: number; scheduledExpenses: number }) {
+  return projection.scheduledCount > 0 && projection.scheduledExpenses > 0;
+}
+
 function ExpenseProgress() {
   const {
     history: { current },
@@ -33,7 +37,7 @@ function ExpenseProgress() {
   if (!Number.isFinite(current.income) || current.income <= 0) {
     return null;
   }
-  const hasScheduled = scheduledProjection.scheduledCount > 0;
+  const hasScheduled = hasScheduledProjection(scheduledProjection);
   const {
     expensesPercent,
     projectedPercent,
@@ -116,11 +120,15 @@ function ExpenseBreakdown() {
     );
   }
 
+  const hasScheduled = hasScheduledProjection(scheduledProjection);
   const { expensesPercent } = getExpenseProgress(
     current.income,
     current.expenses,
     scheduledProjection.scheduledExpenses,
   );
+  const currentLabel = formatCurrency(current.expenses);
+  const incomeLabel = formatCurrency(current.income);
+  const scheduledLabel = formatCurrency(scheduledProjection.scheduledExpenses);
 
   return (
     <div className="flex flex-col gap-2 font-mono text-xs">
@@ -129,8 +137,22 @@ function ExpenseBreakdown() {
       </p>
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
         <ExpenseProgress />
-        <span className="text-xxs whitespace-nowrap text-muted-foreground">
-          {formatCurrency(current.expenses)} / {formatCurrency(current.income)}
+        <span
+          data-testid="expense-breakdown-label"
+          className="text-xxs whitespace-nowrap text-muted-foreground tabular-nums"
+        >
+          <span data-testid="expense-breakdown-current" className="text-foreground">
+            {currentLabel}
+          </span>
+          {hasScheduled ? (
+            <span
+              data-testid="expense-breakdown-scheduled"
+              title="Plus scheduled expenses remaining this month"
+            >
+              {` (+${scheduledLabel})`}
+            </span>
+          ) : null}
+          {` / ${incomeLabel}`}
         </span>
       </div>
     </div>

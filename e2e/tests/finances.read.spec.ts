@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { addMonths, format, getDaysInMonth, subMonths } from "date-fns";
 
+import { formatCurrency } from "../../src/lib/currency";
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import { resetDatabase, seedDatabase, seedNetCardScenario } from "../helpers/database";
 import { openTransactionComposer } from "../helpers/transactions";
@@ -8,6 +9,16 @@ import { openTransactionComposer } from "../helpers/transactions";
 async function openTransactionSearch(page: Page) {
   await page.getByRole("button", { name: "Search transactions" }).click();
   return page.getByLabel(/Search .* transactions/);
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function expenseBreakdownPattern(expenses: number, income: number) {
+  const current = escapeRegExp(formatCurrency(expenses));
+  const inc = escapeRegExp(formatCurrency(income));
+  return new RegExp(`${current}( \\(\\+₱[\\d,]+\\.\\d{2}\\))? / ${inc}`);
 }
 
 test.describe.configure({ mode: "serial" });
@@ -441,12 +452,12 @@ test.describe("dashboard with data", () => {
         exact: true,
       }),
     ).toBeVisible();
-    await expect(
-      page.getByText(
-        `₱${expenses.toLocaleString("en-PH", { minimumFractionDigits: 2 })} / ₱45,000.00`,
-        { exact: true },
-      ),
-    ).toBeVisible();
+    const breakdownLabel = page.getByTestId("expense-breakdown-label");
+    await expect(page.getByTestId("expense-breakdown-current")).toHaveText(
+      formatCurrency(expenses),
+    );
+    // When a future scheduled expense exists (e.g. Internet bill 240), label shows ` (+₱240.00)` suffix — accept either form
+    await expect(breakdownLabel).toHaveText(expenseBreakdownPattern(expenses, 45_000));
     await expect(
       page.getByRole("progressbar", { name: "Expenses as a percentage of income" }),
     ).toHaveAttribute("aria-valuenow", String(Math.round((expenses / 45000) * 100)));
