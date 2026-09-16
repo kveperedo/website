@@ -23,6 +23,7 @@ export const UpdateScheduledTransactionInputSchema = z.object({
     amount: z.number().positive(),
     type: TransactionTypeSchema,
     category: TransactionCategorySchema.nullable(),
+    startDate: z.iso.date(),
     dayOfMonth: z.number().int().min(1).max(31),
     endDate: z.iso.date().nullable(),
     maxOccurrences: z.number().int().min(1).nullable(),
@@ -58,9 +59,45 @@ export const ScheduledFormEditSchema = z
     amount: z.number().positive(),
     type: TransactionTypeSchema,
     category: TransactionCategorySchema.nullable(),
+    startDate: z.iso.date(),
     dayOfMonth: z.number().int().min(1).max(31),
     isActive: z.boolean(),
   })
-  .and(ScheduledFormEndTypeSchema);
+  .and(ScheduledFormEndTypeSchema)
+  .superRefine((data, ctx) => {
+    if (data.endType === "date" && data.endDate < data.startDate) {
+      ctx.addIssue({
+        code: "custom",
+        message: "End date cannot be before start date",
+        path: ["endDate"],
+      });
+    }
+  });
 
 export type ScheduledFormEditData = z.infer<typeof ScheduledFormEditSchema>;
+
+export const CreateStandaloneScheduledTemplateInputSchema = z
+  .object({
+    description: z.string().min(1).max(255),
+    amount: z.number().positive(),
+    type: TransactionTypeSchema,
+    category: TransactionCategorySchema.nullable(),
+    startDate: z.iso.date(),
+    dayOfMonth: z.number().int().min(1).max(31),
+    endDate: z.iso.date().nullable(),
+    maxOccurrences: z.number().int().min(1).nullable(),
+    isActive: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.endDate && data.endDate < data.startDate) {
+      ctx.addIssue({
+        code: "custom",
+        message: "End date cannot be before start date",
+        path: ["endDate"],
+      });
+    }
+  });
+
+export type CreateStandaloneScheduledTemplateInput = z.infer<
+  typeof CreateStandaloneScheduledTemplateInputSchema
+>;

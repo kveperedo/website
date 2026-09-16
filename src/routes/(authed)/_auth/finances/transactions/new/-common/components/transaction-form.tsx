@@ -21,6 +21,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { type TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import {
+  DayOfMonthField,
+  EndDateField,
+  EndTypeField,
+  MaxOccurrencesField,
+} from "@/routes/(authed)/_auth/finances/-common/components/schedule-transaction-fields";
+import {
   AmountField,
   CategoryField,
   DateField,
@@ -28,12 +34,6 @@ import {
   TypeField,
 } from "@/routes/(authed)/_auth/finances/-common/components/transaction-fields";
 
-import {
-  DayOfMonthField,
-  EndDateField,
-  EndTypeField,
-  MaxOccurrencesField,
-} from "../../../-common/components/schedule-transaction-fields";
 import {
   transactionFormSchema,
   type TransactionFormData,

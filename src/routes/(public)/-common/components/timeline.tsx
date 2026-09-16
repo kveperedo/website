@@ -40,6 +40,16 @@ export const Timeline = ({
 
   const isEndDateObject = endDate && typeof endDate === "object";
 
+  const getDotPosition = () => {
+    if (collapsible) {
+      return "sticky top-11.25 -ml-9.75 md:top-5.25 md:-ml-11.75";
+    }
+    if (stickyDots) {
+      return "sticky top-2.25 -ml-9.75 md:top-5.25 md:-ml-11.75";
+    }
+    return "absolute top-13 -left-1.75";
+  };
+
   const renderLeftEndDate = () => {
     if (!endDate) {
       return null;
@@ -89,16 +99,7 @@ export const Timeline = ({
         {renderLeftEndDate()}
       </div>
       <div className="relative flex-1 border-l-2 border-muted px-8 py-16 pr-0 md:px-10 md:pr-8">
-        <div
-          className={cn(
-            "flex h-3 w-3",
-            collapsible
-              ? "sticky top-11.25 -ml-9.75 md:top-5.25 md:-ml-11.75"
-              : stickyDots
-                ? "sticky top-2.25 -ml-9.75 md:top-5.25 md:-ml-11.75"
-                : "absolute top-13 -left-1.75",
-          )}
-        >
+        <div className={cn("flex h-3 w-3", getDotPosition())}>
           <span
             className={cn(
               "absolute -z-10 h-full w-full animate-ping rounded-full bg-muted-foreground/50",

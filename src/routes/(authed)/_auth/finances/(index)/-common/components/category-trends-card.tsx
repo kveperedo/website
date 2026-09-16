@@ -68,6 +68,116 @@ export const CategoryTrendsCard = () => {
     debouncedPersistSelection(categories);
   };
 
+  const renderTrendsContent = () => {
+    if (isEmpty) {
+      return (
+        <div className="px-6 pt-2 pb-6 md:px-8">
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>Not enough data for trends.</EmptyTitle>
+              <EmptyDescription>
+                Add transactions across multiple months to see spending trends.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </div>
+      );
+    }
+    if (visibleCategories.length === 0) {
+      return (
+        <div className="px-6 py-12 md:px-8">
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>No categories selected.</EmptyTitle>
+              <EmptyDescription>Select a category from Filter to show its trend.</EmptyDescription>
+            </EmptyHeader>
+            <Button
+              variant="outline"
+              size="sm"
+              onPress={() => handleSelectionChange(CATEGORIES.map((category) => category.value))}
+            >
+              Select all categories
+            </Button>
+          </Empty>
+        </div>
+      );
+    }
+    return (
+      <div className="px-4 pb-4">
+        <ChartContainer
+          config={CATEGORY_CHART_CONFIG}
+          className="w-full"
+          initialDimension={{ width: 320, height: CHART_HEIGHT }}
+        >
+          <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tick={{ fontSize: 11 }}
+              tickFormatter={(value) => {
+                const month = Number(String(value).split("-")[1]);
+                return SHORT_MONTHS[month - 1];
+              }}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => formatCurrency(Number(value), { compact: true })}
+              tick={{ fontSize: 11 }}
+              width={48}
+            />
+            <ChartTooltip
+              wrapperStyle={{ zIndex: 50 }}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(label) => formatMonthLabel(String(label))}
+                  formatter={(value, name) => {
+                    const config =
+                      CATEGORY_CHART_CONFIG[name as keyof typeof CATEGORY_CHART_CONFIG];
+                    return [
+                      <span key="value" className="flex items-center gap-1.5 font-mono">
+                        {config?.color && (
+                          <span
+                            className="inline-block h-2 w-2 shrink-0 rounded-xs"
+                            style={{ backgroundColor: config.color }}
+                          />
+                        )}
+                        <span className="text-muted-foreground">
+                          {config?.label ?? String(name)}
+                        </span>
+                        <span className="ml-auto font-medium text-foreground">
+                          {formatCurrency(Number(value))}
+                        </span>
+                      </span>,
+                    ];
+                  }}
+                />
+              }
+            />
+            {CATEGORIES.map((category) => {
+              const isVisible = visibleCategories.includes(category.value);
+              return isVisible ? (
+                <Line
+                  key={category.value}
+                  type="monotone"
+                  dataKey={category.value}
+                  stroke={CATEGORY_CHART_COLORS[category.value]}
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+              ) : null;
+            })}
+          </LineChart>
+        </ChartContainer>
+        <TrendsLegend visibleCategories={visibleCategories} />
+      </div>
+    );
+  };
+
   return (
     <Card data-testid="category-trends-card" className={cn("flex-1 gap-0 py-0", isEmpty && "pt-6")}>
       {!isEmpty && (
@@ -80,111 +190,7 @@ export const CategoryTrendsCard = () => {
           />
         </CardHeader>
       )}
-      <CardContent className="p-0">
-        {isEmpty ? (
-          <div className="px-6 pt-2 pb-6 md:px-8">
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>Not enough data for trends.</EmptyTitle>
-                <EmptyDescription>
-                  Add transactions across multiple months to see spending trends.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          </div>
-        ) : visibleCategories.length === 0 ? (
-          <div className="px-6 py-12 md:px-8">
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>No categories selected.</EmptyTitle>
-                <EmptyDescription>
-                  Select a category from Filter to show its trend.
-                </EmptyDescription>
-              </EmptyHeader>
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => handleSelectionChange(CATEGORIES.map((category) => category.value))}
-              >
-                Select all categories
-              </Button>
-            </Empty>
-          </div>
-        ) : (
-          <div className="px-4 pb-4">
-            <ChartContainer
-              config={CATEGORY_CHART_CONFIG}
-              className="w-full"
-              initialDimension={{ width: 320, height: CHART_HEIGHT }}
-            >
-              <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(value) => {
-                    const month = Number(String(value).split("-")[1]);
-                    return SHORT_MONTHS[month - 1];
-                  }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => formatCurrency(Number(value), { compact: true })}
-                  tick={{ fontSize: 11 }}
-                  width={48}
-                />
-                <ChartTooltip
-                  wrapperStyle={{ zIndex: 50 }}
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(label) => formatMonthLabel(String(label))}
-                      formatter={(value, name) => {
-                        const config =
-                          CATEGORY_CHART_CONFIG[name as keyof typeof CATEGORY_CHART_CONFIG];
-                        return [
-                          <span key="value" className="flex items-center gap-1.5 font-mono">
-                            {config?.color && (
-                              <span
-                                className="inline-block h-2 w-2 shrink-0 rounded-xs"
-                                style={{ backgroundColor: config.color }}
-                              />
-                            )}
-                            <span className="text-muted-foreground">
-                              {config?.label ?? String(name)}
-                            </span>
-                            <span className="ml-auto font-medium text-foreground">
-                              {formatCurrency(Number(value))}
-                            </span>
-                          </span>,
-                        ];
-                      }}
-                    />
-                  }
-                />
-                {CATEGORIES.map((category) => {
-                  const isVisible = visibleCategories.includes(category.value);
-                  return isVisible ? (
-                    <Line
-                      key={category.value}
-                      type="monotone"
-                      dataKey={category.value}
-                      stroke={CATEGORY_CHART_COLORS[category.value]}
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 4 }}
-                    />
-                  ) : null;
-                })}
-              </LineChart>
-            </ChartContainer>
-            <TrendsLegend visibleCategories={visibleCategories} />
-          </div>
-        )}
-      </CardContent>
+      <CardContent className="p-0">{renderTrendsContent()}</CardContent>
     </Card>
   );
 };

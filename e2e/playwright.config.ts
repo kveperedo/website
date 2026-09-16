@@ -73,9 +73,18 @@ export default defineConfig({
       },
     },
     {
+      name: "finance.scheduled-create",
+      testMatch: /finances\.scheduled-create\.spec\.ts$/,
+      dependencies: ["finance.trends"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+      },
+    },
+    {
       name: "finance.scheduled-projection",
       testMatch: /finances\.scheduled-projection\.spec\.ts$/,
-      dependencies: ["finance.trends"],
+      dependencies: ["finance.scheduled-create"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: path.join(import.meta.dirname, ".auth", "user.json"),

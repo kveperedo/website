@@ -4,6 +4,7 @@ import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import type { TransactionCategory } from "@/generated/prisma/enums";
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import type {
+  CreateStandaloneScheduledTemplateInput,
   ScheduledTransactionInput,
   UpdateScheduledTransactionInput,
 } from "@/schema/scheduled-transaction";
@@ -85,6 +86,7 @@ export const getScheduledTransactionTemplates = async () => {
   return templates.map((t) => ({
     ...t,
     amount: t.amount.toNumber(),
+    startDate: databaseDateToDateOnly(t.startDate),
     endDate: t.endDate ? databaseDateToDateOnly(t.endDate) : null,
   }));
 };
@@ -331,6 +333,7 @@ export const getScheduledTransactionTemplateById = async (id: string) => {
   return {
     ...template,
     amount: template.amount.toNumber(),
+    startDate: databaseDateToDateOnly(template.startDate),
     endDate: template.endDate ? databaseDateToDateOnly(template.endDate) : null,
   };
 };
@@ -339,6 +342,7 @@ export const updateScheduledTransactionTemplate = async (
   id: string,
   data: UpdateScheduledTransactionInput["data"],
 ) => {
+  const startDate = dateOnlyToDatabaseDate(data.startDate);
   const endDate = data.endDate ? dateOnlyToDatabaseDate(data.endDate) : null;
 
   const template = await getDb().scheduledTransactionTemplate.update({
@@ -348,6 +352,7 @@ export const updateScheduledTransactionTemplate = async (
       amount: data.amount,
       type: data.type,
       category: data.type === "income" ? null : (data.category ?? null),
+      startDate,
       dayOfMonth: data.dayOfMonth,
       endDate,
       maxOccurrences: data.maxOccurrences ?? null,
@@ -358,6 +363,35 @@ export const updateScheduledTransactionTemplate = async (
   return {
     ...template,
     amount: template.amount.toNumber(),
+    startDate: databaseDateToDateOnly(template.startDate),
+    endDate: template.endDate ? databaseDateToDateOnly(template.endDate) : null,
+  };
+};
+
+export const createStandaloneScheduledTransactionTemplate = async (
+  data: CreateStandaloneScheduledTemplateInput,
+) => {
+  const startDate = dateOnlyToDatabaseDate(data.startDate);
+  const endDate = data.endDate ? dateOnlyToDatabaseDate(data.endDate) : null;
+
+  const template = await getDb().scheduledTransactionTemplate.create({
+    data: {
+      description: data.description,
+      amount: data.amount,
+      type: data.type,
+      category: data.type === "income" ? null : (data.category ?? null),
+      startDate,
+      dayOfMonth: data.dayOfMonth,
+      endDate,
+      maxOccurrences: data.maxOccurrences ?? null,
+      isActive: data.isActive,
+    },
+  });
+
+  return {
+    ...template,
+    amount: template.amount.toNumber(),
+    startDate: databaseDateToDateOnly(template.startDate),
     endDate: template.endDate ? databaseDateToDateOnly(template.endDate) : null,
   };
 };

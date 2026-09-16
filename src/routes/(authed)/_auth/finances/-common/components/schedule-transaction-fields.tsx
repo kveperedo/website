@@ -77,6 +77,29 @@ export const EndTypeField = <TFieldValues extends FieldValues>({
   );
 };
 
+export const StartDateField = <TFieldValues extends FieldValues>({
+  control,
+  name,
+}: CommonFieldProps<TFieldValues>) => {
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field, fieldState }) => (
+        <Field>
+          <FieldLabel className="text-xs tracking-wide text-foreground">Start date</FieldLabel>
+          <DatePicker
+            aria-label="Start date"
+            value={field.value ? parseISO(field.value) : undefined}
+            onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : undefined)}
+          />
+          {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
+        </Field>
+      )}
+    />
+  );
+};
+
 export const EndDateField = <TFieldValues extends FieldValues>({
   control,
   name,

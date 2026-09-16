@@ -18,15 +18,15 @@ import {
 } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
-import { ScheduledFormSchema, type ScheduledFormData } from "@/schema/scheduled-transaction";
-
-import { Route } from "../..";
 import {
   DayOfMonthField,
   EndDateField,
   EndTypeField,
   MaxOccurrencesField,
-} from "../../../-common/components/schedule-transaction-fields";
+} from "@/routes/(authed)/_auth/finances/-common/components/schedule-transaction-fields";
+import { ScheduledFormSchema, type ScheduledFormData } from "@/schema/scheduled-transaction";
+
+import { Route } from "../..";
 
 const generateDefaultSchedule = (transactedAt: Date): ScheduledFormData => ({
   endType: "none",

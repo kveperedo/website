@@ -12,8 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 
+import {
+  FORM_ID,
+  ScheduledTransactionForm,
+} from "../-common/components/scheduled-transaction-form";
 import { FinanceContainer } from "../../-common/components/finance-container";
-import { EditScheduledForm, FORM_ID } from "./-common/components/edit-scheduled-form";
+import { DeleteTemplateButton } from "./-common/components/delete-template-button";
+import { TemplateSummaryCard } from "./-common/components/template-summary-card";
 
 export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/$id/")({
   loader: async ({ params }) => {
@@ -54,6 +59,7 @@ function RouteComponent() {
             amount: data.amount,
             type: data.type,
             category: (data.type === "income" ? null : data.category) as TransactionCategory | null,
+            startDate: data.startDate,
             dayOfMonth: data.dayOfMonth,
             endDate: data.endType === "date" ? (data.endDate ?? null) : null,
             maxOccurrences: data.endType === "count" ? (data.maxOccurrences ?? null) : null,
@@ -66,6 +72,37 @@ function RouteComponent() {
       setIsSaving(false);
     }
   };
+
+  const getEndType = (): ScheduledFormEditData["endType"] => {
+    if (template.endDate) {
+      return "date";
+    }
+    if (template.maxOccurrences) {
+      return "count";
+    }
+    return "none";
+  };
+  const endType = getEndType();
+
+  const buildDefaultValues = (): ScheduledFormEditData => {
+    const base = {
+      description: template.description,
+      amount: template.amount,
+      type: template.type,
+      category: (template.category ?? null) as TransactionCategory | null,
+      startDate: template.startDate,
+      dayOfMonth: template.dayOfMonth,
+      isActive: template.isActive,
+    };
+    if (endType === "date") {
+      return { ...base, endType, endDate: template.endDate as string };
+    }
+    if (endType === "count") {
+      return { ...base, endType, maxOccurrences: template.maxOccurrences as number };
+    }
+    return { ...base, endType };
+  };
+  const defaultValues = buildDefaultValues();
 
   return (
     <FinanceContainer.Root
@@ -87,7 +124,15 @@ function RouteComponent() {
       }
     >
       <div className="container mx-auto flex h-full flex-1 flex-col items-center justify-center p-4 sm:py-8">
-        <EditScheduledForm onSubmit={handleSubmit} />
+        <div className="flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto sm:flex-row sm:items-start">
+          <div className="flex flex-1 flex-col">
+            <ScheduledTransactionForm defaultValues={defaultValues} onSubmit={handleSubmit} />
+          </div>
+          <div className="flex flex-col gap-4 sm:shrink-0 sm:basis-xs">
+            <TemplateSummaryCard />
+            <DeleteTemplateButton />
+          </div>
+        </div>
       </div>
     </FinanceContainer.Root>
   );

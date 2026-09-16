@@ -1,5 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -7,10 +8,11 @@ import {
   getScheduledTransactionTemplatesFn,
   toggleScheduledTransactionTemplateFn,
 } from "@/app/finance/scheduled-transactions/functions";
+import { TanstackLinkButton } from "@/components/ui/button";
 
-import { ScheduledTransactionList } from "../-common/components/scheduled-transaction-list";
 import { FinanceContainer } from "../../-common/components/finance-container";
 import { SummaryCard } from "../../-common/components/summary-card";
+import { ScheduledTransactionList } from "./-common/components/scheduled-transaction-list";
 
 export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/(index)/")({
   loader: async () => {
@@ -65,9 +67,21 @@ function RouteComponent() {
   };
 
   return (
-    <FinanceContainer.Root footer={<FinanceContainer.Footer />}>
-      <div className="container mx-auto flex flex-1 flex-col gap-2 px-4 py-4">
-        <h2 className="sr-only">Scheduled Transactions</h2>
+    <FinanceContainer.Root
+      header={
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="font-heading text-lg font-medium text-foreground">
+            Scheduled Transactions
+          </h2>
+          <TanstackLinkButton to="/finances/scheduled/new" size="sm" preload="intent">
+            <PlusIcon className="size-3.5" />
+            New schedule
+          </TanstackLinkButton>
+        </div>
+      }
+      footer={<FinanceContainer.Footer />}
+    >
+      <div className="container mx-auto flex flex-1 flex-col gap-2 px-4 py-4 sm:px-0">
         <SummaryCard
           expenses={summary.expenses}
           income={summary.income}

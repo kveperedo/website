@@ -17,9 +17,12 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+import {
+  CATEGORY_LABELS,
+  TRANSACTION_TYPE_COLORS,
+} from "@/routes/(authed)/_auth/finances/-common/constants";
 
-import { Route } from "../../(index)";
-import { CATEGORY_LABELS, TRANSACTION_TYPE_COLORS } from "../../../-common/constants";
+import { Route } from "../..";
 
 type ScheduledTransactionListProps = {
   label?: string;
@@ -47,6 +50,16 @@ export const ScheduledTransactionList = ({
     });
   };
 
+  const getEndCondition = (template: (typeof templates)[number]) => {
+    if (template.endDate) {
+      return `Until ${format(parseISO(template.endDate), "MMM d, yyyy")}`;
+    }
+    if (template.maxOccurrences) {
+      return `${template._count.transactions}/${template.maxOccurrences} occurrences`;
+    }
+    return "No end";
+  };
+
   return (
     <Card className="flex min-w-0 flex-1 flex-col p-2">
       <CardContent className="flex flex-col gap-2 p-2">
@@ -61,11 +74,7 @@ export const ScheduledTransactionList = ({
           <ul className="flex flex-col gap-2" aria-label={label}>
             {templates.map((template) => {
               const day = template.dayOfMonth.toString().padStart(2, "0");
-              const endCondition = template.endDate
-                ? `Until ${format(parseISO(template.endDate), "MMM d, yyyy")}`
-                : template.maxOccurrences
-                  ? `${template._count.transactions}/${template.maxOccurrences} occurrences`
-                  : "No end";
+              const endCondition = getEndCondition(template);
               return (
                 <li
                   key={template.id}
