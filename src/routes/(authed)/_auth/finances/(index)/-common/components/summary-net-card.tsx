@@ -165,33 +165,41 @@ function PaceComparison() {
   } = Route.useLoaderData();
   const paceDiff = averagePriorExpenses !== null ? current.expenses - averagePriorExpenses : null;
 
-  return (
-    <>
-      <Separator />
-      {paceDiff === null ? (
-        <p className="text-xs text-muted-foreground">No historical data for comparison</p>
-      ) : paceDiff === 0 ? (
+  const renderPaceMessage = () => {
+    if (paceDiff === null) {
+      return <p className="text-xs text-muted-foreground">No historical data for comparison</p>;
+    }
+    if (paceDiff === 0) {
+      return (
         <p className="text-xs text-muted-foreground">
           On pace with your {priorMonthCount}-month average
         </p>
-      ) : (
-        <p
-          className={cn(
-            "flex items-center gap-1",
-            paceDiff > 0 ? "text-destructive" : "text-emerald-400",
-          )}
-        >
-          {paceDiff > 0 ? (
-            <TrendingUpIcon className="size-3 shrink-0" />
-          ) : (
-            <TrendingDownIcon className="size-3 shrink-0" />
-          )}
-          <span>
-            {formatCurrency(Math.abs(paceDiff))} {paceDiff > 0 ? "above" : "below"}{" "}
-            <span className="text-muted-foreground">your {priorMonthCount}-month pace</span>
-          </span>
-        </p>
-      )}
+      );
+    }
+    return (
+      <p
+        className={cn(
+          "flex items-center gap-1",
+          paceDiff > 0 ? "text-destructive" : "text-emerald-400",
+        )}
+      >
+        {paceDiff > 0 ? (
+          <TrendingUpIcon className="size-3 shrink-0" />
+        ) : (
+          <TrendingDownIcon className="size-3 shrink-0" />
+        )}
+        <span>
+          {formatCurrency(Math.abs(paceDiff))} {paceDiff > 0 ? "above" : "below"}{" "}
+          <span className="text-muted-foreground">your {priorMonthCount}-month pace</span>
+        </span>
+      </p>
+    );
+  };
+
+  return (
+    <>
+      <Separator />
+      {renderPaceMessage()}
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-mono text-xs">
         {prior.map((month, index) => (
           <span key={month.label} className="flex items-center gap-1.5">

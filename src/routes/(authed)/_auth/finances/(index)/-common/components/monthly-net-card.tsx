@@ -14,6 +14,26 @@ const NET_CHART_CONFIG = {
   net: { label: "Net" },
 };
 
+const getSign = (value: number) => {
+  if (value > 0) {
+    return "positive" as const;
+  }
+  if (value < 0) {
+    return "negative" as const;
+  }
+  return undefined;
+};
+
+const getFill = (net: number) => {
+  if (net > 0) {
+    return "var(--color-emerald-400)";
+  }
+  if (net < 0) {
+    return "var(--destructive)";
+  }
+  return "var(--muted-foreground)";
+};
+
 export const MonthlyNetCard = () => {
   const { monthlyNet } = Route.useLoaderData();
   const descriptionId = useId();
@@ -72,7 +92,7 @@ export const MonthlyNetCard = () => {
                     const net = Number(value);
                     return formatCurrency(net, {
                       compact: true,
-                      sign: net > 0 ? "positive" : net < 0 ? "negative" : undefined,
+                      sign: getSign(net),
                     });
                   }}
                 />
@@ -93,7 +113,7 @@ export const MonthlyNetCard = () => {
                               <span className="text-muted-foreground">Net</span>
                               <span className="font-medium text-foreground">
                                 {formatCurrency(net, {
-                                  sign: net > 0 ? "positive" : net < 0 ? "negative" : undefined,
+                                  sign: getSign(net),
                                 })}
                               </span>
                             </div>
@@ -120,13 +140,7 @@ export const MonthlyNetCard = () => {
                     <Cell
                       key={month.month}
                       data-testid={`monthly-net-bar-${month.month}`}
-                      fill={
-                        month.net > 0
-                          ? "var(--color-emerald-400)"
-                          : month.net < 0
-                            ? "var(--destructive)"
-                            : "var(--muted-foreground)"
-                      }
+                      fill={getFill(month.net)}
                     />
                   ))}
                 </Bar>

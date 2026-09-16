@@ -331,6 +331,47 @@ function RouteComponent() {
   const hasActiveFilters = Boolean(search.q || search.type || selectedCategories.length);
   const hasNoResults = hasNoTransactions && hasActiveFilters;
 
+  const renderTransactionsContent = () => {
+    if (hasNoResults) {
+      return (
+        <Card className="py-6">
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>No transactions match your filters.</EmptyTitle>
+              <EmptyDescription>Try a different search term or filter.</EmptyDescription>
+            </EmptyHeader>
+            <Button variant="outline" size="sm" onPress={handleClearFilters}>
+              Clear filters
+            </Button>
+          </Empty>
+        </Card>
+      );
+    }
+    if (hasNoTransactions) {
+      return (
+        <Card className="py-6">
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>No transactions in {monthLabel}.</EmptyTitle>
+              <EmptyDescription>Try a different month or add a transaction.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </Card>
+      );
+    }
+    return (
+      <Card className="gap-0 py-0">
+        <CardContent className="p-0">
+          <TransactionTable
+            transactions={transactions}
+            label={`Transactions for ${monthLabel}`}
+            transactionSearch={transactionSearch}
+          />
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <FinanceContainer.Root
       header={
@@ -349,38 +390,7 @@ function RouteComponent() {
           expensesDimmed={search.type === "income"}
           incomeDimmed={search.type === "expense"}
         />
-        {hasNoResults ? (
-          <Card className="py-6">
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>No transactions match your filters.</EmptyTitle>
-                <EmptyDescription>Try a different search term or filter.</EmptyDescription>
-              </EmptyHeader>
-              <Button variant="outline" size="sm" onPress={handleClearFilters}>
-                Clear filters
-              </Button>
-            </Empty>
-          </Card>
-        ) : hasNoTransactions ? (
-          <Card className="py-6">
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>No transactions in {monthLabel}.</EmptyTitle>
-                <EmptyDescription>Try a different month or add a transaction.</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          </Card>
-        ) : (
-          <Card className="gap-0 py-0">
-            <CardContent className="p-0">
-              <TransactionTable
-                transactions={transactions}
-                label={`Transactions for ${monthLabel}`}
-                transactionSearch={transactionSearch}
-              />
-            </CardContent>
-          </Card>
-        )}
+        {renderTransactionsContent()}
       </div>
     </FinanceContainer.Root>
   );

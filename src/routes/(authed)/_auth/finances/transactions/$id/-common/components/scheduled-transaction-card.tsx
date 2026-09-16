@@ -11,15 +11,23 @@ export const ScheduledTransactionCard = () => {
   // We know that there is a template here
   const template = transaction.template!;
 
-  const recurrence =
-    template.dayOfMonth > 28
-      ? `Every ${format(new Date(2000, 0, template.dayOfMonth), "do")} (last day in shorter months)`
-      : `Every ${format(new Date(2000, 0, template.dayOfMonth), "do")}`;
-  const endCondition = template.endDate
-    ? `Until ${format(parseISO(template.endDate), "MMM d, yyyy")}`
-    : template.maxOccurrences
-      ? `${template._count.transactions}/${template.maxOccurrences} occurrences`
-      : "No end";
+  const getRecurrence = () => {
+    if (template.dayOfMonth > 28) {
+      return `Every ${format(new Date(2000, 0, template.dayOfMonth), "do")} (last day in shorter months)`;
+    }
+    return `Every ${format(new Date(2000, 0, template.dayOfMonth), "do")}`;
+  };
+  const recurrence = getRecurrence();
+  const getEndCondition = () => {
+    if (template.endDate) {
+      return `Until ${format(parseISO(template.endDate), "MMM d, yyyy")}`;
+    }
+    if (template.maxOccurrences) {
+      return `${template._count.transactions}/${template.maxOccurrences} occurrences`;
+    }
+    return "No end";
+  };
+  const endCondition = getEndCondition();
 
   return (
     <Card>

@@ -9,11 +9,15 @@ import { Route } from "../..";
 export const TemplateSummaryCard = () => {
   const { template } = Route.useLoaderData();
 
-  const endCondition = template.endDate
-    ? `Until ${format(parseISO(template.endDate), "MMM d, yyyy")}`
-    : template.maxOccurrences
-      ? `${template._count.transactions}/${template.maxOccurrences} occurrences`
-      : `${template._count.transactions} occurrences`;
+  const getEndCondition = () => {
+    if (template.endDate) {
+      return `Until ${format(parseISO(template.endDate), "MMM d, yyyy")}`;
+    }
+    if (template.maxOccurrences) {
+      return `${template._count.transactions}/${template.maxOccurrences} occurrences`;
+    }
+    return `${template._count.transactions} occurrences`;
+  };
 
   return (
     <Card>
@@ -27,7 +31,7 @@ export const TemplateSummaryCard = () => {
             {template.isActive ? "Scheduled" : "Paused"}
           </Badge>
         </div>
-        <CardDescription>{endCondition}</CardDescription>
+        <CardDescription>{getEndCondition()}</CardDescription>
       </CardHeader>
     </Card>
   );

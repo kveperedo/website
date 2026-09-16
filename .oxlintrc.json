@@ -7,7 +7,9 @@
   "rules": {
     "curly": ["error", "all"],
     "consistent-type-definitions": ["error", "type"],
-    "typescript/array-type": ["error", { "default": "generic" }]
+    "typescript/array-type": ["error", { "default": "generic" }],
+    "no-nested-ternary": "error",
+    "unicorn/no-unreadable-iife": "error"
   },
   "env": {
     "builtin": true
