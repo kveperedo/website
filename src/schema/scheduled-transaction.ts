@@ -1,7 +1,12 @@
 import { z } from "zod";
 
+import { ScheduledTransactionStatusSchema } from "@/generated/zod/schemas/enums/ScheduledTransactionStatus.schema";
 import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
 import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
+
+const EditableStatusSchema = ScheduledTransactionStatusSchema.exclude(["archived"], {
+  message: "Archived schedules cannot be set via form",
+});
 
 export const ScheduledTransactionInputSchema = z.object({
   dayOfMonth: z.number().int().min(1).max(31),
@@ -27,7 +32,7 @@ export const UpdateScheduledTransactionInputSchema = z.object({
     dayOfMonth: z.number().int().min(1).max(31),
     endDate: z.iso.date().nullable(),
     maxOccurrences: z.number().int().min(1).nullable(),
-    isActive: z.boolean(),
+    status: EditableStatusSchema,
   }),
 });
 
@@ -61,7 +66,7 @@ export const ScheduledFormEditSchema = z
     category: TransactionCategorySchema.nullable(),
     startDate: z.iso.date(),
     dayOfMonth: z.number().int().min(1).max(31),
-    isActive: z.boolean(),
+    status: EditableStatusSchema,
   })
   .and(ScheduledFormEndTypeSchema)
   .superRefine((data, ctx) => {
@@ -86,7 +91,7 @@ export const CreateStandaloneScheduledTemplateInputSchema = z
     dayOfMonth: z.number().int().min(1).max(31),
     endDate: z.iso.date().nullable(),
     maxOccurrences: z.number().int().min(1).nullable(),
-    isActive: z.boolean(),
+    status: EditableStatusSchema,
   })
   .superRefine((data, ctx) => {
     if (data.endDate && data.endDate < data.startDate) {

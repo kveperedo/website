@@ -29,6 +29,14 @@ export const ScheduledTransactionCard = () => {
   };
   const endCondition = getEndCondition();
 
+  const STATUS_BADGE_MAP = {
+    active: { variant: "secondary" as const, label: "Scheduled" },
+    paused: { variant: "outline" as const, label: "Paused" },
+    archived: { variant: "outline" as const, label: "Archived" },
+  } satisfies Record<typeof template.status, { variant: "secondary" | "outline"; label: string }>;
+
+  const { variant, label } = STATUS_BADGE_MAP[template.status];
+
   return (
     <Card>
       <CardHeader>
@@ -37,9 +45,7 @@ export const ScheduledTransactionCard = () => {
             <CalendarClock size={16} />
             Recurring schedule
           </CardTitle>
-          <Badge variant={template.isActive ? "secondary" : "outline"}>
-            {template.isActive ? "Scheduled" : "Paused"}
-          </Badge>
+          <Badge variant={variant}>{label}</Badge>
         </div>
         <CardDescription>
           {recurrence} | {endCondition}

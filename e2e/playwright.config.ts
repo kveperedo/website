@@ -90,5 +90,14 @@ export default defineConfig({
         storageState: path.join(import.meta.dirname, ".auth", "user.json"),
       },
     },
+    {
+      name: "finance.scheduled-archive",
+      testMatch: /finances\.scheduled-archive\.spec\.ts$/,
+      dependencies: ["finance.scheduled-projection"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+      },
+    },
   ],
 });

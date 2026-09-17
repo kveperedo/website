@@ -35,7 +35,8 @@ const template = (
   startDate: date("2026-01-01"),
   endDate,
   maxOccurrences: null,
-  isActive: true,
+  status: "active" as const,
+  archivedAt: null,
   createdAt: date("2026-01-01"),
   updatedAt: date("2026-01-01"),
   _count: { transactions: transactions.length },
@@ -59,6 +60,7 @@ const mockGeneration = (
       findUnique: vi.fn(({ where: { id } }) =>
         Promise.resolve(templates.find((template) => template.id === id) ?? null),
       ),
+      update: vi.fn().mockResolvedValue({}),
     },
     transaction: {
       count: vi.fn().mockResolvedValue(0),
@@ -284,8 +286,8 @@ describe("scheduled transaction mutations", () => {
   it("toggles a template through the transaction client", async () => {
     const tx = {
       scheduledTransactionTemplate: {
-        findUniqueOrThrow: vi.fn().mockResolvedValue({ isActive: true }),
-        update: vi.fn().mockResolvedValue({ ...template("template", 1), isActive: false }),
+        findUniqueOrThrow: vi.fn().mockResolvedValue({ status: "active" }),
+        update: vi.fn().mockResolvedValue({ ...template("template", 1), status: "paused" }),
       },
     };
     vi.mocked(getDb).mockReturnValue({
@@ -293,11 +295,11 @@ describe("scheduled transaction mutations", () => {
     } as never);
 
     await expect(toggleScheduledTransactionTemplate("template")).resolves.toMatchObject({
-      isActive: false,
+      status: "paused",
     });
     expect(tx.scheduledTransactionTemplate.update).toHaveBeenCalledWith({
       where: { id: "template" },
-      data: { isActive: false },
+      data: { status: "paused" },
     });
   });
 });

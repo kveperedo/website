@@ -75,20 +75,45 @@ const isForeignKeyConstraintError = (error: unknown) => {
   return getErrorCode(error) === "P2003";
 };
 
+const mapScheduledTemplate = <
+  T extends { amount: { toNumber: () => number }; startDate: Date; endDate: Date | null },
+>(
+  template: T,
+) => ({
+  ...template,
+  amount: template.amount.toNumber(),
+  startDate: databaseDateToDateOnly(template.startDate),
+  endDate: template.endDate ? databaseDateToDateOnly(template.endDate) : null,
+});
+
 export const getScheduledTransactionTemplates = async () => {
   const templates = await getDb().scheduledTransactionTemplate.findMany({
-    orderBy: [{ dayOfMonth: "asc" }, { isActive: "desc" }, { createdAt: "desc" }],
+    where: { status: { in: ["active", "paused"] } },
+    orderBy: [{ status: "asc" }, { dayOfMonth: "asc" }, { createdAt: "desc" }],
     include: {
       _count: { select: { transactions: true } },
     },
   });
 
-  return templates.map((t) => ({
-    ...t,
-    amount: t.amount.toNumber(),
-    startDate: databaseDateToDateOnly(t.startDate),
-    endDate: t.endDate ? databaseDateToDateOnly(t.endDate) : null,
-  }));
+  return templates.map(mapScheduledTemplate);
+};
+
+export const getArchivedScheduledTransactionTemplates = async () => {
+  const templates = await getDb().scheduledTransactionTemplate.findMany({
+    where: { status: "archived" },
+    orderBy: [{ archivedAt: "desc" }, { createdAt: "desc" }],
+    include: {
+      _count: { select: { transactions: true } },
+    },
+  });
+
+  return templates.map(mapScheduledTemplate);
+};
+
+export const getArchivedScheduledTransactionTemplatesCount = async () => {
+  return await getDb().scheduledTransactionTemplate.count({
+    where: { status: "archived" },
+  });
 };
 
 export const getUpcomingScheduledTransactionTemplates = async () => {
@@ -99,7 +124,7 @@ export const getUpcomingScheduledTransactionTemplates = async () => {
 
   const templates = await getDb().scheduledTransactionTemplate.findMany({
     where: {
-      isActive: true,
+      status: "active",
       startDate: { lt: nextMonthEnd },
       OR: [{ endDate: null }, { endDate: { gte: monthStart } }],
     },
@@ -173,7 +198,7 @@ export const getScheduledExpensesForCurrentMonth = async () => {
 
   const templates = await db.scheduledTransactionTemplate.findMany({
     where: {
-      isActive: true,
+      status: "active",
       type: "expense",
       startDate: { lt: nextMonthStart },
       OR: [{ endDate: null }, { endDate: { gte: monthStart } }],
@@ -227,7 +252,7 @@ export const createScheduledTransaction = async (
         startDate: data.transactedAt,
         endDate,
         maxOccurrences: schedule.maxOccurrences ?? undefined,
-        isActive: true,
+        status: "active",
       },
     });
     return await createTransaction(db, { ...data, templateId: template.id });
@@ -266,7 +291,7 @@ export const createScheduledTransactionTemplate = async (
           startDate: transaction.transactedAt,
           endDate,
           maxOccurrences: schedule.maxOccurrences ?? undefined,
-          isActive: true,
+          status: "active",
         },
       });
       const result = await db.transaction.updateMany({
@@ -298,12 +323,15 @@ export const toggleScheduledTransactionTemplate = async (id: string) => {
   const template = await getDb().$transaction(async (db) => {
     const current = await db.scheduledTransactionTemplate.findUniqueOrThrow({
       where: { id },
-      select: { isActive: true },
+      select: { status: true },
     });
+    if (current.status === "archived") {
+      throw new Error("Archived schedules cannot be toggled.");
+    }
     return await db.scheduledTransactionTemplate.update({
       where: { id },
       data: {
-        isActive: !current.isActive,
+        status: current.status === "active" ? "paused" : "active",
       },
     });
   });
@@ -314,8 +342,29 @@ export const toggleScheduledTransactionTemplate = async (id: string) => {
   };
 };
 
-export const deleteScheduledTransactionTemplate = async (id: string) => {
-  await getDb().scheduledTransactionTemplate.delete({ where: { id } });
+export const archiveScheduledTransactionTemplate = async (id: string) => {
+  const template = await getDb().$transaction(async (db) => {
+    const current = await db.scheduledTransactionTemplate.findUnique({
+      where: { id },
+      select: { status: true },
+    });
+    if (!current) {
+      throw new Error("Template not found");
+    }
+    if (current.status === "archived") {
+      const existing = await db.scheduledTransactionTemplate.findUniqueOrThrow({ where: { id } });
+      return existing;
+    }
+    return await db.scheduledTransactionTemplate.update({
+      where: { id },
+      data: { status: "archived", archivedAt: new Date() },
+    });
+  });
+
+  return {
+    ...template,
+    amount: template.amount.toNumber(),
+  };
 };
 
 export const getScheduledTransactionTemplateById = async (id: string) => {
@@ -342,22 +391,31 @@ export const updateScheduledTransactionTemplate = async (
   id: string,
   data: UpdateScheduledTransactionInput["data"],
 ) => {
-  const startDate = dateOnlyToDatabaseDate(data.startDate);
-  const endDate = data.endDate ? dateOnlyToDatabaseDate(data.endDate) : null;
+  const template = await getDb().$transaction(async (db) => {
+    const existing = await db.scheduledTransactionTemplate.findUniqueOrThrow({
+      where: { id },
+      select: { status: true },
+    });
+    if (existing.status === "archived") {
+      throw new Error("Archived schedules cannot be edited.");
+    }
+    const startDate = dateOnlyToDatabaseDate(data.startDate);
+    const endDate = data.endDate ? dateOnlyToDatabaseDate(data.endDate) : null;
 
-  const template = await getDb().scheduledTransactionTemplate.update({
-    where: { id },
-    data: {
-      description: data.description,
-      amount: data.amount,
-      type: data.type,
-      category: data.type === "income" ? null : (data.category ?? null),
-      startDate,
-      dayOfMonth: data.dayOfMonth,
-      endDate,
-      maxOccurrences: data.maxOccurrences ?? null,
-      isActive: data.isActive,
-    },
+    return await db.scheduledTransactionTemplate.update({
+      where: { id },
+      data: {
+        description: data.description,
+        amount: data.amount,
+        type: data.type,
+        category: data.type === "income" ? null : (data.category ?? null),
+        startDate,
+        dayOfMonth: data.dayOfMonth,
+        endDate,
+        maxOccurrences: data.maxOccurrences ?? null,
+        status: data.status,
+      },
+    });
   });
 
   return {
@@ -384,7 +442,7 @@ export const createStandaloneScheduledTransactionTemplate = async (
       dayOfMonth: data.dayOfMonth,
       endDate,
       maxOccurrences: data.maxOccurrences ?? null,
-      isActive: data.isActive,
+      status: data.status,
     },
   });
 
@@ -404,19 +462,49 @@ export const generateScheduledTransactions = async (date: Date) => {
   const db = getDb();
   const templates = await db.scheduledTransactionTemplate.findMany({
     where: {
-      isActive: true,
+      status: "active",
       startDate: { lt: monthEnd },
     },
   });
 
   let failedCount = 0;
 
+  const archiveIfPastEndDate = async (
+    tx: DbTransactionClient,
+    template: { id: string; endDate: Date | null },
+    scheduledAt: Date,
+  ) => {
+    if (template.endDate && isAfter(scheduledAt, template.endDate)) {
+      await tx.scheduledTransactionTemplate.update({
+        where: { id: template.id },
+        data: { status: "archived", archivedAt: new Date() },
+      });
+      return true;
+    }
+    return false;
+  };
+
+  const archiveIfMaxReached = async (
+    tx: DbTransactionClient,
+    template: { id: string; maxOccurrences: number | null },
+    count: number,
+  ) => {
+    if (template.maxOccurrences !== null && count >= template.maxOccurrences) {
+      await tx.scheduledTransactionTemplate.update({
+        where: { id: template.id },
+        data: { status: "archived", archivedAt: new Date() },
+      });
+      return true;
+    }
+    return false;
+  };
+
   for (const { id, dayOfMonth } of templates) {
     const transactedAt = getDayInMonth(year, month, dayOfMonth);
     try {
       await db.$transaction(async (tx) => {
         const template = await tx.scheduledTransactionTemplate.findUnique({ where: { id } });
-        if (!template?.isActive) {
+        if (template?.status !== "active") {
           return;
         }
 
@@ -425,6 +513,7 @@ export const generateScheduledTransactions = async (date: Date) => {
           isAfter(scheduledAt, today) ||
           !isOccurrenceWithinTemplateRange(scheduledAt, template.startDate, template.endDate)
         ) {
+          await archiveIfPastEndDate(tx, template, scheduledAt);
           return;
         }
 
@@ -437,7 +526,7 @@ export const generateScheduledTransactions = async (date: Date) => {
             },
           }),
         ]);
-        if (template.maxOccurrences !== null && count >= template.maxOccurrences) {
+        if (await archiveIfMaxReached(tx, template, count)) {
           return;
         }
         if (existing) {
@@ -452,6 +541,13 @@ export const generateScheduledTransactions = async (date: Date) => {
           transactedAt: scheduledAt,
           templateId: template.id,
         });
+
+        if (template.maxOccurrences !== null && count + 1 >= template.maxOccurrences) {
+          await tx.scheduledTransactionTemplate.update({
+            where: { id: template.id },
+            data: { status: "archived", archivedAt: new Date() },
+          });
+        }
       });
     } catch (err) {
       if (isUniqueConstraintError(err) || isForeignKeyConstraintError(err)) {

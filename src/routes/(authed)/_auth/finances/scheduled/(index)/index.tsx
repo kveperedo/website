@@ -1,10 +1,11 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { PlusIcon } from "lucide-react";
+import { ArchiveIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
 import {
-  deleteScheduledTransactionTemplateFn,
+  archiveScheduledTransactionTemplateFn,
+  getArchivedScheduledTransactionTemplatesCountFn,
   getScheduledTransactionTemplatesFn,
   toggleScheduledTransactionTemplateFn,
 } from "@/app/finance/scheduled-transactions/functions";
@@ -16,8 +17,11 @@ import { ScheduledTransactionList } from "./-common/components/scheduled-transac
 
 export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/(index)/")({
   loader: async () => {
-    const templates = await getScheduledTransactionTemplatesFn();
-    const active = templates.filter((template) => template.isActive);
+    const [templates, archivedCount] = await Promise.all([
+      getScheduledTransactionTemplatesFn(),
+      getArchivedScheduledTransactionTemplatesCountFn(),
+    ]);
+    const active = templates.filter((template) => template.status === "active");
     const { expenses, income } = active.reduce(
       (acc, template) => {
         if (template.type === "expense") {
@@ -29,7 +33,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/(index)
       },
       { expenses: 0, income: 0 },
     );
-    return { templates, summary: { expenses, income } };
+    return { templates, archivedCount, summary: { expenses, income } };
   },
   head: () => ({
     meta: [{ title: "Scheduled Transactions | Kevin Von Erich Peredo" }],
@@ -38,12 +42,12 @@ export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/(index)
 });
 
 function RouteComponent() {
-  const { summary } = Route.useLoaderData();
+  const { summary, archivedCount } = Route.useLoaderData();
   const router = useRouter();
-  const deleteScheduledTransactionTemplate = useServerFn(deleteScheduledTransactionTemplateFn);
+  const archiveScheduledTransactionTemplate = useServerFn(archiveScheduledTransactionTemplateFn);
   const toggleScheduledTransactionTemplate = useServerFn(toggleScheduledTransactionTemplateFn);
 
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isArchiving, setIsArchiving] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
   const handleToggleActive = async (id: string) => {
@@ -56,13 +60,13 @@ function RouteComponent() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setIsDeleting(id);
+  const handleArchive = async (id: string) => {
+    setIsArchiving(id);
     try {
-      await deleteScheduledTransactionTemplate({ data: id });
+      await archiveScheduledTransactionTemplate({ data: id });
       await router.invalidate();
     } finally {
-      setIsDeleting(null);
+      setIsArchiving(null);
     }
   };
 
@@ -73,10 +77,21 @@ function RouteComponent() {
           <h2 className="font-heading text-lg font-medium text-foreground">
             Scheduled Transactions
           </h2>
-          <TanstackLinkButton to="/finances/scheduled/new" size="sm" preload="intent">
-            <PlusIcon className="size-3.5" />
-            New schedule
-          </TanstackLinkButton>
+          <div className="flex items-center gap-2">
+            <TanstackLinkButton
+              to="/finances/scheduled/archived"
+              variant="outline"
+              size="sm"
+              preload="intent"
+            >
+              <ArchiveIcon className="size-3.5" />
+              Archived{archivedCount > 0 ? ` (${archivedCount})` : ""}
+            </TanstackLinkButton>
+            <TanstackLinkButton to="/finances/scheduled/new" size="sm" preload="intent">
+              <PlusIcon className="size-3.5" />
+              New schedule
+            </TanstackLinkButton>
+          </div>
         </div>
       }
       footer={<FinanceContainer.Footer />}
@@ -90,9 +105,9 @@ function RouteComponent() {
         />
         <ScheduledTransactionList
           isLoading={isLoading}
-          isDeleting={isDeleting}
+          isArchiving={isArchiving}
           onToggle={handleToggleActive}
-          onDelete={handleDelete}
+          onArchive={handleArchive}
         />
       </div>
     </FinanceContainer.Root>

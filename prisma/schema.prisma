@@ -32,6 +32,14 @@ enum TransactionType {
   @@map("transaction_types")
 }
 
+enum ScheduledTransactionStatus {
+  active
+  paused
+  archived
+
+  @@map("scheduled_transaction_status")
+}
+
 model ScheduledTransactionTemplate {
   id                  String               @id @default(uuid()) @db.Uuid
   description         String
@@ -41,13 +49,14 @@ model ScheduledTransactionTemplate {
   dayOfMonth          Int                  @map("day_of_month")
   startDate           DateTime             @map("start_date") @db.Date
   endDate             DateTime?            @map("end_date") @db.Date
-  maxOccurrences      Int?                 @map("max_occurrences")
-  isActive            Boolean              @default(true) @map("is_active")
-  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
-  transactions        Transaction[]        @relation("ScheduledTransaction")
+  maxOccurrences      Int?                       @map("max_occurrences")
+  status              ScheduledTransactionStatus   @default(active) @map("status")
+  archivedAt          DateTime?                  @map("archived_at") @db.Timestamptz(6)
+  createdAt           DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  transactions        Transaction[]              @relation("ScheduledTransaction")
 
-  @@index([isActive])
+  @@index([status])
   @@map("scheduled_transaction_templates")
 }
 

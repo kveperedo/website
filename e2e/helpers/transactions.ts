@@ -130,19 +130,25 @@ export async function deleteTransaction(page: Page, id: string) {
   await page.waitForURL(/\/finances\/transactions$/);
 }
 
-export async function deleteScheduledTransactionTemplate(page: Page, description: string) {
+export async function archiveScheduledTransactionTemplate(page: Page, description: string) {
+  // Try main list first
   await gotoAndWaitForHydration(page, "/finances/scheduled");
-
-  const template = page.getByRole("listitem").filter({ hasText: description });
-  if ((await template.count()) === 0) {
+  let template = page.getByRole("listitem").filter({ hasText: description });
+  if ((await template.count()) > 0) {
+    await template.getByRole("button", { name: "Archive template" }).click();
+    const archiveButton = page.getByRole("button", { name: "Archive", exact: true });
+    await expect(archiveButton).toBeEnabled();
+    await archiveButton.click({ timeout: 10000 });
+    await expect(template).toHaveCount(0);
     return;
   }
 
-  await template.getByRole("button", { name: "Delete template" }).click();
-  const deleteButton = page.getByRole("button", { name: "Delete", exact: true });
-  await expect(deleteButton).toBeEnabled();
-  await deleteButton.click({ timeout: 10000 });
-  await expect(template).toHaveCount(0);
+  // Already archived — nothing to do (preserves idempotency)
+  await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+  template = page.getByRole("listitem").filter({ hasText: description });
+  if ((await template.count()) > 0) {
+    return;
+  }
 }
 
 export async function deleteTransactionByDescription(page: Page, description: string) {
@@ -180,7 +186,40 @@ export async function getScheduledTemplateId(page: Page, description: string): P
 
 export async function openScheduledTemplateForEdit(page: Page, id: string) {
   await gotoAndWaitForHydration(page, `/finances/scheduled/${id}`);
-  await expect(page.getByRole("button", { name: "Delete Schedule" })).toBeVisible();
+  await expect(page.getByTestId("description-input")).toBeVisible();
+}
+
+export async function archiveScheduledTemplateFromDetail(page: Page, id: string) {
+  await openScheduledTemplateForEdit(page, id);
+  const archiveButton = page.getByRole("button", { name: "Archive Schedule" });
+  // Archived templates hide the button — only archive when visible
+  if ((await archiveButton.count()) === 0) {
+    return;
+  }
+  await archiveButton.click();
+  const confirm = page.getByRole("button", { name: "Archive", exact: true });
+  await expect(confirm).toBeEnabled();
+  await confirm.click();
+  await page.waitForURL(/\/finances\/scheduled$/, { timeout: 30000 });
+}
+
+export async function getArchivedTemplateId(page: Page, description: string): Promise<string> {
+  await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+  const item = page.getByRole("listitem").filter({ hasText: description });
+  await expect(item).toHaveCount(1);
+  const id = await item.evaluate((el) => el.getAttribute("data-template-id"));
+  if (!id) {
+    throw new Error(`Could not find the id for archived template: ${description}`);
+  }
+  return id;
+}
+
+export async function getArchivedCount(page: Page): Promise<number> {
+  await gotoAndWaitForHydration(page, "/finances/scheduled");
+  const archivedLink = page.getByRole("link", { name: /Archived/ });
+  const text = await archivedLink.textContent();
+  const match = text?.match(/\((\d+)\)/);
+  return match ? parseInt(match[1], 10) : 0;
 }
 
 export async function openNewScheduledPage(page: Page) {

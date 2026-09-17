@@ -28,11 +28,13 @@ export const FORM_ID = "scheduled-transaction-form";
 type ScheduledTransactionFormProps = {
   defaultValues: ScheduledFormEditData;
   onSubmit: (data: ScheduledFormEditData) => Promise<void>;
+  isDisabled?: boolean;
 };
 
 export function ScheduledTransactionForm({
   defaultValues,
   onSubmit,
+  isDisabled,
 }: ScheduledTransactionFormProps) {
   const { control, handleSubmit, reset } = useForm<ScheduledFormEditData>({
     resolver: zodResolver(ScheduledFormEditSchema),
@@ -59,21 +61,25 @@ export function ScheduledTransactionForm({
     >
       <Card className="flex flex-1 flex-col gap-5 p-5">
         <FieldGroup>
-          <DescriptionField control={control} name="description" />
-          <AmountField control={control} name="amount" />
+          <DescriptionField control={control} name="description" isDisabled={isDisabled} />
+          <AmountField control={control} name="amount" isDisabled={isDisabled} />
         </FieldGroup>
 
-        <TypeField control={control} name="type" />
+        <TypeField control={control} name="type" isDisabled={isDisabled} />
 
-        {watchType === "expense" && <CategoryField control={control} name="category" />}
+        {watchType === "expense" && (
+          <CategoryField control={control} name="category" isDisabled={isDisabled} />
+        )}
 
         <FieldGroup className="border-t border-border pt-5">
-          <StartDateField control={control} name="startDate" />
-          <DayOfMonthField control={control} name="dayOfMonth" />
-          <EndTypeField control={control} name="endType" />
-          {watchEndType === "date" && <EndDateField control={control} name="endDate" />}
+          <StartDateField control={control} name="startDate" isDisabled={isDisabled} />
+          <DayOfMonthField control={control} name="dayOfMonth" isDisabled={isDisabled} />
+          <EndTypeField control={control} name="endType" isDisabled={isDisabled} />
+          {watchEndType === "date" && (
+            <EndDateField control={control} name="endDate" isDisabled={isDisabled} />
+          )}
           {watchEndType === "count" && (
-            <MaxOccurrencesField control={control} name="maxOccurrences" />
+            <MaxOccurrencesField control={control} name="maxOccurrences" isDisabled={isDisabled} />
           )}
         </FieldGroup>
       </Card>

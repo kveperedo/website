@@ -4,7 +4,7 @@ import { addMonths, format } from "date-fns";
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import {
   createStandaloneScheduledTemplate,
-  deleteScheduledTransactionTemplate,
+  archiveScheduledTransactionTemplate,
   getScheduledTemplateId,
   openNewScheduledPage,
   openScheduledTemplateForEdit,
@@ -55,7 +55,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
       await expect(template.getByText("No end", { exact: true })).toBeVisible();
       await expect(template.getByText("₱120.00")).toBeVisible();
     } finally {
-      await deleteScheduledTransactionTemplate(page, description);
+      await archiveScheduledTransactionTemplate(page, description);
     }
   });
 
@@ -72,7 +72,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
       await expect(template).toBeVisible();
       await expect(template.getByText("0/4 occurrences")).toBeVisible();
     } finally {
-      await deleteScheduledTransactionTemplate(page, description);
+      await archiveScheduledTransactionTemplate(page, description);
     }
   });
 
@@ -92,7 +92,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
         template.getByText(`Until ${format(endDate, "MMM d, yyyy")}`, { exact: true }),
       ).toBeVisible();
     } finally {
-      await deleteScheduledTransactionTemplate(page, description);
+      await archiveScheduledTransactionTemplate(page, description);
     }
   });
 
@@ -146,7 +146,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
       // Day of month input should be visible and match created value
       await expect(page.getByLabel("Day of month")).toBeVisible();
     } finally {
-      await deleteScheduledTransactionTemplate(page, description);
+      await archiveScheduledTransactionTemplate(page, description);
     }
   });
 
@@ -168,7 +168,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
       await gotoAndWaitForHydration(page, `/finances/scheduled/${templateId}`);
       await expect(page.getByLabel("Day of month")).toHaveValue("15");
     } finally {
-      await deleteScheduledTransactionTemplate(page, description);
+      await archiveScheduledTransactionTemplate(page, description);
     }
   });
 
@@ -182,7 +182,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
       await expect(page.getByRole("link", { name: "New schedule" })).toBeVisible();
       await expect(page.getByTestId("scheduled-summary-expenses")).toBeVisible();
     } finally {
-      await deleteScheduledTransactionTemplate(page, description);
+      await archiveScheduledTransactionTemplate(page, description);
     }
   });
 });

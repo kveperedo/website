@@ -3,11 +3,12 @@ import { addMonths, format } from "date-fns";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import {
+  archiveScheduledTransactionTemplate,
   createScheduledTransaction,
   createTransaction,
-  deleteScheduledTransactionTemplate,
   deleteTransaction,
   deleteTransactionByDescription,
+  getArchivedTemplateId,
   getScheduledTemplateId,
   getTransactionId,
   openScheduledTemplateForEdit,
@@ -143,7 +144,7 @@ test.describe("transaction mutations", () => {
       await expect(template.getByText("1/3 occurrences")).toBeVisible();
     } finally {
       try {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
       } finally {
         if (id) {
           await deleteTransaction(page, id);
@@ -168,7 +169,7 @@ test.describe("transaction mutations", () => {
       await expect(template.getByText("No end", { exact: true })).toBeVisible();
     } finally {
       try {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
       } finally {
         if (id) {
           await deleteTransaction(page, id);
@@ -204,7 +205,7 @@ test.describe("transaction mutations", () => {
         ).toBeVisible();
       } finally {
         try {
-          await deleteScheduledTransactionTemplate(page, description);
+          await archiveScheduledTransactionTemplate(page, description);
         } finally {
           if (id) {
             await deleteTransaction(page, id);
@@ -240,7 +241,7 @@ test.describe("transaction mutations", () => {
       await expect(page.getByText("Paused", { exact: true })).toBeVisible();
     } finally {
       try {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
       } finally {
         if (id) {
           await deleteTransaction(page, id);
@@ -251,16 +252,28 @@ test.describe("transaction mutations", () => {
     }
   });
 
-  test("deleting a scheduled template preserves its linked transaction", async ({ page }) => {
+  test("archiving a scheduled template preserves its linked transaction and moves to archived", async ({
+    page,
+  }) => {
     const description = "Magazine subscription";
     let id: string | undefined;
     await gotoAndWaitForHydration(page, "/finances");
 
     try {
       id = await createScheduledTransaction(page, description);
-      await deleteScheduledTransactionTemplate(page, description);
-      await openTransactionForEdit(page, id);
-      await expect(page.getByRole("button", { name: "Make recurring" })).toBeVisible();
+      await archiveScheduledTransactionTemplate(page, description);
+      // Removed from main list
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
+      await expect(page.getByRole("listitem").filter({ hasText: description })).toHaveCount(0);
+      // Visible on archived page
+      await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+      await expect(page.getByRole("listitem").filter({ hasText: description })).toBeVisible();
+      // Verify via helper
+      const archivedId = await getArchivedTemplateId(page, description);
+      expect(archivedId).toBeTruthy();
+      // Linked transaction still exists — ensure transaction still loads
+      await openTransactionForEdit(page, id!);
+      await expect(page.getByTestId("description-input")).toHaveValue(description);
     } finally {
       if (id) {
         await deleteTransaction(page, id);
@@ -288,7 +301,7 @@ test.describe("scheduled template editing", () => {
       await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
     } finally {
       if (id) {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
         await deleteTransaction(page, id);
       }
     }
@@ -312,7 +325,7 @@ test.describe("scheduled template editing", () => {
       await expect(page.getByTestId("expense-radio-item")).toHaveAttribute("data-selected", "true");
     } finally {
       if (id) {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
         await deleteTransaction(page, id);
       }
     }
@@ -341,7 +354,7 @@ test.describe("scheduled template editing", () => {
       await expect(page.getByTestId("description-input")).toHaveValue(updated);
     } finally {
       if (id) {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
         await deleteTransaction(page, id);
       }
     }
@@ -362,14 +375,14 @@ test.describe("scheduled template editing", () => {
       await expect(page).toHaveURL(/\/finances\/scheduled$/);
     } finally {
       if (id) {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
         await deleteTransaction(page, id);
       }
     }
   });
 
-  test("delete from edit page with confirmation", async ({ page }) => {
-    const description = "Delete from edit test";
+  test("archive from edit page with confirmation", async ({ page }) => {
+    const description = "Archive from edit test";
     let id: string | undefined;
 
     try {
@@ -379,13 +392,16 @@ test.describe("scheduled template editing", () => {
       const templateId = await getScheduledTemplateId(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
-      await page.getByRole("button", { name: "Delete Schedule" }).click();
-      await expect(page.getByText("Delete this scheduled transaction?")).toBeVisible();
+      await page.getByRole("button", { name: "Archive Schedule" }).click();
+      await expect(page.getByText("Archive this scheduled transaction?")).toBeVisible();
 
-      await page.getByRole("button", { name: "Delete", exact: true }).click();
+      await page.getByRole("button", { name: "Archive", exact: true }).click();
       await page.waitForURL(/\/finances\/scheduled$/);
 
       await expect(page.getByRole("listitem").filter({ hasText: description })).toHaveCount(0);
+      // Verify archived
+      await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+      await expect(page.getByRole("listitem").filter({ hasText: description })).toBeVisible();
     } finally {
       if (id) {
         await deleteTransaction(page, id);
@@ -393,8 +409,8 @@ test.describe("scheduled template editing", () => {
     }
   });
 
-  test("delete confirmation Cancel dismisses dialog", async ({ page }) => {
-    const description = "Delete cancel test";
+  test("archive confirmation Cancel dismisses dialog", async ({ page }) => {
+    const description = "Archive cancel test";
     let id: string | undefined;
 
     try {
@@ -404,17 +420,17 @@ test.describe("scheduled template editing", () => {
       const templateId = await getScheduledTemplateId(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
-      await page.getByRole("button", { name: "Delete Schedule" }).click();
-      await page.getByText("Delete this scheduled transaction?").waitFor();
+      await page.getByRole("button", { name: "Archive Schedule" }).click();
+      await page.getByText("Archive this scheduled transaction?").waitFor();
       await page
-        .getByLabel("Delete this scheduled")
+        .getByLabel("Archive this scheduled")
         .getByRole("button", { name: "Cancel" })
         .click();
-      await expect(page.getByText("Delete this scheduled transaction?")).toHaveCount(0);
+      await expect(page.getByText("Archive this scheduled transaction?")).toHaveCount(0);
       await expect(page).toHaveURL(new RegExp(`/finances/scheduled/${templateId}`));
     } finally {
       if (id) {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
         await deleteTransaction(page, id);
       }
     }
@@ -438,7 +454,7 @@ test.describe("scheduled template editing", () => {
       await expect(page.getByText("1/3 occurrences")).toBeVisible();
     } finally {
       if (id) {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
         await deleteTransaction(page, id);
       }
     }
@@ -464,7 +480,7 @@ test.describe("scheduled template editing", () => {
       await expect(page.getByText("Paused", { exact: true })).toBeVisible();
     } finally {
       if (id) {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
         await deleteTransaction(page, id);
       }
     }
@@ -490,7 +506,7 @@ test.describe("scheduled template editing", () => {
       await expect(page.getByText("Category", { exact: true })).toBeVisible();
     } finally {
       if (id) {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
         await deleteTransaction(page, id);
       }
     }
