@@ -270,7 +270,7 @@ export const getTransactionById = async (id: string) => {
           dayOfMonth: true,
           endDate: true,
           maxOccurrences: true,
-          isActive: true,
+          status: true,
           _count: { select: { transactions: true } },
         },
       },

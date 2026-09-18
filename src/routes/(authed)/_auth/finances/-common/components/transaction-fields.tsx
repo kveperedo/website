@@ -16,9 +16,11 @@ import { CategoryToggleGroupItem } from "./category-toggle";
 function DescriptionField<TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
+  isDisabled?: boolean;
 }) {
   return (
     <Controller
@@ -27,7 +29,7 @@ function DescriptionField<TFieldValues extends FieldValues>({
       render={({ field, fieldState }) => (
         <Field>
           <FieldLabel className="text-sm tracking-wide text-foreground">Description</FieldLabel>
-          <Input data-testid="description-input" {...field} />
+          <Input data-testid="description-input" {...field} disabled={isDisabled} />
           {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
         </Field>
       )}
@@ -38,9 +40,11 @@ function DescriptionField<TFieldValues extends FieldValues>({
 function AmountField<TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
+  isDisabled?: boolean;
 }) {
   return (
     <Controller
@@ -55,6 +59,7 @@ function AmountField<TFieldValues extends FieldValues>({
             id={name}
             type="number"
             inputMode="decimal"
+            disabled={isDisabled}
             value={field.value || ""}
             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
             onBlur={field.onBlur}
@@ -70,9 +75,11 @@ function AmountField<TFieldValues extends FieldValues>({
 function DateField<TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
+  isDisabled?: boolean;
 }) {
   return (
     <Controller
@@ -83,6 +90,7 @@ function DateField<TFieldValues extends FieldValues>({
           <FieldLabel className="text-sm tracking-wide text-foreground">Date</FieldLabel>
           <DatePicker
             aria-label="Date"
+            isDisabled={isDisabled}
             value={field.value ? new Date(field.value) : undefined}
             onChange={(date) => {
               if (!date) {
@@ -106,9 +114,11 @@ function DateField<TFieldValues extends FieldValues>({
 function TypeField<TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
+  isDisabled?: boolean;
 }) {
   return (
     <Controller
@@ -117,7 +127,12 @@ function TypeField<TFieldValues extends FieldValues>({
       render={({ field: typeField, fieldState }) => (
         <Field>
           <FieldLabel className="text-sm tracking-wide text-foreground">Type</FieldLabel>
-          <RadioGroup value={typeField.value} onChange={typeField.onChange} className="flex gap-4">
+          <RadioGroup
+            value={typeField.value}
+            onChange={typeField.onChange}
+            className="flex gap-4"
+            isDisabled={isDisabled}
+          >
             <div className="flex items-center gap-2">
               <RadioGroupItem
                 value="expense"
@@ -155,9 +170,11 @@ function TypeField<TFieldValues extends FieldValues>({
 function CategoryField<TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
+  isDisabled?: boolean;
 }) {
   return (
     <Controller
@@ -169,6 +186,7 @@ function CategoryField<TFieldValues extends FieldValues>({
           <ToggleGroup
             selectedKeys={catField.value ? [catField.value] : []}
             onSelectionChange={(v) => catField.onChange(([...v][0] || null) as TransactionCategory)}
+            isDisabled={isDisabled}
             variant="outline"
             className="flex flex-wrap gap-2"
           >

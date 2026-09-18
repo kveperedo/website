@@ -8,7 +8,7 @@ import { resetDatabase, seedDatabase, seedNetCardScenario } from "../helpers/dat
 import {
   createScheduledTransaction,
   createTransaction,
-  deleteScheduledTransactionTemplate,
+  archiveScheduledTransactionTemplate,
   deleteTransaction,
   deleteTransactionByDescription,
   getScheduledTemplateId,
@@ -73,7 +73,7 @@ async function createFutureScheduled(page: import("@playwright/test").Page, desc
 
 async function cleanupBreakdown(page: import("@playwright/test").Page, description?: string) {
   if (description) {
-    await deleteScheduledTransactionTemplate(page, description);
+    await archiveScheduledTransactionTemplate(page, description);
     await deleteTransactionByDescription(page, description);
   }
   await resetDatabase(page);
@@ -197,7 +197,7 @@ test.describe("scheduled expense projection in summary net card", () => {
       await expect(page.getByText("Expenses are 58% of income")).toBeVisible();
     } finally {
       try {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
       } finally {
         await deleteTransactionByDescription(page, description);
         await resetDatabase(page);
@@ -242,7 +242,7 @@ test.describe("scheduled expense projection in summary net card", () => {
       await expect(actual).toHaveAttribute("style", /var\(--color-emerald-400\)/);
     } finally {
       try {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
       } finally {
         await deleteTransactionByDescription(page, description);
         await resetDatabase(page);
@@ -251,7 +251,7 @@ test.describe("scheduled expense projection in summary net card", () => {
     }
   });
 
-  test("reverts to single-segment after deleting scheduled template", async ({ page }) => {
+  test("reverts to single-segment after archiving scheduled template", async ({ page }) => {
     const description = `Revert E2E ${Date.now()}`;
     const futureDay = await getFutureDayOfMonth(page);
 
@@ -263,7 +263,7 @@ test.describe("scheduled expense projection in summary net card", () => {
       await gotoAndWaitForHydration(page, "/finances");
       await expect(page.getByTestId("expense-progress-projected")).toBeVisible();
 
-      await deleteScheduledTransactionTemplate(page, description);
+      await archiveScheduledTransactionTemplate(page, description);
       await deleteTransactionByDescription(page, description);
 
       await gotoAndWaitForHydration(page, "/finances");
@@ -275,7 +275,7 @@ test.describe("scheduled expense projection in summary net card", () => {
       await expect(page.getByTestId("expense-progress-single")).toBeVisible();
     } finally {
       try {
-        await deleteScheduledTransactionTemplate(page, description);
+        await archiveScheduledTransactionTemplate(page, description);
       } finally {
         await deleteTransactionByDescription(page, description);
         await resetDatabase(page);
@@ -361,7 +361,7 @@ test.describe("expense breakdown label in summary net card", () => {
     }
   });
 
-  test("shows projected amount beside current expenses and reverts after delete", async ({
+  test("shows projected amount beside current expenses and reverts after archive", async ({
     page,
   }) => {
     const description = `Breakdown E2E ${Date.now()}`;
@@ -396,7 +396,7 @@ test.describe("expense breakdown label in summary net card", () => {
       await expect(label).not.toContainText("scheduled");
 
       // revert: delete template and verify breakdown returns to baseline
-      await deleteScheduledTransactionTemplate(page, description);
+      await archiveScheduledTransactionTemplate(page, description);
       await deleteTransactionByDescription(page, description);
       await gotoAndWaitForHydration(page, "/finances");
       await expect(label).toHaveText(`${formatCurrency(500)} / ${formatCurrency(1000)}`);

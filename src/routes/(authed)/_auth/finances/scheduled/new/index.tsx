@@ -24,7 +24,7 @@ const DEFAULT_VALUES: ScheduledFormEditData = {
   startDate: todayDateOnly(),
   dayOfMonth: new Date().getDate(),
   endType: "none",
-  isActive: true,
+  status: "active",
 };
 
 export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/new/")({
@@ -56,7 +56,7 @@ function RouteComponent() {
           dayOfMonth: data.dayOfMonth,
           endDate: data.endType === "date" ? (data.endDate ?? null) : null,
           maxOccurrences: data.endType === "count" ? (data.maxOccurrences ?? null) : null,
-          isActive: data.isActive,
+          status: data.status,
         },
       });
       await router.invalidate({ sync: true });

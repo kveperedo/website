@@ -19,16 +19,18 @@ function DatePicker({
   "aria-label": ariaLabel,
   value,
   onChange,
+  isDisabled,
 }: {
   "aria-label"?: string;
   value?: Date;
   onChange?: (date: Date | undefined) => void;
+  isDisabled?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
 
   return (
     <PopoverTrigger isOpen={open} onOpenChange={setOpen}>
-      <Button variant="outline" aria-label={ariaLabel}>
+      <Button variant="outline" aria-label={ariaLabel} isDisabled={isDisabled}>
         <CalendarIcon data-icon="inline-start" />
         {value ? format(value, "PPP") : <span className="text-muted-foreground">Pick a date</span>}
       </Button>

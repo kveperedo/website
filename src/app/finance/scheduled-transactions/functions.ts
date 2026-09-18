@@ -10,8 +10,10 @@ import {
 import { authMiddleware } from "../../auth/middleware";
 import { createRateLimitMiddleware } from "../../infra/rate-limit/middleware";
 import {
+  archiveScheduledTransactionTemplate,
   createStandaloneScheduledTransactionTemplate,
-  deleteScheduledTransactionTemplate,
+  getArchivedScheduledTransactionTemplates,
+  getArchivedScheduledTransactionTemplatesCount,
   getScheduledExpensesForCurrentMonth,
   getScheduledTransactionTemplateById,
   getScheduledTransactionTemplates,
@@ -47,11 +49,23 @@ export const createScheduledTransactionTemplateFn = createServerFn({ method: "PO
     return await createScheduledTransactionTemplate(data.id, data.schedule);
   });
 
-export const deleteScheduledTransactionTemplateFn = createServerFn({ method: "POST" })
+export const archiveScheduledTransactionTemplateFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
   .validator(z.uuid())
   .handler(async ({ data }) => {
-    return await deleteScheduledTransactionTemplate(data);
+    return await archiveScheduledTransactionTemplate(data);
+  });
+
+export const getArchivedScheduledTransactionTemplatesFn = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async () => {
+    return await getArchivedScheduledTransactionTemplates();
+  });
+
+export const getArchivedScheduledTransactionTemplatesCountFn = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async () => {
+    return await getArchivedScheduledTransactionTemplatesCount();
   });
 
 export const getScheduledTransactionTemplateByIdFn = createServerFn()

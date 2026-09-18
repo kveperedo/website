@@ -28,8 +28,8 @@ export function requireE2EAvailable() {
 }
 
 async function clearTestData(db: DbTransactionClient) {
-  await db.scheduledTransactionTemplate.deleteMany();
   await db.transaction.deleteMany();
+  await db.scheduledTransactionTemplate.deleteMany();
   await db.financePreferences.deleteMany({ where: { id: "default" } });
 }
 
@@ -95,7 +95,7 @@ async function seedDefaultTestData(db: DbTransactionClient) {
       dayOfMonth: today.getUTCDate(),
       startDate: dueScheduleDate,
       maxOccurrences: 2,
-      isActive: false,
+      status: "paused",
     },
   });
   await db.transaction.createMany({
@@ -120,7 +120,7 @@ async function seedDefaultTestData(db: DbTransactionClient) {
   });
   await db.scheduledTransactionTemplate.update({
     where: { id: template.id },
-    data: { isActive: true },
+    data: { status: "active" },
   });
 
   await db.scheduledTransactionTemplate.create({

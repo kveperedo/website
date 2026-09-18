@@ -1,8 +1,9 @@
 import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { ArchiveIcon } from "lucide-react";
 import { useState } from "react";
 
-import { deleteScheduledTransactionTemplateFn } from "@/app/finance/scheduled-transactions/functions";
+import { archiveScheduledTransactionTemplateFn } from "@/app/finance/scheduled-transactions/functions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,42 +19,49 @@ import { Spinner } from "@/components/ui/spinner";
 
 import { Route } from "../..";
 
-export const DeleteTemplateButton = () => {
+export const ArchiveTemplateButton = () => {
   const { template } = Route.useLoaderData();
   const router = useRouter();
-  const deleteTemplate = useServerFn(deleteScheduledTransactionTemplateFn);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const archiveTemplate = useServerFn(archiveScheduledTransactionTemplateFn);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const isArchived = template.status === "archived";
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
+  const handleArchive = async () => {
+    setIsArchiving(true);
     try {
-      await deleteTemplate({ data: template.id });
+      await archiveTemplate({ data: template.id });
       await router.invalidate({ sync: true });
       router.navigate({ to: "/finances/scheduled" });
     } catch {
       // TODO: Add snackbar for error
     } finally {
-      setIsDeleting(false);
+      setIsArchiving(false);
     }
   };
 
+  if (isArchived) {
+    return null;
+  }
+
   return (
     <AlertDialogTrigger>
-      <Button variant="destructive" isDisabled={isDeleting}>
-        Delete Schedule
+      <Button variant="outline" isDisabled={isArchiving}>
+        <ArchiveIcon data-icon="inline-start" />
+        Archive Schedule
       </Button>
       <AlertDialog>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this scheduled transaction?</AlertDialogTitle>
+          <AlertDialogTitle>Archive this scheduled transaction?</AlertDialogTitle>
           <AlertDialogDescription>
-            Past transactions will be kept. No future instances will be generated.
+            Past transactions will be kept. No future instances will be generated. Find it in
+            Archived.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" isDisabled={isDeleting} onPress={handleDelete}>
-            {isDeleting && <Spinner data-icon="inline-start" />}
-            Delete
+          <AlertDialogAction isDisabled={isArchiving} onPress={handleArchive}>
+            {isArchiving && <Spinner data-icon="inline-start" />}
+            Archive
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialog>

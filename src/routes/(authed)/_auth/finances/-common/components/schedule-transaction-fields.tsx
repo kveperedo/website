@@ -11,11 +11,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 type CommonFieldProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
+  isDisabled?: boolean;
 };
 
 export const DayOfMonthField = <TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: CommonFieldProps<TFieldValues>) => {
   return (
     <Controller
@@ -33,6 +35,7 @@ export const DayOfMonthField = <TFieldValues extends FieldValues>({
               inputMode="numeric"
               min={1}
               max={31}
+              disabled={isDisabled}
               value={field.value ?? ""}
               onChange={(event) => field.onChange(parseInt(event.target.value, 10) || 0)}
             />
@@ -52,6 +55,7 @@ export const DayOfMonthField = <TFieldValues extends FieldValues>({
 export const EndTypeField = <TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: CommonFieldProps<TFieldValues>) => {
   return (
     <Controller
@@ -66,6 +70,7 @@ export const EndTypeField = <TFieldValues extends FieldValues>({
             aria-labelledby={`${name}-label`}
             value={field.value}
             onChange={field.onChange}
+            isDisabled={isDisabled}
           >
             <RadioGroupItem value="none">Never</RadioGroupItem>
             <RadioGroupItem value="date">On date</RadioGroupItem>
@@ -80,6 +85,7 @@ export const EndTypeField = <TFieldValues extends FieldValues>({
 export const StartDateField = <TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: CommonFieldProps<TFieldValues>) => {
   return (
     <Controller
@@ -92,6 +98,7 @@ export const StartDateField = <TFieldValues extends FieldValues>({
             aria-label="Start date"
             value={field.value ? parseISO(field.value) : undefined}
             onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : undefined)}
+            isDisabled={isDisabled}
           />
           {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
         </Field>
@@ -103,6 +110,7 @@ export const StartDateField = <TFieldValues extends FieldValues>({
 export const EndDateField = <TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: CommonFieldProps<TFieldValues>) => {
   return (
     <Controller
@@ -115,6 +123,7 @@ export const EndDateField = <TFieldValues extends FieldValues>({
             aria-label="End date"
             value={field.value ? parseISO(field.value) : undefined}
             onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : undefined)}
+            isDisabled={isDisabled}
           />
           {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
         </Field>
@@ -126,6 +135,7 @@ export const EndDateField = <TFieldValues extends FieldValues>({
 export const MaxOccurrencesField = <TFieldValues extends FieldValues>({
   control,
   name,
+  isDisabled,
 }: CommonFieldProps<TFieldValues>) => {
   return (
     <Controller
@@ -141,6 +151,7 @@ export const MaxOccurrencesField = <TFieldValues extends FieldValues>({
             type="number"
             inputMode="numeric"
             min={1}
+            disabled={isDisabled}
             value={field.value ?? ""}
             onChange={(event) => field.onChange(parseInt(event.target.value, 10) || 0)}
           />
