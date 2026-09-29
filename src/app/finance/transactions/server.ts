@@ -18,6 +18,14 @@ import {
 } from "../local-date";
 import { createScheduledTransaction } from "../scheduled-transactions/server";
 import { createTransaction } from "./creation.server";
+import {
+  embedTransactionDescriptions,
+  findExactTransactionMemory,
+  findClosestTransactionMemories,
+  normalizeTransactionDescription,
+  incrementTransactionMemoryUseCount,
+  upsertTransactionMemories,
+} from "./memory.server";
 
 export const getRecentTransactions = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
@@ -167,6 +175,57 @@ export const getCategoryTrends = async () => {
   }, []);
 };
 
+const enrichTransactionsWithMemory = async (
+  transactions: Array<TransactionItemAIType>,
+): Promise<Array<TransactionItemAIType>> => {
+  try {
+    const normalizedDescriptionList = transactions.map((tx) =>
+      normalizeTransactionDescription(tx.description),
+    );
+    const exactMatches = await findExactTransactionMemory(
+      normalizedDescriptionList.filter((value) => value.length > 0),
+    );
+
+    const pending = new Map<number, string>();
+    transactions.forEach((tx, index) => {
+      const hit = exactMatches.get(normalizedDescriptionList[index]);
+      if (hit && normalizedDescriptionList[index].length > 0) {
+        tx.type = hit.type;
+        tx.category = hit.category;
+        void incrementTransactionMemoryUseCount(hit.id).catch((err) => {
+          console.error("Transaction memory touch failed:", err);
+        });
+      } else if (normalizedDescriptionList[index].length > 0) {
+        pending.set(index, normalizedDescriptionList[index]);
+      }
+    });
+
+    if (pending.size > 0) {
+      const indexes = [...pending.keys()];
+      const vectors = await embedTransactionDescriptions(
+        indexes.map((index) => pending.get(index)!),
+      );
+      const matches = await findClosestTransactionMemories(vectors);
+      for (const [i, index] of indexes.entries()) {
+        const match = matches[i];
+        if (match) {
+          const tx = transactions[index];
+          tx.type = match.type;
+          tx.category = match.category;
+          void incrementTransactionMemoryUseCount(match.id).catch((err) => {
+            console.error("Transaction memory touch failed:", err);
+          });
+        }
+      }
+    }
+
+    return transactions;
+  } catch (err) {
+    console.error("Transaction memory lookup failed, using AI result:", err);
+    return transactions;
+  }
+};
+
 export const parseTransactions = async (
   items: Array<string>,
   localDate: string,
@@ -217,7 +276,7 @@ Examples:
     throw new Error("Failed to parse transactions");
   }
 
-  return z
+  const parsed = z
     .array(TransactionItemAISchema)
     .parse(parsedResult)
     .map((tx) => ({
@@ -227,10 +286,37 @@ Examples:
         allowedAttributes: {},
       }),
     }));
+
+  return await enrichTransactionsWithMemory(parsed);
 };
 
 type CreateTransactionsInput = Omit<TransactionInputType, "template" | "templateId"> & {
   schedule?: ScheduledTransactionInput;
+};
+
+const rememberTransactions = async (
+  data: Array<Pick<CreateTransactionsInput, "description" | "type" | "category">>,
+): Promise<void> => {
+  try {
+    const entries = data
+      .map((transaction) => ({
+        normalizedDescription: normalizeTransactionDescription(transaction.description),
+        type: transaction.type,
+        category: transaction.type === "income" ? null : (transaction.category ?? null),
+      }))
+      .filter((entry) => entry.normalizedDescription.length > 0);
+    if (entries.length === 0) {
+      return;
+    }
+    const vectors = await embedTransactionDescriptions(
+      entries.map((entry) => entry.normalizedDescription),
+    );
+    await upsertTransactionMemories(
+      entries.map((entry, index) => ({ ...entry, embedding: vectors[index] })),
+    );
+  } catch (err) {
+    console.error("Transaction memory update failed:", err);
+  }
 };
 
 export const createTransactions = async (data: Array<CreateTransactionsInput>) => {
@@ -246,6 +332,8 @@ export const createTransactions = async (data: Array<CreateTransactionsInput>) =
       }),
     );
 
+    await rememberTransactions(data);
+
     return { count: result.count };
   }
 
@@ -258,6 +346,8 @@ export const createTransactions = async (data: Array<CreateTransactionsInput>) =
       }
     }
   });
+
+  await rememberTransactions(data);
 
   return { count: data.length };
 };
@@ -300,6 +390,14 @@ export const updateTransaction = async (id: string, data: TransactionInputType) 
       transactedAt: data.transactedAt,
     },
   });
+
+  await rememberTransactions([
+    {
+      description: data.description,
+      type: data.type,
+      category: data.type === "income" ? null : (data.category ?? null),
+    },
+  ]);
 
   return { ...transaction, amount: transaction.amount.toNumber() };
 };

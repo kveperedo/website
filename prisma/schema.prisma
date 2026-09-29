@@ -78,6 +78,20 @@ model Transaction {
   @@map("transactions")
 }
 
+model TransactionMemory {
+  id                    String               @id @default(uuid()) @db.Uuid
+  normalizedDescription String               @unique @map("normalized_description")
+  embedding             Unsupported("vector(1536)")? @map("embedding")
+  type                  TransactionType      @default(expense)
+  category              TransactionCategory?
+  useCount              Int                  @default(1) @map("use_count")
+  lastUsedAt            DateTime             @default(now()) @map("last_used_at") @db.Timestamptz(6)
+  createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("transaction_memories")
+}
+
 model FinancePreferences {
   id                              String              @id
   categoryTrendsVisibleCategories TransactionCategory[] @default([]) @map("category_trends_visible_categories")
