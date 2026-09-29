@@ -18,6 +18,14 @@ import {
 } from "../local-date";
 import { createScheduledTransaction } from "../scheduled-transactions/server";
 import { createTransaction } from "./creation.server";
+import {
+  embedTransactionDescriptions,
+  findExactTransactionMemory,
+  findClosestTransactionMemories,
+  normalizeTransactionDescription,
+  incrementTransactionMemoryUseCount,
+  upsertTransactionMemories,
+} from "./memory.server";
 
 export const getRecentTransactions = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
@@ -167,30 +175,82 @@ export const getCategoryTrends = async () => {
   }, []);
 };
 
+const enrichTransactionsWithMemory = async (
+  transactions: Array<TransactionItemAIType>,
+): Promise<Array<TransactionItemAIType>> => {
+  try {
+    const normalizedDescriptionList = transactions.map((tx) =>
+      normalizeTransactionDescription(tx.description),
+    );
+    const exactMatches = await findExactTransactionMemory(
+      normalizedDescriptionList.filter((value) => value.length > 0),
+    );
+
+    const pending = new Map<number, string>();
+    transactions.forEach((tx, index) => {
+      const hit = exactMatches.get(normalizedDescriptionList[index]);
+      if (hit && normalizedDescriptionList[index].length > 0) {
+        tx.type = hit.type;
+        tx.category = hit.category;
+        void incrementTransactionMemoryUseCount(hit.id).catch((err) => {
+          console.error("Transaction memory touch failed:", err);
+        });
+      } else if (normalizedDescriptionList[index].length > 0) {
+        pending.set(index, normalizedDescriptionList[index]);
+      }
+    });
+
+    if (pending.size > 0) {
+      const indexes = [...pending.keys()];
+      const vectors = await embedTransactionDescriptions(
+        indexes.map((index) => pending.get(index)!),
+      );
+      const matches = await findClosestTransactionMemories(vectors);
+      for (const [i, index] of indexes.entries()) {
+        const match = matches[i];
+        if (match) {
+          const tx = transactions[index];
+          tx.type = match.type;
+          tx.category = match.category;
+          void incrementTransactionMemoryUseCount(match.id).catch((err) => {
+            console.error("Transaction memory touch failed:", err);
+          });
+        }
+      }
+    }
+
+    return transactions;
+  } catch (err) {
+    console.error("Transaction memory lookup failed, using AI result:", err);
+    return transactions;
+  }
+};
+
 export const parseTransactions = async (
-  text: string,
+  items: Array<string>,
   localDate: string,
 ): Promise<Array<TransactionItemAIType>> => {
   let parsedResult: Array<TransactionItemAIType> | null = null;
 
+  const numberedItems = items.map((item, index) => `${index + 1}. ${item}`).join("\n");
+
   const parseTransactionsTool = tool({
     name: "parse_transactions",
-    description: `Extract all transactions from a description. Returns an array — one entry per transaction mentioned.
+    description: `Extract all transactions from a description. Returns an array — one entry per numbered input line, in the same order.
 
-Splitting rules:
-- Each new line typically represents a separate transaction.
-- If a single line contains multiple amounts (e.g. "lunch 150 and grab 200"), split into separate transactions — one per amount.
-- When both signals are present, prefer the one that produces more transactions (don't merge what should be separate).
+Rules:
+- Each numbered input line is exactly one transaction — never merge lines and never split a line into multiple transactions.
+- Preserve the original text in description — do not paraphrase or reword. Only fix typos (and only if you're highly confident). Remove raw numbers (amount field captures them). Preserve merchant/vendor names when present.
 
 Examples:
-- "lunch at jollibee for 150" → 1 transaction
-- "lunch 150\\ngrab home 200" → 2 transactions (line break)
-- "lunch 150 and grab home 200" → 2 transactions (two amounts)
-- "groceries 800, gas 500, Netflix 200" → 3 transactions`,
+- "1. lunch at jollibee for 150" → 1 transaction
+- "1. lunch 150\\n2. grab home 200" → 2 transactions (same order)`,
     parameters: z.object({
       transactions: z
         .array(TransactionItemAISchema)
-        .describe("All transactions found in the input. Single transaction = array of one."),
+        .describe(
+          "All transactions found in the input, one per numbered input line in the same order.",
+        ),
     }),
     execute: async ({ transactions }) => {
       parsedResult = transactions;
@@ -206,7 +266,7 @@ Examples:
   });
 
   try {
-    await run(agent, text);
+    await run(agent, numberedItems);
   } catch (err) {
     console.error("OpenAI parsing failed:", err);
     throw new Error("Failed to parse transactions with AI. Please try again.");
@@ -216,7 +276,7 @@ Examples:
     throw new Error("Failed to parse transactions");
   }
 
-  return z
+  const parsed = z
     .array(TransactionItemAISchema)
     .parse(parsedResult)
     .map((tx) => ({
@@ -226,10 +286,37 @@ Examples:
         allowedAttributes: {},
       }),
     }));
+
+  return await enrichTransactionsWithMemory(parsed);
 };
 
 type CreateTransactionsInput = Omit<TransactionInputType, "template" | "templateId"> & {
   schedule?: ScheduledTransactionInput;
+};
+
+const rememberTransactions = async (
+  data: Array<Pick<CreateTransactionsInput, "description" | "type" | "category">>,
+): Promise<void> => {
+  try {
+    const entries = data
+      .map((transaction) => ({
+        normalizedDescription: normalizeTransactionDescription(transaction.description),
+        type: transaction.type,
+        category: transaction.type === "income" ? null : (transaction.category ?? null),
+      }))
+      .filter((entry) => entry.normalizedDescription.length > 0);
+    if (entries.length === 0) {
+      return;
+    }
+    const vectors = await embedTransactionDescriptions(
+      entries.map((entry) => entry.normalizedDescription),
+    );
+    await upsertTransactionMemories(
+      entries.map((entry, index) => ({ ...entry, embedding: vectors[index] })),
+    );
+  } catch (err) {
+    console.error("Transaction memory update failed:", err);
+  }
 };
 
 export const createTransactions = async (data: Array<CreateTransactionsInput>) => {
@@ -245,6 +332,8 @@ export const createTransactions = async (data: Array<CreateTransactionsInput>) =
       }),
     );
 
+    await rememberTransactions(data);
+
     return { count: result.count };
   }
 
@@ -257,6 +346,8 @@ export const createTransactions = async (data: Array<CreateTransactionsInput>) =
       }
     }
   });
+
+  await rememberTransactions(data);
 
   return { count: data.length };
 };
@@ -299,6 +390,15 @@ export const updateTransaction = async (id: string, data: TransactionInputType) 
       transactedAt: data.transactedAt,
     },
   });
+
+  await rememberTransactions([
+    {
+      description: data.description,
+      type: data.type,
+      category: data.type === "income" ? null : (data.category ?? null),
+    },
+  ]);
+
   return { ...transaction, amount: transaction.amount.toNumber() };
 };
 

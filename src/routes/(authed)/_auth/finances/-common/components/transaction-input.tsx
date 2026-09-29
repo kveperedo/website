@@ -1,16 +1,18 @@
 "use client";
 
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowUpIcon } from "lucide-react";
+import { CheckIcon, PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
 import type { TransactionItemAIType } from "@/schema/transaction";
 
 import { todayDateOnly } from "@/app/finance/local-date";
 import { parseTransactionWithAIFn } from "@/app/finance/transactions/functions";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
 
 type TransactionInputProps = {
   autoFocus?: boolean;
@@ -19,22 +21,46 @@ type TransactionInputProps = {
   onParsed: (transactions: Array<TransactionItemAIType>) => void;
 };
 
+const splitEntries = (text: string): Array<string> =>
+  text
+    .split("\n")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
 function TransactionInput({ autoFocus, onParsed, onValueChange, value }: TransactionInputProps) {
   const parseTransactionWithAI = useServerFn(parseTransactionWithAIFn);
 
+  const [entries, setEntries] = useState<Array<string>>([]);
   const [isParsing, setIsParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const commitEntry = () => {
+    const entry = value.trim();
+    if (entry.length === 0) {
+      return;
+    }
+    setEntries((prev) => [...prev, entry]);
+    onValueChange("");
+  };
+
+  const removeEntry = (index: number) => {
+    setEntries((prev) => prev.filter((_, entryIndex) => entryIndex !== index));
+  };
+
   const handleParse = async () => {
-    if (!value.trim()) {
+    const draft = value.trim();
+    const items = draft.length > 0 ? [...entries, draft] : entries;
+    if (items.length === 0) {
       return;
     }
     setIsParsing(true);
     setError(null);
     try {
       const result = await parseTransactionWithAI({
-        data: { text: value, localDate: todayDateOnly() },
+        data: { items, localDate: todayDateOnly() },
       });
+      setEntries([]);
+      onValueChange("");
       onParsed(result);
     } catch {
       setError("Failed to parse transactions. Please try again.");
@@ -44,25 +70,90 @@ function TransactionInput({ autoFocus, onParsed, onValueChange, value }: Transac
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <FieldError>{error}</FieldError>}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <p
+            id="transaction-queue-hint"
+            aria-live="polite"
+            className="font-mono text-xs text-muted-foreground"
+          >
+            {entries.length > 0
+              ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} queued`
+              : "Press enter or + button to add an entry"}
+          </p>
+          <Button
+            size="sm"
+            data-testid="parse-transaction"
+            onPress={handleParse}
+            isDisabled={entries.length === 0 || isParsing}
+            className="shrink-0"
+          >
+            {isParsing ? <Spinner data-icon="inline-start" /> : <CheckIcon />}
+            Save
+          </Button>
+        </div>
+        {entries.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {entries.map((entry, index) => (
+              <Badge
+                key={`${index}-${entry}`}
+                variant="secondary"
+                className="h-auto max-w-full py-1 font-mono normal-case"
+              >
+                <span className="min-w-0 flex-1 break-words whitespace-normal">{entry}</span>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={`Remove entry ${index + 1}`}
+                  onPress={() => removeEntry(index)}
+                  className="shrink-0"
+                >
+                  <XIcon className="size-3" />
+                </Button>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="relative">
-        <Textarea
-          rows={1}
+        <Input
           autoFocus={autoFocus}
-          className="max-h-40 min-h-10 resize-none overflow-y-auto border-none py-3.5 pr-10"
+          aria-label="New transaction entry"
+          aria-describedby="transaction-queue-hint"
+          className="h-auto py-3.5 pr-10"
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitEntry();
+            } else if (e.key === "Backspace" && value === "" && entries.length > 0) {
+              removeEntry(entries.length - 1);
+            }
+          }}
+          onPaste={(e) => {
+            const text = e.clipboardData.getData("text");
+            if (text.includes("\n")) {
+              e.preventDefault();
+              const next = splitEntries(text);
+              if (next.length > 0) {
+                setEntries((prev) => [...prev, ...next]);
+              }
+            }
+          }}
           placeholder="Add transaction..."
           disabled={isParsing}
         />
         <Button
+          variant="ghost"
           size="icon-sm"
-          data-testid="parse-transaction"
-          className="absolute right-2.25 bottom-2.25 size-9 md:right-1.75 md:bottom-1.75 md:size-8"
-          onPress={handleParse}
-          isDisabled={!value.trim() || isParsing}
+          aria-label="Queue entry"
+          className="absolute top-1/2 right-1.75 size-8 -translate-y-1/2"
+          onPress={commitEntry}
+          isDisabled={value.trim().length === 0 || isParsing}
         >
-          {isParsing ? <Spinner /> : <ArrowUpIcon />}
+          <PlusIcon />
         </Button>
       </div>
     </div>
