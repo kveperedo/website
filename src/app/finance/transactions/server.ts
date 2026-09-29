@@ -168,29 +168,30 @@ export const getCategoryTrends = async () => {
 };
 
 export const parseTransactions = async (
-  text: string,
+  items: Array<string>,
   localDate: string,
 ): Promise<Array<TransactionItemAIType>> => {
   let parsedResult: Array<TransactionItemAIType> | null = null;
 
+  const numberedItems = items.map((item, index) => `${index + 1}. ${item}`).join("\n");
+
   const parseTransactionsTool = tool({
     name: "parse_transactions",
-    description: `Extract all transactions from a description. Returns an array — one entry per transaction mentioned.
+    description: `Extract all transactions from a description. Returns an array — one entry per numbered input line, in the same order.
 
-Splitting rules:
-- Each new line typically represents a separate transaction.
-- If a single line contains multiple amounts (e.g. "lunch 150 and grab 200"), split into separate transactions — one per amount.
-- When both signals are present, prefer the one that produces more transactions (don't merge what should be separate).
+Rules:
+- Each numbered input line is exactly one transaction — never merge lines and never split a line into multiple transactions.
+- Preserve the original text in description — do not paraphrase or reword. Only fix typos (and only if you're highly confident). Remove raw numbers (amount field captures them). Preserve merchant/vendor names when present.
 
 Examples:
-- "lunch at jollibee for 150" → 1 transaction
-- "lunch 150\\ngrab home 200" → 2 transactions (line break)
-- "lunch 150 and grab home 200" → 2 transactions (two amounts)
-- "groceries 800, gas 500, Netflix 200" → 3 transactions`,
+- "1. lunch at jollibee for 150" → 1 transaction
+- "1. lunch 150\\n2. grab home 200" → 2 transactions (same order)`,
     parameters: z.object({
       transactions: z
         .array(TransactionItemAISchema)
-        .describe("All transactions found in the input. Single transaction = array of one."),
+        .describe(
+          "All transactions found in the input, one per numbered input line in the same order.",
+        ),
     }),
     execute: async ({ transactions }) => {
       parsedResult = transactions;
@@ -206,7 +207,7 @@ Examples:
   });
 
   try {
-    await run(agent, text);
+    await run(agent, numberedItems);
   } catch (err) {
     console.error("OpenAI parsing failed:", err);
     throw new Error("Failed to parse transactions with AI. Please try again.");
@@ -299,6 +300,7 @@ export const updateTransaction = async (id: string, data: TransactionInputType) 
       transactedAt: data.transactedAt,
     },
   });
+
   return { ...transaction, amount: transaction.amount.toNumber() };
 };
 

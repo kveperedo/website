@@ -84,12 +84,12 @@ export const parseTransactionWithAIFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
   .validator(
     z.object({
-      text: z.string().max(1000, "Input too long — max 1000 characters"),
+      items: z.array(z.string().trim().min(1).max(280)).min(1).max(20),
       localDate: z.iso.date(),
     }),
   )
   .handler(async ({ data }) => {
-    return await parseTransactions(data.text, data.localDate);
+    return await parseTransactions(data.items, data.localDate);
   });
 
 export const createTransactionsFn = createServerFn({ method: "POST" })

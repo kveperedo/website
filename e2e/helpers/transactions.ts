@@ -25,14 +25,21 @@ async function expectParsedDateToBeToday(page: Page) {
   await expect(page.getByRole("button", { name: "Date" })).toContainText(today);
 }
 
+export async function queueTransactionEntry(page: Page, text: string) {
+  const input = page.getByPlaceholder("Add transaction...");
+  await input.fill(text);
+  await input.press("Enter");
+  await expect(page.getByText(/entr(y|ies) queued/)).toBeVisible();
+  await expect(page.getByTestId("parse-transaction")).toBeEnabled();
+}
+
 export async function createTransaction(
   page: Page,
   text: string,
   description = text,
 ): Promise<string> {
   await openTransactionComposer(page);
-  const input = page.getByPlaceholder("Add transaction...");
-  await input.fill(text);
+  await queueTransactionEntry(page, text);
   await page.getByTestId("parse-transaction").click();
 
   await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
@@ -51,8 +58,7 @@ export async function createScheduledTransaction(
   scheduleEnd: ScheduleEnd = { endType: "count", maxOccurrences: 3 },
 ): Promise<string> {
   await openTransactionComposer(page);
-  const input = page.getByPlaceholder("Add transaction...");
-  await input.fill(PARSE_TEXT);
+  await queueTransactionEntry(page, PARSE_TEXT);
   await page.getByTestId("parse-transaction").click();
 
   await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });

@@ -35,6 +35,8 @@ test.describe("transaction mutations", () => {
 
     const input = page.getByPlaceholder("Add transaction...");
     await input.fill("Milk 75");
+    await input.press("Enter");
+    await expect(page.getByText("1 entry queued")).toBeVisible();
     await page.getByTestId("parse-transaction").click();
     await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
 
@@ -43,7 +45,11 @@ test.describe("transaction mutations", () => {
 
     await expect(categoryField).toBeVisible();
 
-    await foodToggle.click();
+    // AI may pre-select Food & Drinks for "Milk 75" — only click when unselected
+    // to avoid toggling an already-selected value off (ToggleGroup allows deselect).
+    if ((await foodToggle.getAttribute("aria-checked")) !== "true") {
+      await foodToggle.click();
+    }
     await expect(foodToggle).toHaveAttribute("aria-checked", "true");
 
     await page.getByTestId("income-radio-item").click();
@@ -111,6 +117,8 @@ test.describe("transaction mutations", () => {
 
       const input = page.getByPlaceholder("Add transaction...");
       await input.fill(`${description} 55`);
+      await input.press("Enter");
+      await expect(page.getByText("1 entry queued")).toBeVisible();
       await page.getByTestId("parse-transaction").click();
       await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
       await descriptionField(page).fill(description);
@@ -510,5 +518,76 @@ test.describe("scheduled template editing", () => {
         await deleteTransaction(page, id);
       }
     }
+  });
+});
+
+test.describe("transaction input queue", () => {
+  test("queuing an entry via Enter shows a badge and enables Save", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await expect(page.getByTestId("parse-transaction")).toBeDisabled();
+
+    await input.fill("Milk 75");
+    await input.press("Enter");
+
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+    await expect(page.getByText("Milk 75", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("parse-transaction")).toBeEnabled();
+  });
+
+  test("queue button adds an entry and X removes it", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.fill("Bread 40");
+    await page.getByRole("button", { name: "Queue entry" }).click();
+
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+    await page.getByRole("button", { name: "Remove entry 1" }).click();
+    await expect(page.getByText("Milk 75", { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId("parse-transaction")).toBeDisabled();
+  });
+
+  test("Backspace on an empty input removes the last queued entry", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.fill("Milk 75");
+    await input.press("Enter");
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+
+    await input.press("Backspace");
+    await expect(page.getByText("Milk 75", { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId("parse-transaction")).toBeDisabled();
+  });
+
+  test("pasting multi-line text splits into multiple queued entries", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    await page.evaluate((text) => {
+      const input = document.querySelector('input[placeholder="Add transaction..."]');
+      if (!input) {
+        throw new Error("Transaction input not found");
+      }
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("text/plain", text);
+      input.dispatchEvent(
+        new ClipboardEvent("paste", {
+          clipboardData: dataTransfer,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    }, "Milk 75\nBread 40");
+
+    await expect(page.getByText("2 entries queued")).toBeVisible();
+    await expect(page.getByText("Milk 75", { exact: true })).toBeVisible();
+    await expect(page.getByText("Bread 40", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("parse-transaction")).toBeEnabled();
   });
 });
