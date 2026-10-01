@@ -1,7 +1,7 @@
 "use client";
 
 import { useServerFn } from "@tanstack/react-start";
-import { CheckIcon, PlusIcon, XIcon } from "lucide-react";
+import { PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
 import type { TransactionItemAIType } from "@/schema/transaction";
@@ -19,6 +19,7 @@ type TransactionInputProps = {
   value: string;
   onValueChange: (value: string) => void;
   onParsed: (transactions: Array<TransactionItemAIType>) => void;
+  onEmptyBackspace?: () => void;
 };
 
 const splitEntries = (text: string): Array<string> =>
@@ -27,7 +28,13 @@ const splitEntries = (text: string): Array<string> =>
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
 
-function TransactionInput({ autoFocus, onParsed, onValueChange, value }: TransactionInputProps) {
+function TransactionInput({
+  autoFocus,
+  onEmptyBackspace,
+  onParsed,
+  onValueChange,
+  value,
+}: TransactionInputProps) {
   const parseTransactionWithAI = useServerFn(parseTransactionWithAIFn);
 
   const [entries, setEntries] = useState<Array<string>>([]);
@@ -68,31 +75,21 @@ function TransactionInput({ autoFocus, onParsed, onValueChange, value }: Transac
     }
   };
 
+  const canSave = entries.length > 0 || value.trim().length > 0;
+
   return (
     <div className="flex w-full flex-col gap-4">
       {error && <FieldError>{error}</FieldError>}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <p
-            id="transaction-queue-hint"
-            aria-live="polite"
-            className="font-mono text-xs text-muted-foreground"
-          >
-            {entries.length > 0
-              ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} queued`
-              : "Press enter or + button to add an entry"}
-          </p>
-          <Button
-            size="sm"
-            data-testid="parse-transaction"
-            onPress={handleParse}
-            isDisabled={entries.length === 0 || isParsing}
-            className="shrink-0"
-          >
-            {isParsing ? <Spinner data-icon="inline-start" /> : <CheckIcon />}
-            Save
-          </Button>
-        </div>
+        <p
+          id="transaction-queue-hint"
+          aria-live="polite"
+          className="font-mono text-xs text-muted-foreground"
+        >
+          {entries.length > 0
+            ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} queued — press + to save`
+            : "Press Enter to queue entries, + to save"}
+        </p>
         {entries.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {entries.map((entry, index) => (
@@ -121,15 +118,26 @@ function TransactionInput({ autoFocus, onParsed, onValueChange, value }: Transac
           autoFocus={autoFocus}
           aria-label="New transaction entry"
           aria-describedby="transaction-queue-hint"
-          className="h-auto py-3.5 pr-10"
+          className="h-auto py-3.5 pr-12"
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              commitEntry();
-            } else if (e.key === "Backspace" && value === "" && entries.length > 0) {
-              removeEntry(entries.length - 1);
+
+              if (value.trim().length === 0 && entries.length > 0) {
+                void handleParse();
+              } else {
+                commitEntry();
+              }
+            } else if (e.key === "Backspace" && value === "" && !e.repeat) {
+              // Ignore auto-repeat so holding Backspace to clear the draft can't
+              // also wipe the queue and close the composer.
+              if (entries.length > 0) {
+                removeEntry(entries.length - 1);
+              } else {
+                onEmptyBackspace?.();
+              }
             }
           }}
           onPaste={(e) => {
@@ -146,14 +154,15 @@ function TransactionInput({ autoFocus, onParsed, onValueChange, value }: Transac
           disabled={isParsing}
         />
         <Button
-          variant="ghost"
+          variant="default"
           size="icon-sm"
-          aria-label="Queue entry"
-          className="absolute top-1/2 right-1.75 size-8 -translate-y-1/2"
-          onPress={commitEntry}
-          isDisabled={value.trim().length === 0 || isParsing}
+          aria-label="Save transactions"
+          data-testid="parse-transaction"
+          className="absolute top-1/2 right-3 size-8 -translate-y-1/2"
+          onPress={handleParse}
+          isDisabled={!canSave || isParsing}
         >
-          <PlusIcon />
+          {isParsing ? <Spinner /> : <PlusIcon />}
         </Button>
       </div>
     </div>

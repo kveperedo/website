@@ -48,6 +48,7 @@ test.describe("dashboard", () => {
 
     const input = page.getByPlaceholder("Add transaction...");
     await expect(input).toBeVisible();
+    await expect(page.getByText("Press Enter to queue entries, + to save")).toBeVisible();
 
     const parseButton = page.getByTestId("parse-transaction");
     await expect(parseButton).toBeDisabled();
@@ -481,7 +482,10 @@ test.describe("dashboard with data", () => {
         ),
       ).toBeVisible();
     }
-    await expect(page.getByText("₱750.00", { exact: true })).toBeVisible();
+    // Scope to the pace history: on the 1st of the month the breakdown also renders ₱750.00.
+    await expect(
+      page.getByTestId("pace-history").getByText("₱750.00", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText(/spent$/)).toHaveCount(0);
   });
 

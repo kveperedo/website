@@ -522,7 +522,7 @@ test.describe("scheduled template editing", () => {
 });
 
 test.describe("transaction input queue", () => {
-  test("queuing an entry via Enter shows a badge and enables Save", async ({ page }) => {
+  test("queuing an entry via Enter shows a badge and enables save", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
     await openTransactionComposer(page);
 
@@ -534,20 +534,52 @@ test.describe("transaction input queue", () => {
 
     await expect(page.getByText("1 entry queued")).toBeVisible();
     await expect(page.getByText("Milk 75", { exact: true })).toBeVisible();
+    await expect(page.getByText(/press \+ to save/i)).toBeVisible();
     await expect(page.getByTestId("parse-transaction")).toBeEnabled();
   });
 
-  test("queue button adds an entry and X removes it", async ({ page }) => {
+  test("typing without queuing enables save for a single entry", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await expect(page.getByTestId("parse-transaction")).toBeDisabled();
+    await expect(page.getByText("Press Enter to queue entries, + to save")).toBeVisible();
+
+    await input.fill("Milk 75");
+    // No Enter pressed — save is enabled directly from the draft.
+    await expect(page.getByText(/queued/)).toHaveCount(0);
+    await expect(page.getByTestId("parse-transaction")).toBeEnabled();
+    await page.getByTestId("parse-transaction").click();
+    await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+  });
+
+  test("save combines a queued entry with the current draft", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.fill("Milk 75");
+    await input.press("Enter");
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+
+    await input.fill("Bread 40");
+    await page.getByTestId("parse-transaction").click();
+    await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+    await expect(page.getByTestId("description-input")).toHaveCount(2);
+  });
+
+  test("X removes a queued entry and disables save", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
     await openTransactionComposer(page);
 
     const input = page.getByPlaceholder("Add transaction...");
     await input.fill("Bread 40");
-    await page.getByRole("button", { name: "Queue entry" }).click();
+    await input.press("Enter");
 
     await expect(page.getByText("1 entry queued")).toBeVisible();
     await page.getByRole("button", { name: "Remove entry 1" }).click();
-    await expect(page.getByText("Milk 75", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Bread 40", { exact: true })).toHaveCount(0);
     await expect(page.getByTestId("parse-transaction")).toBeDisabled();
   });
 
@@ -563,6 +595,43 @@ test.describe("transaction input queue", () => {
     await input.press("Backspace");
     await expect(page.getByText("Milk 75", { exact: true })).toHaveCount(0);
     await expect(page.getByTestId("parse-transaction")).toBeDisabled();
+  });
+
+  test("Backspace on a fully empty input closes the composer", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.press("Backspace");
+    await expect(input).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Add transaction" })).toBeFocused();
+  });
+
+  test("Backspace with queued entries removes the last one without closing", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.fill("Milk 75");
+    await input.press("Enter");
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+
+    await input.press("Backspace");
+    await expect(page.getByText("Milk 75", { exact: true })).toHaveCount(0);
+    await expect(input).toBeVisible();
+  });
+
+  test("Enter on an empty input saves queued entries", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.fill("Milk 75");
+    await input.press("Enter");
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+
+    await input.press("Enter");
+    await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
   });
 
   test("pasting multi-line text splits into multiple queued entries", async ({ page }) => {

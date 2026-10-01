@@ -39,7 +39,10 @@ export async function createTransaction(
   description = text,
 ): Promise<string> {
   await openTransactionComposer(page);
-  await queueTransactionEntry(page, text);
+  const input = page.getByPlaceholder("Add transaction...");
+  await input.fill(text);
+  // Single-entry flow: typing enables save immediately, no Enter needed.
+  await expect(page.getByTestId("parse-transaction")).toBeEnabled();
   await page.getByTestId("parse-transaction").click();
 
   await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
@@ -83,21 +86,7 @@ export async function createScheduledTransaction(
     const endDatePicker = page.getByRole("button", { name: "End date" });
     await endDatePicker.click();
 
-    const calendar = page.getByRole("dialog");
-    await expect(calendar).toBeVisible();
-    const targetName = format(scheduleEnd.endDate, "EEEE, MMMM d, yyyy");
-    for (let attempt = 0; attempt < 12; attempt++) {
-      const cell = calendar.getByRole("gridcell", { name: targetName, exact: true });
-      if ((await cell.count()) > 0) {
-        await cell.click();
-        break;
-      }
-      await calendar.locator('button[slot="next"]').click();
-      await expect(calendar).toBeVisible();
-      if (attempt === 11) {
-        throw new Error(`Could not find calendar cell for ${targetName}`);
-      }
-    }
+    await pickCalendarDate(page, scheduleEnd.endDate);
     await expect(endDatePicker).toContainText(format(scheduleEnd.endDate, "PPP"));
   }
 
@@ -279,23 +268,7 @@ export async function createStandaloneScheduledTemplate(
     await page.getByText("On date", { exact: true }).click();
     const endDatePicker = page.getByRole("button", { name: "End date" });
     await endDatePicker.click();
-    const calendar = page.getByRole("dialog");
-    await expect(calendar).toBeVisible();
-    const targetName = format(options.endDate, "EEEE, MMMM d, yyyy");
-    // Calendar may be on current month; loop next until target date appears (supports multi-month ahead)
-    for (let attempt = 0; attempt < 12; attempt++) {
-      const cell = calendar.getByRole("gridcell", { name: targetName, exact: true });
-      if ((await cell.count()) > 0) {
-        await cell.click();
-        break;
-      }
-      await calendar.locator('button[slot="next"]').click();
-      await expect(calendar).toBeVisible();
-      // If last attempt still not found, throw to surface error
-      if (attempt === 11) {
-        throw new Error(`Could not find calendar cell for ${targetName}`);
-      }
-    }
+    await pickCalendarDate(page, options.endDate);
     await expect(endDatePicker).toContainText(format(options.endDate, "PPP"));
   } else if (options.endType === "count" && options.maxOccurrences) {
     await page.getByText("After N occurrences", { exact: true }).click();
@@ -313,4 +286,24 @@ export async function createStandaloneScheduledTemplate(
 
 export async function getStandaloneTemplateId(page: Page, description: string): Promise<string> {
   return getScheduledTemplateId(page, description);
+}
+
+async function pickCalendarDate(page: Page, date: Date) {
+  const calendar = page.getByRole("dialog");
+  await expect(calendar).toBeVisible();
+  const targetName = format(date, "EEEE, MMMM d, yyyy");
+  // Advance months until the target date appears in the visible month. Leading/trailing
+  // days from adjacent months share the same name but aren't selectable, so skip them.
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const cell = calendar
+      .getByRole("gridcell", { name: targetName, exact: true })
+      .filter({ hasNot: page.locator("[data-outside-month]") });
+    if ((await cell.count()) > 0) {
+      await cell.click();
+      return;
+    }
+    await calendar.locator('button[slot="next"]').click();
+    await expect(calendar).toBeVisible();
+  }
+  throw new Error(`Could not find calendar cell for ${targetName}`);
 }
