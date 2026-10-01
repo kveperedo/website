@@ -17,7 +17,7 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL ?? "http://localhost:3000",
     timezoneId: "Asia/Manila",
-    trace: { mode: "on-first-retry", snapshots: false, screenshots: true },
+    trace: { mode: "retain-on-failure", snapshots: false, screenshots: true },
     screenshot: "only-on-failure",
   },
   projects: [
