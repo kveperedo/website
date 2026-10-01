@@ -200,7 +200,10 @@ function PaceComparison() {
     <>
       <Separator />
       {renderPaceMessage()}
-      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-mono text-xs">
+      <div
+        data-testid="pace-history"
+        className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-mono text-xs"
+      >
         {prior.map((month, index) => (
           <span key={month.label} className="flex items-center gap-1.5">
             {index > 0 && <span className="text-muted-foreground/50">·</span>}

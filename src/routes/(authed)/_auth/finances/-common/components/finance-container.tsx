@@ -8,7 +8,7 @@ import {
   ReceiptTextIcon,
   XIcon,
 } from "lucide-react";
-import { useState, type PropsWithChildren } from "react";
+import { useRef, useState, type PropsWithChildren } from "react";
 
 import type { TransactionItemAIType } from "@/schema/transaction";
 
@@ -56,6 +56,7 @@ const FinanceContainerFooter = () => {
   const router = useRouter();
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const composerToggleRef = useRef<HTMLButtonElement>(null);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   const handleParsed = (transactions: Array<TransactionItemAIType>) => {
@@ -76,6 +77,11 @@ const FinanceContainerFooter = () => {
             value={inputValue}
             onValueChange={setInputValue}
             onParsed={handleParsed}
+            onEmptyBackspace={() => {
+              setIsComposerOpen(false);
+              // The focused input unmounts on close; hand focus back to the toggle.
+              composerToggleRef.current?.focus();
+            }}
           />
         </div>
       )}
@@ -104,6 +110,7 @@ const FinanceContainerFooter = () => {
 
         <div className="flex size-16 shrink-0 items-center justify-center">
           <Button
+            ref={composerToggleRef}
             variant={isComposerOpen ? "secondary" : "default"}
             size="icon-lg"
             className="size-11 sm:size-9"
