@@ -15,12 +15,10 @@ vi.mock("@/db/client", () => ({
   getDb: vi.fn(),
 }));
 
-const { embeddingsCreate } = vi.hoisted(() => ({ embeddingsCreate: vi.fn() }));
+const { embedTextsMock } = vi.hoisted(() => ({ embedTextsMock: vi.fn() }));
 
-vi.mock("openai", () => ({
-  default: class {
-    embeddings = { create: embeddingsCreate };
-  },
+vi.mock("@/app/ai/server", () => ({
+  embedTexts: embedTextsMock,
 }));
 
 const mockDb = (overrides: Record<string, unknown> = {}) => {
@@ -49,28 +47,23 @@ describe("normalizeTransactionDescription", () => {
 
 describe("embedTransactionDescriptions", () => {
   beforeEach(() => {
-    embeddingsCreate.mockReset();
+    embedTextsMock.mockReset();
   });
 
-  it("returns embeddings ordered by index in a single call", async () => {
-    embeddingsCreate.mockResolvedValue({
-      data: [
-        { index: 1, embedding: [0.2] },
-        { index: 0, embedding: [0.1] },
-      ],
-    });
+  it("returns embeddings in input order in a single call", async () => {
+    embedTextsMock.mockResolvedValue([[0.1], [0.2]]);
 
-    await expect(embedTransactionDescriptions(["a", "b"])).resolves.toEqual([[0.1], [0.2]]);
-    expect(embeddingsCreate).toHaveBeenCalledTimes(1);
-    expect(embeddingsCreate).toHaveBeenCalledWith({
-      model: "text-embedding-3-small",
-      input: ["a", "b"],
-    });
+    await expect(embedTransactionDescriptions(["a", "b"], { timeoutMs: 5_000 })).resolves.toEqual([
+      [0.1],
+      [0.2],
+    ]);
+    expect(embedTextsMock).toHaveBeenCalledTimes(1);
+    expect(embedTextsMock).toHaveBeenCalledWith(["a", "b"], { timeoutMs: 5_000 });
   });
 
   it("skips the API call for empty input", async () => {
     await expect(embedTransactionDescriptions([])).resolves.toEqual([]);
-    expect(embeddingsCreate).not.toHaveBeenCalled();
+    expect(embedTextsMock).not.toHaveBeenCalled();
   });
 });
 

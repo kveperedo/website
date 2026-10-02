@@ -1,10 +1,11 @@
-import { Agent, run, tool } from "@openai/agents";
+import { waitUntil } from "cloudflare:workers";
 import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 
+import { generateJson } from "@/app/ai/server";
 import { getDb } from "@/db/client";
 import { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/transaction";
@@ -175,6 +176,14 @@ export const getCategoryTrends = async () => {
   }, []);
 };
 
+/** Healthy parses finish in a few seconds; Workers AI hangs run 30s+ (see `runWithTimeout`). */
+const PARSE_BASE_TIMEOUT_MS = 10_000;
+/** Each extra line adds output tokens, so larger batches get proportionally longer. */
+const PARSE_TIMEOUT_PER_ITEM_MS = 1_000;
+const MEMORY_LOOKUP_TIMEOUT_MS = 5_000;
+/** Stays under the 30s Workers allow `waitUntil` work to run after the response. */
+const MEMORY_UPDATE_TIMEOUT_MS = 20_000;
+
 const enrichTransactionsWithMemory = async (
   transactions: Array<TransactionItemAIType>,
 ): Promise<Array<TransactionItemAIType>> => {
@@ -202,8 +211,10 @@ const enrichTransactionsWithMemory = async (
 
     if (pending.size > 0) {
       const indexes = [...pending.keys()];
+      // Failure falls back to the AI result below, so a slow lookup isn't worth waiting on.
       const vectors = await embedTransactionDescriptions(
         indexes.map((index) => pending.get(index)!),
+        { timeoutMs: MEMORY_LOOKUP_TIMEOUT_MS },
       );
       const matches = await findClosestTransactionMemories(vectors);
       for (const [i, index] of indexes.entries()) {
@@ -230,13 +241,11 @@ export const parseTransactions = async (
   items: Array<string>,
   localDate: string,
 ): Promise<Array<TransactionItemAIType>> => {
-  let parsedResult: Array<TransactionItemAIType> | null = null;
-
   const numberedItems = items.map((item, index) => `${index + 1}. ${item}`).join("\n");
 
-  const parseTransactionsTool = tool({
-    name: "parse_transactions",
-    description: `Extract all transactions from a description. Returns an array — one entry per numbered input line, in the same order.
+  const instructions = `You are a transaction parser. The user's local date is ${localDate}. If no date is mentioned, transactedAt must be exactly ${localDate}.
+
+Extract all transactions from the numbered input and return them in the transactions array — one entry per numbered input line, in the same order.
 
 Rules:
 - Each numbered input line is exactly one transaction — never merge lines and never split a line into multiple transactions.
@@ -244,48 +253,46 @@ Rules:
 
 Examples:
 - "1. lunch at jollibee for 150" → 1 transaction
-- "1. lunch 150\\n2. grab home 200" → 2 transactions (same order)`,
-    parameters: z.object({
-      transactions: z
-        .array(TransactionItemAISchema)
-        .describe(
-          "All transactions found in the input, one per numbered input line in the same order.",
-        ),
-    }),
-    execute: async ({ transactions }) => {
-      parsedResult = transactions;
-      return "Transactions parsed.";
-    },
-  });
+- "1. lunch 150\\n2. grab home 200" → 2 transactions (same order)
 
-  const agent = new Agent({
-    name: "transaction_parser",
-    model: "gpt-5.6-luna",
-    instructions: `You are a transaction parser. The user's local date is ${localDate}. If no date is mentioned, transactedAt must be exactly ${localDate}. Parse the user's input into structured transactions by calling the parse_transactions tool. Always call the tool even for a single transaction.`,
-    tools: [parseTransactionsTool],
-  });
+Categories — required for every expense, never null when a category clearly applies:
+- food_drinks: meals, coffee, snacks, delivery
+- groceries_household: supermarket, toiletries, cleaning
+- transportation: fuel, parking, rideshare, transit
+- bills_utilities: electricity, water, internet, phone, rent, subscriptions
+- health_wellness: medicine, doctor, gym, vitamins
+- hobbies_lifestyle: entertainment, shopping, personal care, travel, gifts
+- financial: transfers, bank fees, investments, loan payments
+Only use null for income transactions or truly unrecognizable text (e.g. "payment 500" with no context).`;
 
+  let result: { transactions: Array<TransactionItemAIType> };
   try {
-    await run(agent, numberedItems);
+    result = await generateJson({
+      instructions,
+      messages: [{ role: "user", content: numberedItems }],
+      schema: z.object({
+        transactions: z
+          .array(TransactionItemAISchema)
+          .describe(
+            "All transactions found in the input, one per numbered input line in the same order.",
+          ),
+      }),
+      maxTokens: 4096,
+      timeoutMs: PARSE_BASE_TIMEOUT_MS + items.length * PARSE_TIMEOUT_PER_ITEM_MS,
+      retries: 1,
+    });
   } catch (err) {
-    console.error("OpenAI parsing failed:", err);
+    console.error("Workers AI parsing failed:", err);
     throw new Error("Failed to parse transactions with AI. Please try again.");
   }
 
-  if (!parsedResult) {
-    throw new Error("Failed to parse transactions");
-  }
-
-  const parsed = z
-    .array(TransactionItemAISchema)
-    .parse(parsedResult)
-    .map((tx) => ({
-      ...tx,
-      description: sanitizeHtml(tx.description, {
-        allowedTags: [],
-        allowedAttributes: {},
-      }),
-    }));
+  const parsed = result.transactions.map((tx) => ({
+    ...tx,
+    description: sanitizeHtml(tx.description, {
+      allowedTags: [],
+      allowedAttributes: {},
+    }),
+  }));
 
   return await enrichTransactionsWithMemory(parsed);
 };
@@ -310,6 +317,7 @@ const rememberTransactions = async (
     }
     const vectors = await embedTransactionDescriptions(
       entries.map((entry) => entry.normalizedDescription),
+      { timeoutMs: MEMORY_UPDATE_TIMEOUT_MS },
     );
     await upsertTransactionMemories(
       entries.map((entry, index) => ({ ...entry, embedding: vectors[index] })),
@@ -317,6 +325,13 @@ const rememberTransactions = async (
   } catch (err) {
     console.error("Transaction memory update failed:", err);
   }
+};
+
+/** Memory only speeds up future parses, so saves respond without waiting on the embedding. */
+const rememberTransactionsInBackground = (
+  data: Parameters<typeof rememberTransactions>[0],
+): void => {
+  waitUntil(rememberTransactions(data));
 };
 
 export const createTransactions = async (data: Array<CreateTransactionsInput>) => {
@@ -332,7 +347,7 @@ export const createTransactions = async (data: Array<CreateTransactionsInput>) =
       }),
     );
 
-    await rememberTransactions(data);
+    rememberTransactionsInBackground(data);
 
     return { count: result.count };
   }
@@ -347,7 +362,7 @@ export const createTransactions = async (data: Array<CreateTransactionsInput>) =
     }
   });
 
-  await rememberTransactions(data);
+  rememberTransactionsInBackground(data);
 
   return { count: data.length };
 };
@@ -391,7 +406,7 @@ export const updateTransaction = async (id: string, data: TransactionInputType) 
     },
   });
 
-  await rememberTransactions([
+  rememberTransactionsInBackground([
     {
       description: data.description,
       type: data.type,

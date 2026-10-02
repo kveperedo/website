@@ -81,7 +81,7 @@ model Transaction {
 model TransactionMemory {
   id                    String               @id @default(uuid()) @db.Uuid
   normalizedDescription String               @unique @map("normalized_description")
-  embedding             Unsupported("vector(1536)")? @map("embedding")
+  embedding             Unsupported("vector(1024)")? @map("embedding")
   type                  TransactionType      @default(expense)
   category              TransactionCategory?
   useCount              Int                  @default(1) @map("use_count")

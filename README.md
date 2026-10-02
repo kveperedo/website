@@ -40,7 +40,6 @@ Set these values in `.env`:
 | `ADMIN_PASSWORD_HASH`                                      | bcrypt hash of the password for the admin login.                                   |
 | `DATABASE_URL`                                             | Direct PostgreSQL connection string for Prisma CLI commands only.                  |
 | `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` | Direct PostgreSQL connection string for local Worker development.                  |
-| `OPENAI_API_KEY`                                           | OpenAI API key for AI-powered features.                                            |
 | `BASE_URL`                                                 | Base URL for Playwright tests. Defaults to `http://localhost:3000`.                |
 | `E2E_PASSWORD`                                             | Plaintext admin password for local E2E tests; it must match `ADMIN_PASSWORD_HASH`. |
 
