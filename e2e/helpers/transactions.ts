@@ -146,39 +146,6 @@ export async function archiveScheduledTransactionTemplate(page: Page, descriptio
   }
 }
 
-export async function deleteTransactionByDescription(page: Page, description: string) {
-  await gotoAndWaitForHydration(page, "/finances/transactions");
-
-  const row = page.locator("tr[data-transaction-id]", { hasText: description });
-  if ((await row.count()) === 0) {
-    return;
-  }
-
-  const id = await row.getAttribute("data-transaction-id");
-  if (!id) {
-    throw new Error(`Could not find the id for transaction: ${description}`);
-  }
-
-  await deleteTransaction(page, id);
-}
-
-/**
- * Navigates to /finances/scheduled and returns the template id for the given description.
- * Callers need not pre-navigate — this helper self-navigates. Avoid double navigation
- * by not calling gotoAndWaitForHydration before this helper.
- */
-export async function getScheduledTemplateId(page: Page, description: string): Promise<string> {
-  await gotoAndWaitForHydration(page, "/finances/scheduled");
-  const item = page.getByRole("listitem").filter({ hasText: description });
-  await expect(item).toHaveCount(1);
-
-  const id = await item.evaluate((el) => el.getAttribute("data-template-id"));
-  if (!id) {
-    throw new Error(`Could not find the id for scheduled template: ${description}`);
-  }
-  return id;
-}
-
 export async function openScheduledTemplateForEdit(page: Page, id: string) {
   await gotoAndWaitForHydration(page, `/finances/scheduled/${id}`);
   await expect(page.getByTestId("description-input")).toBeVisible();
@@ -282,10 +249,6 @@ export async function createStandaloneScheduledTemplate(
   await page.waitForURL(/\/finances\/scheduled$/, { timeout: 30000 });
   const template = page.getByRole("listitem").filter({ hasText: description });
   await expect(template).toBeVisible({ timeout: 15000 });
-}
-
-export async function getStandaloneTemplateId(page: Page, description: string): Promise<string> {
-  return getScheduledTemplateId(page, description);
 }
 
 async function pickCalendarDate(page: Page, date: Date) {

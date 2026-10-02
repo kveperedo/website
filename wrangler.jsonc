@@ -16,6 +16,10 @@
       "id": "e733925e7579448693ac467f43c746d2",
     },
   ],
+  "ai": {
+    "binding": "AI",
+    "remote": true,
+  },
   "workers_dev": true,
   "triggers": {
     "crons": ["5 0 * * *"],
@@ -47,6 +51,10 @@
           "id": "2a21ccdb16bd4c8798afc79a759667de",
         },
       ],
+      "ai": {
+        "binding": "AI",
+        "remote": true,
+      },
     },
   },
 }

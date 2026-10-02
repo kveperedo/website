@@ -1,11 +1,9 @@
-import OpenAI from "openai";
-
 import type { Prisma } from "@/generated/prisma/client";
 import type { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 
+import { embedTexts } from "@/app/ai/server";
 import { getDb } from "@/db/client";
 
-export const EMBEDDING_MODEL = "text-embedding-3-small";
 /** Cosine distance below which a memory is auto-applied (≈ similarity > 0.85). */
 export const MEMORY_MATCH_MAX_DISTANCE = 0.15;
 
@@ -28,16 +26,12 @@ const toVectorLiteral = (embedding: Array<number>): string => `[${embedding.join
 
 export const embedTransactionDescriptions = async (
   texts: Array<string>,
+  requestOptions?: Parameters<typeof embedTexts>[1],
 ): Promise<Array<Array<number>>> => {
   if (texts.length === 0) {
     return [];
   }
-  const client = new OpenAI();
-  const response = await client.embeddings.create({ model: EMBEDDING_MODEL, input: texts });
-  return response.data
-    .slice()
-    .sort((a, b) => a.index - b.index)
-    .map((item) => item.embedding);
+  return embedTexts(texts, requestOptions);
 };
 
 export const findExactTransactionMemory = async (

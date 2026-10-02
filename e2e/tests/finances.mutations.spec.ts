@@ -3,13 +3,16 @@ import { addMonths, format } from "date-fns";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import {
+  createScheduledTransactionFixture,
+  createTransactionFixture,
+  deleteFixtures,
+} from "../helpers/fixtures";
+import {
   archiveScheduledTransactionTemplate,
   createScheduledTransaction,
   createTransaction,
   deleteTransaction,
-  deleteTransactionByDescription,
   getArchivedTemplateId,
-  getScheduledTemplateId,
   getTransactionId,
   openScheduledTemplateForEdit,
   openTransactionComposer,
@@ -18,15 +21,22 @@ import {
 
 const descriptionField = (page: Page) => page.getByTestId("description-input");
 
-test.describe.configure({ mode: "serial", timeout: 60000 });
+test.describe.configure({ timeout: 60000 });
 
+// Tests run in parallel, so rows saved here use descriptions the composer tests never type;
+// otherwise their exact-text assertions on "Milk 75"/"Bread 40" would match a saved table row.
 test.describe("transaction mutations", () => {
   test("AI parse then save creates a transaction", async ({ page }) => {
-    await gotoAndWaitForHydration(page, "/finances/transactions");
+    const description = "Milk 75 saved";
 
-    const id = await createTransaction(page, "Milk 75");
-    await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toBeVisible();
-    await deleteTransaction(page, id);
+    try {
+      await gotoAndWaitForHydration(page, "/finances/transactions");
+
+      const id = await createTransaction(page, "Milk 75", description);
+      await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toBeVisible();
+    } finally {
+      await deleteFixtures(page, description);
+    }
   });
 
   test("new transaction form reflects type and category", async ({ page }) => {
@@ -60,56 +70,65 @@ test.describe("transaction mutations", () => {
   });
 
   test("updating a transaction persists the changes", async ({ page }) => {
-    await gotoAndWaitForHydration(page, "/finances/transactions");
+    const description = "Bread loaf";
+    const updated = "Bread loaf edited";
 
-    const id = await createTransaction(page, "Bread 40");
-    const updated = "Bread edited";
-    await openTransactionForEdit(page, id);
-    await descriptionField(page).fill(updated);
+    try {
+      const id = await createTransactionFixture(page, description);
+      await openTransactionForEdit(page, id);
+      await descriptionField(page).fill(updated);
 
-    const saveButton = page.getByRole("button", { name: "Save Changes" });
-    await saveButton.click();
-    await expect(saveButton).toBeDisabled();
-    await expect(saveButton).toBeEnabled();
+      const saveButton = page.getByRole("button", { name: "Save Changes" });
+      await saveButton.click();
+      await expect(saveButton).toBeDisabled();
+      await expect(saveButton).toBeEnabled();
 
-    await gotoAndWaitForHydration(page, `/finances/transactions/${id}`);
-    await expect(descriptionField(page)).toHaveValue(updated);
-    await deleteTransaction(page, id);
+      await gotoAndWaitForHydration(page, `/finances/transactions/${id}`);
+      await expect(descriptionField(page)).toHaveValue(updated);
+    } finally {
+      await deleteFixtures(page, description, updated);
+    }
   });
 
   test("deleting a transaction removes it from the list", async ({ page }) => {
-    await gotoAndWaitForHydration(page, "/finances/transactions");
+    const description = "Soda 30";
 
-    const id = await createTransaction(page, "Soda 30");
-    await deleteTransaction(page, id);
-    await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toHaveCount(0);
+    try {
+      const id = await createTransactionFixture(page, description);
+      await deleteTransaction(page, id);
+      await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toHaveCount(0);
+    } finally {
+      await deleteFixtures(page, description);
+    }
   });
 
   test("delete confirmation dialog opens and Cancel dismisses it", async ({ page }) => {
-    await gotoAndWaitForHydration(page, "/finances/transactions");
+    const description = "Tea 20";
 
-    const id = await createTransaction(page, "Tea 20");
-    await openTransactionForEdit(page, id);
+    try {
+      const id = await createTransactionFixture(page, description);
+      await openTransactionForEdit(page, id);
 
-    await page.getByRole("button", { name: "Delete Transaction" }).click();
-    await expect(page.getByText("Delete this transaction?")).toBeVisible();
+      await page.getByRole("button", { name: "Delete Transaction" }).click();
+      await expect(page.getByText("Delete this transaction?")).toBeVisible();
 
-    await page
-      .getByLabel("Delete this transaction?")
-      .getByRole("button", { name: "Cancel" })
-      .click();
-    await expect(page.getByText("Delete this transaction?")).toHaveCount(0);
+      await page
+        .getByLabel("Delete this transaction?")
+        .getByRole("button", { name: "Cancel" })
+        .click();
+      await expect(page.getByText("Delete this transaction?")).toHaveCount(0);
 
-    await expect(page).toHaveURL(new RegExp(`/finances/transactions/${id}`));
-    await expect(page.getByRole("button", { name: "Delete Transaction" })).toBeVisible();
-    await deleteTransaction(page, id);
+      await expect(page).toHaveURL(new RegExp(`/finances/transactions/${id}`));
+      await expect(page.getByRole("button", { name: "Delete Transaction" })).toBeVisible();
+    } finally {
+      await deleteFixtures(page, description);
+    }
   });
 
   test("parsing from the dashboard creates a transaction and returns to the dashboard", async ({
     page,
   }) => {
     const description = "Coffee beans";
-    let id: string | undefined;
 
     try {
       await gotoAndWaitForHydration(page, "/finances");
@@ -126,24 +145,19 @@ test.describe("transaction mutations", () => {
       await page.getByRole("button", { name: "Save Transaction" }).click();
       await page.waitForURL(/\/finances(\/?$|\?)/, { timeout: 30000 });
 
-      id = await getTransactionId(page, description);
+      const id = await getTransactionId(page, description);
       await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toBeVisible();
     } finally {
-      if (id) {
-        await deleteTransaction(page, id);
-      } else {
-        await deleteTransactionByDescription(page, description);
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test("scheduling a new transaction creates a visible template", async ({ page }) => {
     const description = "Monthly gym membership";
-    let id: string | undefined;
     await gotoAndWaitForHydration(page, "/finances");
 
     try {
-      id = await createScheduledTransaction(page, description);
+      await createScheduledTransaction(page, description);
       await page.getByRole("link", { name: "Manage scheduled transactions" }).click();
       await expect(page).toHaveURL(/\/finances\/scheduled$/);
 
@@ -151,46 +165,28 @@ test.describe("transaction mutations", () => {
       await expect(template).toBeVisible();
       await expect(template.getByText("1/3 occurrences")).toBeVisible();
     } finally {
-      try {
-        await archiveScheduledTransactionTemplate(page, description);
-      } finally {
-        if (id) {
-          await deleteTransaction(page, id);
-        } else {
-          await deleteTransactionByDescription(page, description);
-        }
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test("scheduling a new transaction with no end condition shows No end", async ({ page }) => {
     const description = "Cloud storage subscription";
-    let id: string | undefined;
     await gotoAndWaitForHydration(page, "/finances");
 
     try {
-      id = await createScheduledTransaction(page, description, { endType: "none" });
+      await createScheduledTransaction(page, description, { endType: "none" });
       await gotoAndWaitForHydration(page, "/finances/scheduled");
 
       const template = page.getByRole("listitem").filter({ hasText: description });
       await expect(template).toBeVisible();
       await expect(template.getByText("No end", { exact: true })).toBeVisible();
     } finally {
-      try {
-        await archiveScheduledTransactionTemplate(page, description);
-      } finally {
-        if (id) {
-          await deleteTransaction(page, id);
-        } else {
-          await deleteTransactionByDescription(page, description);
-        }
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test.describe("date-based scheduling", () => {
     test("scheduling a new transaction until a date shows the end date", async ({ page }) => {
-      let id: string | undefined;
       await gotoAndWaitForHydration(page, "/finances");
       const browserToday = await page.evaluate(() => {
         const now = new Date();
@@ -203,7 +199,7 @@ test.describe("transaction mutations", () => {
       const description = `Vacation savings through ${format(endDate, "MMMM yyyy")}`;
 
       try {
-        id = await createScheduledTransaction(page, description, { endType: "date", endDate });
+        await createScheduledTransaction(page, description, { endType: "date", endDate });
         await gotoAndWaitForHydration(page, "/finances/scheduled");
 
         const template = page.getByRole("listitem").filter({ hasText: description });
@@ -212,26 +208,16 @@ test.describe("transaction mutations", () => {
           template.getByText(`Until ${format(endDate, "MMM d, yyyy")}`, { exact: true }),
         ).toBeVisible();
       } finally {
-        try {
-          await archiveScheduledTransactionTemplate(page, description);
-        } finally {
-          if (id) {
-            await deleteTransaction(page, id);
-          } else {
-            await deleteTransactionByDescription(page, description);
-          }
-        }
+        await deleteFixtures(page, description);
       }
     });
   });
 
   test("an existing transaction can be made recurring and paused", async ({ page }) => {
     const description = "Netflix subscription";
-    let id: string | undefined;
-    await gotoAndWaitForHydration(page, "/finances/transactions");
 
     try {
-      id = await createTransaction(page, `${description} 75`, description);
+      const id = await createTransactionFixture(page, description);
       await openTransactionForEdit(page, id);
 
       await page.getByRole("button", { name: "Make recurring" }).click();
@@ -248,15 +234,7 @@ test.describe("transaction mutations", () => {
       await openTransactionForEdit(page, id);
       await expect(page.getByText("Paused", { exact: true })).toBeVisible();
     } finally {
-      try {
-        await archiveScheduledTransactionTemplate(page, description);
-      } finally {
-        if (id) {
-          await deleteTransaction(page, id);
-        } else {
-          await deleteTransactionByDescription(page, description);
-        }
-      }
+      await deleteFixtures(page, description);
     }
   });
 
@@ -264,11 +242,11 @@ test.describe("transaction mutations", () => {
     page,
   }) => {
     const description = "Magazine subscription";
-    let id: string | undefined;
-    await gotoAndWaitForHydration(page, "/finances");
 
     try {
-      id = await createScheduledTransaction(page, description);
+      const { transactionId } = await createScheduledTransactionFixture(page, description, {
+        schedule: { maxOccurrences: 3 },
+      });
       await archiveScheduledTransactionTemplate(page, description);
       // Removed from main list
       await gotoAndWaitForHydration(page, "/finances/scheduled");
@@ -280,14 +258,10 @@ test.describe("transaction mutations", () => {
       const archivedId = await getArchivedTemplateId(page, description);
       expect(archivedId).toBeTruthy();
       // Linked transaction still exists — ensure transaction still loads
-      await openTransactionForEdit(page, id!);
+      await openTransactionForEdit(page, transactionId);
       await expect(page.getByTestId("description-input")).toHaveValue(description);
     } finally {
-      if (id) {
-        await deleteTransaction(page, id);
-      } else {
-        await deleteTransactionByDescription(page, description);
-      }
+      await deleteFixtures(page, description);
     }
   });
 });
@@ -295,60 +269,41 @@ test.describe("transaction mutations", () => {
 test.describe("scheduled template editing", () => {
   test("clicking a scheduled row navigates to the edit page", async ({ page }) => {
     const description = "Edit navigation test";
-    let id: string | undefined;
 
     try {
-      await gotoAndWaitForHydration(page, "/finances");
-      id = await createScheduledTransaction(page, description);
-      await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const templateId = await getScheduledTemplateId(page, description);
+      const { templateId } = await createScheduledTransactionFixture(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
       await expect(page).toHaveURL(new RegExp(`/finances/scheduled/${templateId}`));
       await expect(page.getByRole("button", { name: "Save Changes" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
     } finally {
-      if (id) {
-        await archiveScheduledTransactionTemplate(page, description);
-        await deleteTransaction(page, id);
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test("edit form loads with correct default values", async ({ page }) => {
     const description = "Default values test";
-    let id: string | undefined;
 
     try {
-      await gotoAndWaitForHydration(page, "/finances");
-      id = await createScheduledTransaction(page, description, {
-        endType: "count",
-        maxOccurrences: 5,
+      const { templateId } = await createScheduledTransactionFixture(page, description, {
+        schedule: { maxOccurrences: 5 },
       });
-      await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const templateId = await getScheduledTemplateId(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
       await expect(page.getByTestId("description-input")).toHaveValue(description);
       await expect(page.getByTestId("expense-radio-item")).toHaveAttribute("data-selected", "true");
     } finally {
-      if (id) {
-        await archiveScheduledTransactionTemplate(page, description);
-        await deleteTransaction(page, id);
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test("editing a scheduled transaction persists changes", async ({ page }) => {
     const description = "Persist edit test";
     const updated = "Persist edit updated";
-    let id: string | undefined;
 
     try {
-      await gotoAndWaitForHydration(page, "/finances");
-      id = await createScheduledTransaction(page, description);
-      await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const templateId = await getScheduledTemplateId(page, description);
+      const { templateId } = await createScheduledTransactionFixture(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
       await page.getByTestId("description-input").fill(updated);
@@ -361,43 +316,29 @@ test.describe("scheduled template editing", () => {
       await gotoAndWaitForHydration(page, `/finances/scheduled/${templateId}`);
       await expect(page.getByTestId("description-input")).toHaveValue(updated);
     } finally {
-      if (id) {
-        await archiveScheduledTransactionTemplate(page, description);
-        await deleteTransaction(page, id);
-      }
+      await deleteFixtures(page, description, updated);
     }
   });
 
   test("cancel on edit page navigates back to scheduled list", async ({ page }) => {
     const description = "Cancel navigation test";
-    let id: string | undefined;
 
     try {
-      await gotoAndWaitForHydration(page, "/finances");
-      id = await createScheduledTransaction(page, description);
-      await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const templateId = await getScheduledTemplateId(page, description);
+      const { templateId } = await createScheduledTransactionFixture(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
       await page.getByRole("button", { name: "Cancel" }).click();
       await expect(page).toHaveURL(/\/finances\/scheduled$/);
     } finally {
-      if (id) {
-        await archiveScheduledTransactionTemplate(page, description);
-        await deleteTransaction(page, id);
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test("archive from edit page with confirmation", async ({ page }) => {
     const description = "Archive from edit test";
-    let id: string | undefined;
 
     try {
-      await gotoAndWaitForHydration(page, "/finances");
-      id = await createScheduledTransaction(page, description);
-      await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const templateId = await getScheduledTemplateId(page, description);
+      const { templateId } = await createScheduledTransactionFixture(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
       await page.getByRole("button", { name: "Archive Schedule" }).click();
@@ -411,21 +352,15 @@ test.describe("scheduled template editing", () => {
       await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
       await expect(page.getByRole("listitem").filter({ hasText: description })).toBeVisible();
     } finally {
-      if (id) {
-        await deleteTransaction(page, id);
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test("archive confirmation Cancel dismisses dialog", async ({ page }) => {
     const description = "Archive cancel test";
-    let id: string | undefined;
 
     try {
-      await gotoAndWaitForHydration(page, "/finances");
-      id = await createScheduledTransaction(page, description);
-      await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const templateId = await getScheduledTemplateId(page, description);
+      const { templateId } = await createScheduledTransactionFixture(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
       await page.getByRole("button", { name: "Archive Schedule" }).click();
@@ -437,47 +372,31 @@ test.describe("scheduled template editing", () => {
       await expect(page.getByText("Archive this scheduled transaction?")).toHaveCount(0);
       await expect(page).toHaveURL(new RegExp(`/finances/scheduled/${templateId}`));
     } finally {
-      if (id) {
-        await archiveScheduledTransactionTemplate(page, description);
-        await deleteTransaction(page, id);
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test("summary card shows scheduled badge and occurrence count", async ({ page }) => {
     const description = "Summary card test";
-    let id: string | undefined;
 
     try {
-      await gotoAndWaitForHydration(page, "/finances");
-      id = await createScheduledTransaction(page, description, {
-        endType: "count",
-        maxOccurrences: 3,
+      const { templateId } = await createScheduledTransactionFixture(page, description, {
+        schedule: { maxOccurrences: 3 },
       });
-      await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const templateId = await getScheduledTemplateId(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
       await expect(page.getByText("Scheduled", { exact: true })).toBeVisible();
       await expect(page.getByText("1/3 occurrences")).toBeVisible();
     } finally {
-      if (id) {
-        await archiveScheduledTransactionTemplate(page, description);
-        await deleteTransaction(page, id);
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test("summary card shows paused badge for inactive template", async ({ page }) => {
     const description = "Paused badge test";
-    let id: string | undefined;
 
     try {
-      await gotoAndWaitForHydration(page, "/finances");
-      id = await createScheduledTransaction(page, description);
-
-      await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const templateId = await getScheduledTemplateId(page, description);
+      const { templateId } = await createScheduledTransactionFixture(page, description);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled");
       const template = page.getByRole("listitem").filter({ hasText: description });
@@ -487,22 +406,15 @@ test.describe("scheduled template editing", () => {
       await openScheduledTemplateForEdit(page, templateId);
       await expect(page.getByText("Paused", { exact: true })).toBeVisible();
     } finally {
-      if (id) {
-        await archiveScheduledTransactionTemplate(page, description);
-        await deleteTransaction(page, id);
-      }
+      await deleteFixtures(page, description);
     }
   });
 
   test("income type hides category field on edit form", async ({ page }) => {
     const description = "Income category test";
-    let id: string | undefined;
 
     try {
-      await gotoAndWaitForHydration(page, "/finances");
-      id = await createScheduledTransaction(page, description);
-      await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const templateId = await getScheduledTemplateId(page, description);
+      const { templateId } = await createScheduledTransactionFixture(page, description);
 
       await openScheduledTemplateForEdit(page, templateId);
       await expect(page.getByText("Category", { exact: true })).toBeVisible();
@@ -513,10 +425,7 @@ test.describe("scheduled template editing", () => {
       await page.getByTestId("expense-radio-item").click();
       await expect(page.getByText("Category", { exact: true })).toBeVisible();
     } finally {
-      if (id) {
-        await archiveScheduledTransactionTemplate(page, description);
-        await deleteTransaction(page, id);
-      }
+      await deleteFixtures(page, description);
     }
   });
 });

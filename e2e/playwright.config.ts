@@ -55,8 +55,8 @@ export default defineConfig({
       dependencies: ["finance.seed"],
     },
     {
-      name: "finance.mutations",
-      testMatch: /finances\.mutations\.spec\.ts$/,
+      name: "finance.read-scenarios",
+      testMatch: /finances\.read-scenarios\.spec\.ts$/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: path.join(import.meta.dirname, ".auth", "user.json"),
@@ -64,9 +64,18 @@ export default defineConfig({
       dependencies: ["finance.read"],
     },
     {
+      name: "finance.mutations",
+      testMatch: /finances\.mutations\.spec\.ts$/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+      },
+      dependencies: ["finance.scheduled-projection"],
+    },
+    {
       name: "finance.trends",
       testMatch: /finances\.trends\.spec\.ts$/,
-      dependencies: ["finance.mutations"],
+      dependencies: ["finance.read-scenarios"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: path.join(import.meta.dirname, ".auth", "user.json"),
@@ -75,7 +84,7 @@ export default defineConfig({
     {
       name: "finance.scheduled-create",
       testMatch: /finances\.scheduled-create\.spec\.ts$/,
-      dependencies: ["finance.trends"],
+      dependencies: ["finance.scheduled-projection"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: path.join(import.meta.dirname, ".auth", "user.json"),
@@ -84,7 +93,7 @@ export default defineConfig({
     {
       name: "finance.scheduled-projection",
       testMatch: /finances\.scheduled-projection\.spec\.ts$/,
-      dependencies: ["finance.scheduled-create"],
+      dependencies: ["finance.trends"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: path.join(import.meta.dirname, ".auth", "user.json"),
@@ -93,7 +102,7 @@ export default defineConfig({
     {
       name: "finance.scheduled-archive",
       testMatch: /finances\.scheduled-archive\.spec\.ts$/,
-      dependencies: ["finance.scheduled-projection"],
+      dependencies: ["finance.mutations", "finance.scheduled-create"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: path.join(import.meta.dirname, ".auth", "user.json"),
