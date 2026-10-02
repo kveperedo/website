@@ -1,40 +1,30 @@
-import { type Page } from "@playwright/test";
-
-import { gotoAndWaitForHydration } from "./auth";
+import { expect, type Page } from "@playwright/test";
 
 type NetCardScenario = "below-pace" | "no-history" | "on-pace" | "over-income";
 
-const statusText = {
-  reset: "Database reset successfully.",
-  seed: "Database seeded successfully.",
-  seedTrends: "Trends data seeded successfully.",
-  seedNetCard: "Net card test data seeded successfully.",
-} as const;
+type SeedAction =
+  | { action: "reset" }
+  | { action: "seed"; scenario?: NetCardScenario }
+  | { action: "seed-trends" };
+
+/** Runs the `/e2e` page's operations through `/api/e2e/seed`, skipping the page load. */
+async function runSeedAction(page: Page, data: SeedAction) {
+  const response = await page.request.post("/api/e2e/seed", { data });
+  expect(response.status(), await response.text()).toBe(204);
+}
 
 export async function resetDatabase(page: Page) {
-  await gotoAndWaitForHydration(page, "/e2e");
-  await page.getByTestId("reset-database").click();
-  await page.getByTestId("confirm-reset").click();
-  await page.getByText(statusText.reset).waitFor({ state: "visible", timeout: 15000 });
+  await runSeedAction(page, { action: "reset" });
 }
 
 export async function seedDatabase(page: Page) {
-  await gotoAndWaitForHydration(page, "/e2e");
-  await page.getByTestId("seed-database").click();
-  await page.getByTestId("confirm-seed").click();
-  await page.getByText(statusText.seed).waitFor({ state: "visible", timeout: 15000 });
+  await runSeedAction(page, { action: "seed" });
 }
 
 export async function seedNetCardScenario(page: Page, scenario: NetCardScenario) {
-  await gotoAndWaitForHydration(page, "/e2e");
-  await page.getByTestId(`seed-net-card-${scenario}`).click();
-  await page.getByTestId(`confirm-seed-net-card-${scenario}`).click();
-  await page.getByText(statusText.seedNetCard).waitFor({ state: "visible", timeout: 15000 });
+  await runSeedAction(page, { action: "seed", scenario });
 }
 
 export async function seedTrendsData(page: Page) {
-  await gotoAndWaitForHydration(page, "/e2e");
-  await page.getByTestId("seed-trends").click();
-  await page.getByTestId("confirm-seed-trends").click();
-  await page.getByText(statusText.seedTrends).waitFor({ state: "visible", timeout: 15000 });
+  await runSeedAction(page, { action: "seed-trends" });
 }

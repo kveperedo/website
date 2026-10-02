@@ -1,12 +1,11 @@
 import { expect, test } from "@playwright/test";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
+import { createStandaloneTemplateFixture, deleteFixtures } from "../helpers/fixtures";
 import {
   archiveScheduledTransactionTemplate,
   archiveScheduledTemplateFromDetail,
-  createStandaloneScheduledTemplate,
   getArchivedTemplateId,
-  getScheduledTemplateId,
 } from "../helpers/transactions";
 
 test.describe.configure({ mode: "serial", timeout: 60000 });
@@ -18,11 +17,9 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
     const description = `Archive list ${Date.now()}`;
 
     try {
-      await createStandaloneScheduledTemplate(page, description, {
-        amount: 120,
-        endType: "none",
-      });
+      await createStandaloneTemplateFixture(page, description, { amount: 120 });
 
+      await gotoAndWaitForHydration(page, "/finances/scheduled");
       const beforeCountText = await page.getByRole("link", { name: /Archived/ }).textContent();
       const beforeCount = beforeCountText?.match(/\((\d+)\)/)
         ? parseInt(beforeCountText.match(/\((\d+)\)/)![1], 10)
@@ -58,9 +55,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
       const archivedId = await getArchivedTemplateId(page, description);
       expect(archivedId).toBeTruthy();
     } finally {
-      // Archived items remain for reference — no hard delete; verify via archived page then leave
-      // For isolation, archiving is the cleanup. If still on main list, archive it.
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 
@@ -70,11 +65,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
     const description = `Archive detail ${Date.now()}`;
 
     try {
-      await createStandaloneScheduledTemplate(page, description, {
-        amount: 55,
-        endType: "none",
-      });
-      const templateId = await getScheduledTemplateId(page, description);
+      const templateId = await createStandaloneTemplateFixture(page, description, { amount: 55 });
       await archiveScheduledTransactionTemplate(page, description);
 
       await gotoAndWaitForHydration(page, `/finances/scheduled/${templateId}`);
@@ -99,7 +90,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
       // Opacity: archived detail card should NOT be muted (unlike paused)
       // List item on archived page already checked not muted above, detail not muted
     } finally {
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 
@@ -134,14 +125,8 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
     const toArchiveDesc = `Filter archived ${Date.now()}`;
 
     try {
-      await createStandaloneScheduledTemplate(page, activeDesc, {
-        amount: 10,
-        endType: "none",
-      });
-      await createStandaloneScheduledTemplate(page, toArchiveDesc, {
-        amount: 20,
-        endType: "none",
-      });
+      await createStandaloneTemplateFixture(page, activeDesc, { amount: 10 });
+      await createStandaloneTemplateFixture(page, toArchiveDesc, { amount: 20 });
       await archiveScheduledTransactionTemplate(page, toArchiveDesc);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled");
@@ -164,8 +149,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
       await expect(page.getByRole("listitem").filter({ hasText: toArchiveDesc })).toBeVisible();
       await expect(page.getByRole("listitem").filter({ hasText: activeDesc })).toHaveCount(0);
     } finally {
-      await archiveScheduledTransactionTemplate(page, activeDesc);
-      await archiveScheduledTransactionTemplate(page, toArchiveDesc);
+      await deleteFixtures(page, activeDesc, toArchiveDesc);
     }
   });
 
@@ -173,11 +157,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
     const description = `Archive detail flow ${Date.now()}`;
 
     try {
-      await createStandaloneScheduledTemplate(page, description, {
-        amount: 75,
-        endType: "none",
-      });
-      const templateId = await getScheduledTemplateId(page, description);
+      const templateId = await createStandaloneTemplateFixture(page, description, { amount: 75 });
 
       await archiveScheduledTemplateFromDetail(page, templateId);
       await expect(page).toHaveURL(/\/finances\/scheduled$/);
@@ -188,7 +168,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
       await expect(archivedItem).toBeVisible();
       await expect(archivedItem).not.toHaveClass(/opacity-50/);
     } finally {
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 
@@ -196,10 +176,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
     const description = `Archive clickable ${Date.now()}`;
 
     try {
-      await createStandaloneScheduledTemplate(page, description, {
-        amount: 33,
-        endType: "none",
-      });
+      await createStandaloneTemplateFixture(page, description, { amount: 33 });
       await archiveScheduledTransactionTemplate(page, description);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
@@ -211,7 +188,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
       await expect(page).toHaveURL(/\/finances\/scheduled\/[0-9a-f-]{36}/);
       await expect(page.getByTestId("description-input")).toBeVisible();
     } finally {
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 });

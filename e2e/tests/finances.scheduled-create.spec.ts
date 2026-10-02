@@ -2,15 +2,14 @@ import { expect, test } from "@playwright/test";
 import { addMonths, format } from "date-fns";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
+import { createStandaloneTemplateFixture, deleteFixtures } from "../helpers/fixtures";
 import {
   createStandaloneScheduledTemplate,
-  archiveScheduledTransactionTemplate,
-  getScheduledTemplateId,
   openNewScheduledPage,
   openScheduledTemplateForEdit,
 } from "../helpers/transactions";
 
-test.describe.configure({ mode: "serial", timeout: 60000 });
+test.describe.configure({ timeout: 60000 });
 
 test.describe("scheduled creation via /scheduled/new", () => {
   test("New schedule button navigates to creation page", async ({ page }) => {
@@ -55,7 +54,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
       await expect(template.getByText("No end", { exact: true })).toBeVisible();
       await expect(template.getByText("₱120.00")).toBeVisible();
     } finally {
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 
@@ -72,7 +71,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
       await expect(template).toBeVisible();
       await expect(template.getByText("0/4 occurrences")).toBeVisible();
     } finally {
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 
@@ -92,7 +91,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
         template.getByText(`Until ${format(endDate, "MMM d, yyyy")}`, { exact: true }),
       ).toBeVisible();
     } finally {
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 
@@ -136,8 +135,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
     const description = `Start date persist ${Date.now()}`;
 
     try {
-      await createStandaloneScheduledTemplate(page, description, { amount: 99 });
-      const templateId = await getScheduledTemplateId(page, description);
+      const templateId = await createStandaloneTemplateFixture(page, description, { amount: 99 });
       await openScheduledTemplateForEdit(page, templateId);
       await expect(page.getByText("Start date")).toBeVisible();
       // Start date button should contain today's date (PPP format)
@@ -146,7 +144,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
       // Day of month input should be visible and match created value
       await expect(page.getByLabel("Day of month")).toBeVisible();
     } finally {
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 
@@ -154,8 +152,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
     const description = `Edit start date ${Date.now()}`;
 
     try {
-      await createStandaloneScheduledTemplate(page, description, { amount: 75 });
-      const templateId = await getScheduledTemplateId(page, description);
+      const templateId = await createStandaloneTemplateFixture(page, description, { amount: 75 });
       await openScheduledTemplateForEdit(page, templateId);
 
       const dayInput = page.getByLabel("Day of month");
@@ -168,7 +165,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
       await gotoAndWaitForHydration(page, `/finances/scheduled/${templateId}`);
       await expect(page.getByLabel("Day of month")).toHaveValue("15");
     } finally {
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 
@@ -176,13 +173,13 @@ test.describe("scheduled creation via /scheduled/new", () => {
     const description = `Header button ${Date.now()}`;
 
     try {
-      await createStandaloneScheduledTemplate(page, description, { amount: 10 });
+      await createStandaloneTemplateFixture(page, description, { amount: 10 });
       await gotoAndWaitForHydration(page, "/finances/scheduled");
       await expect(page.getByRole("heading", { name: "Scheduled Transactions" })).toBeVisible();
       await expect(page.getByRole("link", { name: "New schedule" })).toBeVisible();
       await expect(page.getByTestId("scheduled-summary-expenses")).toBeVisible();
     } finally {
-      await archiveScheduledTransactionTemplate(page, description);
+      await deleteFixtures(page, description);
     }
   });
 });

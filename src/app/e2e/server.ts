@@ -9,11 +9,21 @@ import {
   startOfMonth,
 } from "date-fns";
 
-import type { TransactionCategory } from "@/generated/prisma/enums";
+import type {
+  ScheduledTransactionStatus,
+  TransactionCategory,
+  TransactionType,
+} from "@/generated/prisma/enums";
 
+import { getCurrentUser } from "@/app/auth/server";
 import { getDb, type DbTransactionClient } from "@/db/client";
 
-import { getCurrentYearMonth, startOfLocalMonth } from "../finance/local-date";
+import {
+  dateOnlyToDatabaseDate,
+  getCurrentYearMonth,
+  startOfLocalMonth,
+  todayDateOnly,
+} from "../finance/local-date";
 
 export type NetCardScenario = "below-pace" | "no-history" | "on-pace" | "over-income";
 
@@ -27,6 +37,17 @@ export function requireE2EAvailable() {
   }
 }
 
+/** Guard for the E2E server routes: hidden unless E2E is enabled, and session-only. */
+export async function rejectUnlessE2E() {
+  if (!isE2EAvailable()) {
+    return new Response(null, { status: 404 });
+  }
+  if (!(await getCurrentUser())) {
+    return new Response(null, { status: 401 });
+  }
+  return null;
+}
+
 async function clearTestData(db: DbTransactionClient) {
   await db.transaction.deleteMany();
   await db.scheduledTransactionTemplate.deleteMany();
@@ -35,6 +56,75 @@ async function clearTestData(db: DbTransactionClient) {
 
 export async function resetTestData() {
   await getDb().$transaction(clearTestData);
+}
+
+export type E2EFixtureInput = {
+  description: string;
+  amount: number;
+  type: TransactionType;
+  category: TransactionCategory | null;
+  /** Omit to create a plain transaction. */
+  schedule?: {
+    dayOfMonth: number;
+    maxOccurrences: number | null;
+    /** `yyyy-MM-dd` */
+    endDate: string | null;
+    status: ScheduledTransactionStatus;
+  };
+  /** When false, only the template is created, as `/finances/scheduled/new` does. */
+  withTransaction: boolean;
+};
+
+/**
+ * Creates the same rows the UI flows write for a transaction dated today, without the AI
+ * parse or page navigations, so tests whose subject is something else can set up quickly.
+ */
+export async function createE2EFixture(input: E2EFixtureInput) {
+  const today = dateOnlyToDatabaseDate(todayDateOnly());
+  const category = input.type === "income" ? null : input.category;
+
+  return getDb().$transaction(async (db) => {
+    const template = input.schedule
+      ? await db.scheduledTransactionTemplate.create({
+          data: {
+            description: input.description,
+            amount: input.amount,
+            type: input.type,
+            category,
+            dayOfMonth: input.schedule.dayOfMonth,
+            startDate: today,
+            endDate: input.schedule.endDate ? dateOnlyToDatabaseDate(input.schedule.endDate) : null,
+            maxOccurrences: input.schedule.maxOccurrences,
+            status: input.schedule.status,
+          },
+        })
+      : null;
+
+    const transaction = input.withTransaction
+      ? await db.transaction.create({
+          data: {
+            description: input.description,
+            amount: input.amount,
+            type: input.type,
+            category,
+            transactedAt: today,
+            templateId: template?.id,
+          },
+        })
+      : null;
+
+    return { transactionId: transaction?.id ?? null, templateId: template?.id ?? null };
+  });
+}
+
+/** Hard-deletes every transaction and template matching the descriptions, archived or not. */
+export async function deleteE2EFixtures(descriptions: Array<string>) {
+  await getDb().$transaction(async (db) => {
+    await db.transaction.deleteMany({ where: { description: { in: descriptions } } });
+    await db.scheduledTransactionTemplate.deleteMany({
+      where: { description: { in: descriptions } },
+    });
+  });
 }
 
 export async function seedTestData(scenario?: NetCardScenario) {
