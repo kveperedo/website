@@ -3,21 +3,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 3000 --host",
+    "dev": "cf dev",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "typecheck": "tsc --noEmit",
-    "build": "vite build",
+    "typecheck": "pnpm run cf:generate && tsc --noEmit",
+    "build": "cf build",
     "preview:vite": "vite preview",
-    "deploy": "pnpm run build && wrangler deploy",
-    "preview:deploy": "pnpm run build && wrangler preview",
-    "preview:delete": "wrangler preview delete",
-    "cf:generate": "wrangler types",
+    "deploy": "cf deploy",
+    "preview:deploy": "cf previews deploy",
+    "preview:delete": "cf workers delete",
+    "cf:generate": "cf workers types",
     "test": "vitest run",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
-    "checks": "concurrently -n lint,format,test \"pnpm:lint\" \"pnpm:format:check\" \"pnpm:test\"",
+    "checks": "concurrently -n lint,format,test,typecheck \"pnpm:lint\" \"pnpm:format:check\" \"pnpm:test\" \"pnpm:typecheck\"",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
@@ -65,7 +65,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.43.0",
+    "@cloudflare/vite-plugin": "2.0.0-beta.sha-805ec1ff3",
     "@cloudflare/workers-types": "^4.20260702.1",
     "@playwright/test": "^1.61.1",
     "@rolldown/plugin-babel": "^0.2.3",
@@ -81,6 +81,7 @@
     "@types/sanitize-html": "^2.16.1",
     "@vitejs/plugin-react": "^6.0.1",
     "babel-plugin-react-compiler": "^1.0.0",
+    "cf": "1.0.0-beta.13",
     "concurrently": "^10.0.5",
     "husky": "^9.1.7",
     "oxfmt": "^0.57.0",
@@ -90,8 +91,7 @@
     "tsx": "^4.22.4",
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
-    "vitest": "^4.1.9",
-    "wrangler": "^4.149.0"
+    "vitest": "^4.1.9"
   },
   "packageManager": "pnpm@11.25.0"
 }

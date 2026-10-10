@@ -114,30 +114,30 @@ Create or update a Preview for the current branch:
 pnpm run preview:deploy
 ```
 
-The Preview name defaults to the current git branch; pass `--name` to override it:
+The Preview name defaults to the current git branch; pass it positionally to override it:
 
 ```bash
-pnpm run preview:deploy --name "pr-123"
+pnpm run preview:deploy pr-123
 ```
 
-Preview bindings live in the `previews` block of `wrangler.jsonc`. Preview secrets live on the Previews Base config and are not in the config file:
+Preview bindings live in the `ctx.isPreview` branch of `cloudflare.config.ts`. Secrets are declared with `bindings.secret()` in both branches, but their values live on the Cloudflare account rather than in the config file. Set one with:
 
 ```bash
-pnpm exec wrangler preview base-config secret put SESSION_SECRET
+pnpm exec cf workers secrets update SESSION_SECRET --worker website --text <value>
 ```
 
 Check what is registered:
 
 ```bash
-pnpm exec wrangler preview base-config secret list
+pnpm exec cf workers secrets list --worker website
 ```
 
-Delete a Preview:
+Delete a Preview — the Worker name is the Preview name plus the `-website` suffix:
 
 ```bash
-pnpm run preview:delete --name "pr-123"
+pnpm run preview:delete pr-123-website
 ```
 
-Previews are not deleted automatically — CI removes its own `pr-<number>` Previews when a pull request closes, but anything you deploy by hand stays up until you delete it. Previews inherit the Previews Base config secrets, so treat a live one as a real deployment.
+Previews are not deleted automatically — CI removes its own `pr-<number>` Previews when a pull request closes, but anything you deploy by hand stays up until you delete it. Previews inherit the account-side secrets, so treat a live one as a real deployment.
 
-The Worker configuration, custom domain, KV-backed rate limiting, cron trigger, and observability settings are defined in `wrangler.jsonc`.
+The Worker configuration, custom domain, KV-backed rate limiting, cron trigger, and observability settings are defined in `cloudflare.config.ts`.
