@@ -36,25 +36,22 @@
       "invocation_logs": true,
     },
   },
-  "env": {
-    "preview": {
-      "routes": [],
-      "kv_namespaces": [
-        {
-          "binding": "website-rate-limit",
-          "id": "22d6a87333af45d88e10b7f3989cfac8",
-        },
-      ],
-      "hyperdrive": [
-        {
-          "binding": "HYPERDRIVE",
-          "id": "2a21ccdb16bd4c8798afc79a759667de",
-        },
-      ],
-      "ai": {
-        "binding": "AI",
-        "remote": true,
+  "previews": {
+    "kv_namespaces": [
+      {
+        "binding": "website-rate-limit",
+        "id": "22d6a87333af45d88e10b7f3989cfac8",
       },
+    ],
+    "hyperdrive": [
+      {
+        "binding": "HYPERDRIVE",
+        "id": "2a21ccdb16bd4c8798afc79a759667de",
+      },
+    ],
+    "ai": {
+      "binding": "AI",
+      "remote": true,
     },
   },
 }

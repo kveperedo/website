@@ -108,10 +108,36 @@ Deploy the Worker to production:
 pnpm run deploy
 ```
 
-Create an aliased preview deployment:
+Create or update a Preview for the current branch:
 
 ```bash
-pnpm run deploy:preview -- "pr-<slug>"
+pnpm run preview:deploy
 ```
+
+The Preview name defaults to the current git branch; pass `--name` to override it:
+
+```bash
+pnpm run preview:deploy --name "pr-123"
+```
+
+Preview bindings live in the `previews` block of `wrangler.jsonc`. Preview secrets live on the Previews Base config and are not in the config file:
+
+```bash
+pnpm exec wrangler preview base-config secret put SESSION_SECRET
+```
+
+Check what is registered:
+
+```bash
+pnpm exec wrangler preview base-config secret list
+```
+
+Delete a Preview:
+
+```bash
+pnpm run preview:delete --name "pr-123"
+```
+
+Previews are not deleted automatically — CI removes its own `pr-<number>` Previews when a pull request closes, but anything you deploy by hand stays up until you delete it. Previews inherit the Previews Base config secrets, so treat a live one as a real deployment.
 
 The Worker configuration, custom domain, KV-backed rate limiting, cron trigger, and observability settings are defined in `wrangler.jsonc`.

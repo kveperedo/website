@@ -10,10 +10,10 @@
     "format:check": "oxfmt --check",
     "typecheck": "tsc --noEmit",
     "build": "vite build",
-    "build:preview": "CLOUDFLARE_ENV=preview vite build",
-    "preview": "vite preview",
+    "preview:vite": "vite preview",
     "deploy": "pnpm run build && wrangler deploy",
-    "deploy:preview": "pnpm run build:preview && wrangler versions upload --preview-alias",
+    "preview:deploy": "pnpm run build && wrangler preview",
+    "preview:delete": "wrangler preview delete",
     "cf:generate": "wrangler types",
     "test": "vitest run",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
@@ -91,7 +91,7 @@
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
     "vitest": "^4.1.9",
-    "wrangler": "^4.107.0"
+    "wrangler": "^4.149.0"
   },
   "packageManager": "pnpm@11.25.0"
 }
