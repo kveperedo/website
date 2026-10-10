@@ -9,6 +9,8 @@ import { defineConfig } from "vitest/config";
 const isTest = process.env.VITEST === "true";
 
 const config = defineConfig({
+  // `cf dev` forwards no extra arguments to Vite, so these live here.
+  server: { port: 3000, host: true },
   resolve: { tsconfigPaths: true },
   plugins: [
     ...(isTest

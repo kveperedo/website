@@ -22,9 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.event_name != 'pull_request' || github.event.action != 'closed'
+    environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - name: Run checks
         run: pnpm run checks
 
@@ -38,9 +43,6 @@ jobs:
     environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
     permissions:
       pull-requests: write
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,22 +73,24 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Build Worker
-        run: pnpm run build
-
       - name: Deploy to production
         if: github.event_name == 'push'
-        run: pnpm exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm run deploy
 
       - name: Deploy to preview
         id: preview
         if: github.event_name == 'pull_request'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIEW_NAME: pr-${{ github.event.number }}
         run: |
-          pnpm exec wrangler preview \
-            --name "pr-${{ github.event.number }}" \
-            --message "Preview for PR #${{ github.event.number }}"
+          pnpm exec cf previews deploy "$PREVIEW_NAME"
 
-          echo "url=https://pr-${{ github.event.number }}-website.kevinperedo.workers.dev" >> $GITHUB_OUTPUT
+          echo "url=https://${PREVIEW_NAME}-website.kevinperedo.workers.dev" >> $GITHUB_OUTPUT
 
       - name: Comment preview URL
         if: github.event_name == 'pull_request'
@@ -135,9 +139,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -146,5 +147,7 @@ jobs:
       - name: Delete preview
         continue-on-error: true
         env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PREVIEW_NAME: pr-${{ github.event.number }}
-        run: pnpm exec wrangler preview delete --name "$PREVIEW_NAME" --skip-confirmation
+        run: pnpm exec cf workers delete "${PREVIEW_NAME}-website" --force

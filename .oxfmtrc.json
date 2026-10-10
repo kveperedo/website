@@ -21,6 +21,6 @@
     ".agents/*",
     "CLAUDE.md",
     ".claude/skills/*",
-    "worker-configuration.d.ts"
+    ".cloudflare/*"
   ]
 }

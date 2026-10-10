@@ -1,5 +1,5 @@
 {
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", ".cloudflare/types"],
   "exclude": ["src/generated/zod"],
   "compilerOptions": {
     "target": "ES2022",
