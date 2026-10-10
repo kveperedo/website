@@ -41,7 +41,7 @@
   }
 
   to {
-    transform: translateX(250%);
+    transform: translateX(300%);
   }
 }
 
@@ -68,6 +68,16 @@
     rgba(255, 255, 255, 0.04) 1px,
     transparent 1px,
     transparent 3px
+  );
+}
+
+@utility bg-progress-sweep {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--primary) 40%,
+    var(--primary) 60%,
+    transparent 100%
   );
 }
 
@@ -195,6 +205,7 @@ body,
 
   --animate-gradient: gradient 15s ease infinite;
   --animate-grow: grow 7s infinite;
+  --animate-route-loading: route-loading 1.25s linear infinite;
 }
 
 @layer base {
