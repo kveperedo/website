@@ -1,41 +1,58 @@
 import { useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
 
-const LOADING_DELAY_MS = 200;
+// MIN_VISIBLE_MS is timed from when the bar appears, not from when loading started.
+const LOADING_DELAY_MS = 100;
+const MIN_VISIBLE_MS = 300;
 
 function RouteProgress() {
-  const isLoading = useRouterState({ select: (state) => state.status === "pending" });
-  const [show, setShow] = useState(false);
+  const isLoading = useRouterState({ select: (state) => state.isLoading });
+  const [isVisible, setIsVisible] = useState(false);
+  const shownAt = useRef(0);
 
   useEffect(() => {
-    if (isLoading) {
-      const timer = setTimeout(() => setShow(true), LOADING_DELAY_MS);
-      return () => {
-        clearTimeout(timer);
-        setShow(false);
-      };
+    // Hold the bar across overlapping navigations rather than restarting the delay.
+    if (isLoading && isVisible) {
+      return;
     }
-  }, [isLoading]);
 
-  if (!show) {
-    return null;
-  }
+    if (!isLoading && !isVisible) {
+      return;
+    }
+
+    if (isLoading) {
+      const showTimer = setTimeout(() => {
+        shownAt.current = performance.now();
+        setIsVisible(true);
+      }, LOADING_DELAY_MS);
+
+      return () => clearTimeout(showTimer);
+    }
+
+    const hideTimer = setTimeout(
+      () => setIsVisible(false),
+      Math.max(MIN_VISIBLE_MS - (performance.now() - shownAt.current), 0),
+    );
+
+    return () => clearTimeout(hideTimer);
+  }, [isLoading, isVisible]);
 
   return (
-    <Progress
-      aria-label="Loading page"
-      isIndeterminate
-      className={({ isIndeterminate }) =>
-        cn(
-          "fixed inset-x-0 top-0 z-50 block *:data-[slot=progress-track]:h-px *:data-[slot=progress-track]:bg-border/50",
-          isIndeterminate &&
-            "**:data-[slot=progress-indicator]:w-2/3! **:data-[slot=progress-indicator]:animate-[route-loading_1s_ease-in-out_infinite]",
-        )
-      }
-    />
+    <>
+      <div role="status" className="sr-only">
+        {isVisible ? "Loading page" : null}
+      </div>
+      {isVisible && (
+        // `!` on the width beats the inline 100% `ProgressIndicator` sets when indeterminate.
+        <Progress
+          aria-hidden="true"
+          isIndeterminate
+          className="fixed inset-x-0 top-0 z-50 block **:data-[slot=progress-indicator]:w-1/3! **:data-[slot=progress-indicator]:animate-route-loading **:data-[slot=progress-indicator]:bg-progress-sweep *:data-[slot=progress-track]:h-0.5 *:data-[slot=progress-track]:bg-primary/15"
+        />
+      )}
+    </>
   );
 }
 
