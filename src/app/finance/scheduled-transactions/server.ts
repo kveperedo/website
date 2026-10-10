@@ -89,7 +89,7 @@ const mapScheduledTemplate = <
 export const getScheduledTransactionTemplates = async () => {
   const templates = await getDb().scheduledTransactionTemplate.findMany({
     where: { status: { in: ["active", "paused"] } },
-    orderBy: [{ status: "asc" }, { dayOfMonth: "asc" }, { createdAt: "desc" }],
+    orderBy: [{ dayOfMonth: "asc" }, { createdAt: "desc" }],
     include: {
       _count: { select: { transactions: true } },
     },
