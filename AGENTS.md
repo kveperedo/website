@@ -9,9 +9,20 @@
 - `pnpm run test` — Vitest unit tests
 - `pnpm run build` — outputs a Cloudflare Workers bundle (via `@cloudflare/vite-plugin`)
 - `pnpm run deploy` — runs `pnpm run build && wrangler deploy` (production → `kevinperedo.com`)
-- **Preview deploy**: `pnpm run deploy:preview -- "pr-<slug>"` — uploads to the isolated preview Worker with an aliased URL at `pr-<slug>-website-preview.kveperedo.workers.dev`
-- `pnpm run deploy:preview` is equivalent to `pnpm run build:preview && npx wrangler versions upload --preview-alias`
+- **Preview deploy**: `pnpm run preview:deploy` (= `pnpm run build && wrangler preview`) — creates or updates a Worker Preview named after the current git branch; override with `--name "pr-123"`
+- **Preview delete**: `pnpm run preview:delete --name "pr-123"`
+- `pnpm run preview:vite` — Vite's own preview server, unrelated to Worker Previews
 - `pnpm run cf:generate` — regenerates `worker-configuration.d.ts` from `wrangler.jsonc`
+
+## Previews
+
+- CI uses a single Preview name, `pr-<number>`, deleted on PR close by the `cleanup-preview` job. Nothing long-lived is deployed: pushing to `main` deploys production only, and `deploy.outputs.url` is therefore empty on `push`.
+- Preview settings live in the `previews` block of `wrangler.jsonc` — these are Worker Previews, not Wrangler environments, so `env.preview` is gone. Previews inherit nothing from production: every binding read from `env` must be redeclared there.
+- Secrets (`SESSION_SECRET`, `ADMIN_PASSWORD_HASH`, `E2E_PASSWORD`) live on the Previews Base config rather than the config file: `wrangler preview base-config secret put <KEY>`. New Previews inherit them, existing ones do not pick up later changes.
+- Production routes, custom domains, and cron triggers stay top-level and target production only, so previews get no `scheduled()` invocations. `PreviewsConfig` rejects `routes`, `triggers`, and `name` outright.
+- A PR preview is public for as long as the PR is open, and it inherits `E2E_PASSWORD`, so `isE2EAvailable()` is true and the E2E suite skips rate limits there. `loginFn` passes `alwaysEnforce` so its rate limit stays on regardless; every other rate-limited endpoint sits behind `authMiddleware`.
+- A local `pnpm run preview:deploy` is not deleted for you and inherits those secrets too — run `pnpm run preview:delete` when you are done with the branch.
+- Requires Wrangler >= 4.135.0. `X-Robots-Tag: noindex` is applied to `workers.dev` Preview URLs only — a Preview served on a custom domain needs Cloudflare Access instead.
 
 ## Architecture
 
@@ -74,7 +85,7 @@
 ## Testing
 
 - **Vitest** for unit tests (`pnpm run test`): `environment: "node"`, runs in `checks` CI job
-- **Playwright** for E2E tests (`pnpm run test:e2e`): runs against the deployed Cloudflare Workers preview URL in CI
+- **Playwright** for E2E tests (`pnpm run test:e2e`): runs against the deployed Worker Preview URL in CI
 - E2E tests live in `e2e/tests/`; Playwright config at `e2e/playwright.config.ts`
 - Auth helper at `e2e/helpers/auth.ts` navigates to `/login`, fills password from `E2E_PASSWORD` (sourced from `.env` locally or injected as a CI secret), and waits for redirect to `/finances`
 - Vitest SSR plugins (`tanstackStart`, `nitro`, `devtools`) are disabled when `VITEST=true` to avoid transform conflicts
