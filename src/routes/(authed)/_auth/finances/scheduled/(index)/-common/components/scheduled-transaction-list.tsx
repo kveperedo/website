@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { GridList } from "@/components/ui/grid-list";
 
 import { Route } from "../..";
 import { ScheduledTemplateListItem } from "../../../-common/components/scheduled-template-list-item";
@@ -37,7 +38,7 @@ export const ScheduledTransactionList = ({
   const router = useRouter();
   const isEmpty = templates.length === 0;
 
-  const handleRowClick = (id: string) => {
+  const handleRowAction = (id: string) => {
     router.navigate({
       to: "/finances/scheduled/$id",
       params: { id },
@@ -55,12 +56,11 @@ export const ScheduledTransactionList = ({
             </EmptyHeader>
           </Empty>
         ) : (
-          <ul className="flex flex-col gap-2" aria-label={label}>
-            {templates.map((template) => (
+          <GridList items={templates} aria-label={label}>
+            {(template) => (
               <ScheduledTemplateListItem
-                key={template.id}
                 template={template}
-                onClick={handleRowClick}
+                onAction={handleRowAction}
                 actions={
                   <>
                     <Button
@@ -68,8 +68,6 @@ export const ScheduledTransactionList = ({
                       size="icon-sm"
                       isDisabled={isLoading === template.id}
                       onPress={() => onToggle(template.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => e.stopPropagation()}
                       aria-label={template.status === "active" ? "Pause" : "Resume"}
                     >
                       {template.status === "active" ? (
@@ -83,8 +81,6 @@ export const ScheduledTransactionList = ({
                         variant="ghost"
                         size="icon-sm"
                         isDisabled={isArchiving === template.id}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
                         aria-label="Archive template"
                       >
                         <ArchiveIcon className="size-3.5" />
@@ -111,8 +107,8 @@ export const ScheduledTransactionList = ({
                   </>
                 }
               />
-            ))}
-          </ul>
+            )}
+          </GridList>
         )}
       </CardContent>
     </Card>

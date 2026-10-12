@@ -17,6 +17,7 @@ import {
   openScheduledTemplateForEdit,
   openTransactionComposer,
   openTransactionForEdit,
+  scheduledTemplateRow,
 } from "../helpers/transactions";
 
 const descriptionField = (page: Page) => page.getByTestId("description-input");
@@ -24,7 +25,7 @@ const descriptionField = (page: Page) => page.getByTestId("description-input");
 test.describe.configure({ timeout: 60000 });
 
 // Tests run in parallel, so rows saved here use descriptions the composer tests never type;
-// otherwise their exact-text assertions on "Milk 75"/"Bread 40" would match a saved table row.
+// otherwise their exact-text assertions on "Milk 75"/"Bread 40" would match a saved list row.
 test.describe("transaction mutations", () => {
   test("AI parse then save creates a transaction", async ({ page }) => {
     const description = "Milk 75 saved";
@@ -33,7 +34,7 @@ test.describe("transaction mutations", () => {
       await gotoAndWaitForHydration(page, "/finances/transactions");
 
       const id = await createTransaction(page, "Milk 75", description);
-      await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toBeVisible();
+      await expect(page.locator(`[data-transaction-id="${id}"]`)).toBeVisible();
     } finally {
       await deleteFixtures(page, description);
     }
@@ -96,7 +97,7 @@ test.describe("transaction mutations", () => {
     try {
       const id = await createTransactionFixture(page, description);
       await deleteTransaction(page, id);
-      await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toHaveCount(0);
+      await expect(page.locator(`[data-transaction-id="${id}"]`)).toHaveCount(0);
     } finally {
       await deleteFixtures(page, description);
     }
@@ -146,7 +147,7 @@ test.describe("transaction mutations", () => {
       await page.waitForURL(/\/finances(\/?$|\?)/, { timeout: 30000 });
 
       const id = await getTransactionId(page, description);
-      await expect(page.locator(`tr[data-transaction-id="${id}"]`)).toBeVisible();
+      await expect(page.locator(`[data-transaction-id="${id}"]`)).toBeVisible();
     } finally {
       await deleteFixtures(page, description);
     }
@@ -161,7 +162,7 @@ test.describe("transaction mutations", () => {
       await page.getByRole("link", { name: "Manage scheduled transactions" }).click();
       await expect(page).toHaveURL(/\/finances\/scheduled$/);
 
-      const template = page.getByRole("listitem").filter({ hasText: description });
+      const template = scheduledTemplateRow(page, description);
       await expect(template).toBeVisible();
       await expect(template.getByText("1/3 occurrences")).toBeVisible();
     } finally {
@@ -177,7 +178,7 @@ test.describe("transaction mutations", () => {
       await createScheduledTransaction(page, description, { endType: "none" });
       await gotoAndWaitForHydration(page, "/finances/scheduled");
 
-      const template = page.getByRole("listitem").filter({ hasText: description });
+      const template = scheduledTemplateRow(page, description);
       await expect(template).toBeVisible();
       await expect(template.getByText("No end", { exact: true })).toBeVisible();
     } finally {
@@ -202,7 +203,7 @@ test.describe("transaction mutations", () => {
         await createScheduledTransaction(page, description, { endType: "date", endDate });
         await gotoAndWaitForHydration(page, "/finances/scheduled");
 
-        const template = page.getByRole("listitem").filter({ hasText: description });
+        const template = scheduledTemplateRow(page, description);
         await expect(template).toBeVisible();
         await expect(
           template.getByText(`Until ${format(endDate, "MMM d, yyyy")}`, { exact: true }),
@@ -226,7 +227,7 @@ test.describe("transaction mutations", () => {
       await expect(page.getByRole("heading", { name: "Make recurring" })).toHaveCount(0);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const template = page.getByRole("listitem").filter({ hasText: description });
+      const template = scheduledTemplateRow(page, description);
       await expect(template).toBeVisible();
       await template.getByRole("button", { name: "Pause" }).click();
       await expect(template.getByRole("button", { name: "Resume" })).toBeVisible();
@@ -250,10 +251,10 @@ test.describe("transaction mutations", () => {
       await archiveScheduledTransactionTemplate(page, description);
       // Removed from main list
       await gotoAndWaitForHydration(page, "/finances/scheduled");
-      await expect(page.getByRole("listitem").filter({ hasText: description })).toHaveCount(0);
+      await expect(scheduledTemplateRow(page, description)).toHaveCount(0);
       // Visible on archived page
       await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
-      await expect(page.getByRole("listitem").filter({ hasText: description })).toBeVisible();
+      await expect(scheduledTemplateRow(page, description)).toBeVisible();
       // Verify via helper
       const archivedId = await getArchivedTemplateId(page, description);
       expect(archivedId).toBeTruthy();
@@ -347,10 +348,10 @@ test.describe("scheduled template editing", () => {
       await page.getByRole("button", { name: "Archive", exact: true }).click();
       await page.waitForURL(/\/finances\/scheduled$/);
 
-      await expect(page.getByRole("listitem").filter({ hasText: description })).toHaveCount(0);
+      await expect(scheduledTemplateRow(page, description)).toHaveCount(0);
       // Verify archived
       await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
-      await expect(page.getByRole("listitem").filter({ hasText: description })).toBeVisible();
+      await expect(scheduledTemplateRow(page, description)).toBeVisible();
     } finally {
       await deleteFixtures(page, description);
     }
@@ -399,7 +400,7 @@ test.describe("scheduled template editing", () => {
       const { templateId } = await createScheduledTransactionFixture(page, description);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled");
-      const template = page.getByRole("listitem").filter({ hasText: description });
+      const template = scheduledTemplateRow(page, description);
       await template.getByRole("button", { name: "Pause" }).click();
       await expect(template.getByRole("button", { name: "Resume" })).toBeVisible();
 

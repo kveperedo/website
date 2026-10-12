@@ -2,6 +2,7 @@ import { format, parseISO } from "date-fns";
 
 import type { ScheduledTransactionStatus } from "@/generated/prisma/enums";
 
+import { GridListItem } from "@/components/ui/grid-list";
 import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import {
@@ -24,13 +25,13 @@ type ScheduledTemplate = {
 
 type ScheduledTemplateListItemProps = {
   template: ScheduledTemplate;
-  onClick?: (id: string) => void;
+  onAction?: (id: string) => void;
   actions?: React.ReactNode;
 };
 
 export const ScheduledTemplateListItem = ({
   template,
-  onClick,
+  onAction,
   actions,
 }: ScheduledTemplateListItemProps) => {
   const day = template.dayOfMonth.toString().padStart(2, "0");
@@ -47,29 +48,21 @@ export const ScheduledTemplateListItem = ({
 
   const endCondition = getEndCondition();
   const isMuted = template.status === "paused";
-
-  const handleClick = () => {
-    onClick?.(template.id);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onClick?.(template.id);
-    }
-  };
+  const amount = formatCurrency(template.amount, {
+    sign: template.type === "income" ? "positive" : "negative",
+  });
 
   return (
-    <li
+    <GridListItem
+      id={template.id}
       data-template-id={template.id}
-      aria-label={`Open ${template.description}`}
+      textValue={`${template.description}, ${amount}, ${endCondition}`}
+      onAction={onAction ? () => onAction(template.id) : undefined}
       className={cn(
-        "flex min-w-0 cursor-pointer items-stretch hover:bg-muted/50",
+        "flex min-w-0 items-stretch hover:bg-muted/50 focus-visible:bg-muted/50",
+        onAction && "cursor-pointer",
         isMuted && "opacity-50",
       )}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
     >
       <div className="flex size-9 shrink-0 items-center justify-center bg-muted px-2 font-mono text-xs text-foreground tabular-nums">
         <span aria-hidden="true">{day}</span>
@@ -86,9 +79,7 @@ export const ScheduledTemplateListItem = ({
                 : TRANSACTION_TYPE_COLORS.expense,
             )}
           >
-            {formatCurrency(template.amount, {
-              sign: template.type === "income" ? "positive" : "negative",
-            })}
+            {amount}
           </span>
           {template.category && template.category in CATEGORY_LABELS && (
             <>
@@ -105,6 +96,6 @@ export const ScheduledTemplateListItem = ({
       {actions && (
         <div className="ml-auto flex shrink-0 items-center gap-1 self-center pl-1.5">{actions}</div>
       )}
-    </li>
+    </GridListItem>
   );
 };

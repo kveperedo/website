@@ -162,7 +162,7 @@ test.describe("transactions", () => {
     await search.press("Enter");
 
     await expect(page).toHaveURL(/q=Client(?:$|&)/);
-    await expect(page.getByRole("link", { name: /Client dinner/ })).toBeVisible();
+    await expect(page.getByRole("row", { name: /Client dinner/ })).toBeVisible();
   });
 
   test("Escape cancels pending search changes", async ({ page }) => {
@@ -199,9 +199,9 @@ test.describe("transactions", () => {
     await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
     await expect(page).toHaveURL(/categories=.*food_drinks/);
     await expect(page).toHaveURL(/type=expense/);
-    await expect(page.getByRole("link", { name: /Client dinner/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Groceries run/ })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: /Salary/ })).toHaveCount(0);
+    await expect(page.getByRole("row", { name: /Client dinner/ })).toBeVisible();
+    await expect(page.getByRole("row", { name: /Groceries run/ })).toHaveCount(0);
+    await expect(page.getByRole("row", { name: /Salary/ })).toHaveCount(0);
   });
 
   test("Cancel returns to the filtered transaction list", async ({ page }) => {
@@ -212,8 +212,8 @@ test.describe("transactions", () => {
     const search = await openTransactionSearch(page);
     await search.fill("Client");
     await expect(page).toHaveURL(/q=Client/);
-    await expect(page.getByRole("link", { name: /Client dinner/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Groceries run/ })).toHaveCount(0);
+    await expect(page.getByRole("row", { name: /Client dinner/ })).toBeVisible();
+    await expect(page.getByRole("row", { name: /Groceries run/ })).toHaveCount(0);
 
     await page.getByRole("button", { name: "Categories", exact: true }).click();
     await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
@@ -225,7 +225,7 @@ test.describe("transactions", () => {
     await page.keyboard.press("Escape");
 
     const listUrl = page.url();
-    await page.getByRole("link", { name: /Client dinner/ }).click();
+    await page.getByRole("row", { name: /Client dinner/ }).click();
     await expect(page).toHaveURL(/\/finances\/transactions\/.+/);
     await expect(page).toHaveURL(/q=Client/);
     await expect(page).toHaveURL(/type=expense/);
@@ -233,15 +233,15 @@ test.describe("transactions", () => {
 
     await page.getByRole("button", { name: "Cancel" }).click();
     await expect(page).toHaveURL(listUrl);
-    await expect(page.getByRole("link", { name: /Client dinner/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Groceries run/ })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: /Salary/ })).toHaveCount(0);
+    await expect(page.getByRole("row", { name: /Client dinner/ })).toBeVisible();
+    await expect(page.getByRole("row", { name: /Groceries run/ })).toHaveCount(0);
+    await expect(page.getByRole("row", { name: /Salary/ })).toHaveCount(0);
   });
 
   test("clicking a transaction row opens the edit page", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    await page.locator("tr[data-transaction-id]").first().click();
+    await page.locator("[data-transaction-id]").first().click();
     await expect(page).toHaveURL(/\/finances\/transactions\/.+/);
 
     await expect(page).toHaveTitle(/Edit /);
@@ -252,7 +252,7 @@ test.describe("transactions", () => {
   test("Cancel discards edits and returns to the transactions list", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
 
-    await page.locator("tr[data-transaction-id]").first().click();
+    await page.locator("[data-transaction-id]").first().click();
     await expect(page).toHaveURL(/\/finances\/transactions\/.+/);
 
     await expect(page.getByRole("button", { name: "Delete Transaction" })).toBeVisible();
@@ -328,7 +328,7 @@ test.describe("mobile finance layout", () => {
 
   test("editor footer actions remain reachable after scrolling", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances/transactions");
-    await page.locator("tr[data-transaction-id]").first().click();
+    await page.locator("[data-transaction-id]").first().click();
     await expect(page).toHaveURL(/\/finances\/transactions\/.+/);
 
     await page.evaluate(() => window.scrollTo(0, 200));
@@ -351,13 +351,13 @@ test.describe("dashboard with data", () => {
     const now = new Date();
     const currentMonthLabel = format(now, "MMMM");
     const nextMonthLabel = format(addMonths(now, 1), "MMMM");
-    const nextMonth = page.getByRole("region", { name: nextMonthLabel });
+    const nextMonth = page.getByRole("grid", { name: nextMonthLabel });
 
     await expect(nextMonth).toContainText("Spotify subscription");
     await expect(nextMonth).toContainText("Google One storage");
 
     if (now.getDate() < getDaysInMonth(now)) {
-      const currentMonth = page.getByRole("region", { name: currentMonthLabel });
+      const currentMonth = page.getByRole("grid", { name: currentMonthLabel });
       await expect(currentMonth).toContainText("Internet bill");
       await expect(currentMonth).not.toContainText("Google One storage");
     }
