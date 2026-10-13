@@ -21,7 +21,7 @@ import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/Transac
 import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
 import { CategoryFilter } from "@/routes/(authed)/_auth/finances/-common/components/category-filter";
 import { SummaryCard } from "@/routes/(authed)/_auth/finances/-common/components/summary-card";
-import { TransactionTable } from "@/routes/(authed)/_auth/finances/-common/components/transaction-table";
+import { TransactionList } from "@/routes/(authed)/_auth/finances/-common/components/transaction-list";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
 
@@ -362,7 +362,7 @@ function RouteComponent() {
     return (
       <Card className="gap-0 py-0">
         <CardContent className="p-0">
-          <TransactionTable
+          <TransactionList
             transactions={transactions}
             label={`Transactions for ${monthLabel}`}
             transactionSearch={transactionSearch}

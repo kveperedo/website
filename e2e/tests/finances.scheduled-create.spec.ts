@@ -7,6 +7,7 @@ import {
   createStandaloneScheduledTemplate,
   openNewScheduledPage,
   openScheduledTemplateForEdit,
+  scheduledTemplateRow,
 } from "../helpers/transactions";
 
 test.describe.configure({ timeout: 60000 });
@@ -49,7 +50,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
         type: "expense",
         endType: "none",
       });
-      const template = page.getByRole("listitem").filter({ hasText: description });
+      const template = scheduledTemplateRow(page, description);
       await expect(template).toBeVisible();
       await expect(template.getByText("No end", { exact: true })).toBeVisible();
       await expect(template.getByText("₱120.00")).toBeVisible();
@@ -67,7 +68,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
         endType: "count",
         maxOccurrences: 4,
       });
-      const template = page.getByRole("listitem").filter({ hasText: description });
+      const template = scheduledTemplateRow(page, description);
       await expect(template).toBeVisible();
       await expect(template.getByText("0/4 occurrences")).toBeVisible();
     } finally {
@@ -85,7 +86,7 @@ test.describe("scheduled creation via /scheduled/new", () => {
         endType: "date",
         endDate,
       });
-      const template = page.getByRole("listitem").filter({ hasText: description });
+      const template = scheduledTemplateRow(page, description);
       await expect(template).toBeVisible();
       await expect(
         template.getByText(`Until ${format(endDate, "MMM d, yyyy")}`, { exact: true }),

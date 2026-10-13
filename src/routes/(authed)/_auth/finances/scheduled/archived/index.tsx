@@ -5,6 +5,7 @@ import { getArchivedScheduledTransactionTemplatesFn } from "@/app/finance/schedu
 import { TanstackLinkButton } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { GridList } from "@/components/ui/grid-list";
 
 import { ScheduledTemplateListItem } from "../-common/components/scheduled-template-list-item";
 import { FinanceContainer } from "../../-common/components/finance-container";
@@ -25,7 +26,7 @@ function RouteComponent() {
   const router = useRouter();
   const isEmpty = templates.length === 0;
 
-  const handleRowClick = (id: string) => {
+  const handleRowAction = (id: string) => {
     router.navigate({
       to: "/finances/scheduled/$id",
       params: { id },
@@ -59,15 +60,11 @@ function RouteComponent() {
                 </EmptyHeader>
               </Empty>
             ) : (
-              <ul className="flex flex-col gap-2" aria-label="Archived scheduled transactions">
-                {templates.map((template) => (
-                  <ScheduledTemplateListItem
-                    key={template.id}
-                    template={template}
-                    onClick={handleRowClick}
-                  />
-                ))}
-              </ul>
+              <GridList items={templates} aria-label="Archived scheduled transactions">
+                {(template) => (
+                  <ScheduledTemplateListItem template={template} onAction={handleRowAction} />
+                )}
+              </GridList>
             )}
           </CardContent>
         </Card>

@@ -5,7 +5,9 @@ import { createStandaloneTemplateFixture, deleteFixtures } from "../helpers/fixt
 import {
   archiveScheduledTransactionTemplate,
   archiveScheduledTemplateFromDetail,
+  archivedTemplateRow,
   getArchivedTemplateId,
+  scheduledTemplateRow,
 } from "../helpers/transactions";
 
 test.describe.configure({ mode: "serial", timeout: 60000 });
@@ -29,7 +31,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
 
       // Gone from main list
       await gotoAndWaitForHydration(page, "/finances/scheduled");
-      await expect(page.getByRole("listitem").filter({ hasText: description })).toHaveCount(0);
+      await expect(scheduledTemplateRow(page, description)).toHaveCount(0);
 
       // Badge incremented
       const archivedLink = page.getByRole("link", { name: /Archived/ });
@@ -43,7 +45,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
 
       // Appears on archived page, not muted (archived should retain full opacity)
       await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
-      const archivedItem = page.getByRole("listitem").filter({ hasText: description });
+      const archivedItem = archivedTemplateRow(page, description);
       await expect(archivedItem).toBeVisible();
       await expect(archivedItem).not.toHaveClass(/opacity-50/);
       // Archived page items have no action buttons
@@ -110,7 +112,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
     // Verify empty state copy when no archived (or list present)
     await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
     const empty = page.getByText("No archived schedules.");
-    const list = page.getByRole("list", { name: "Archived scheduled transactions" });
+    const list = page.getByRole("grid", { name: "Archived scheduled transactions" });
     // One of them must be visible
     await expect(empty.or(list)).toBeVisible();
     if ((await empty.count()) > 0) {
@@ -130,11 +132,11 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
       await archiveScheduledTransactionTemplate(page, toArchiveDesc);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled");
-      await expect(page.getByRole("listitem").filter({ hasText: activeDesc })).toBeVisible();
-      await expect(page.getByRole("listitem").filter({ hasText: toArchiveDesc })).toHaveCount(0);
+      await expect(scheduledTemplateRow(page, activeDesc)).toBeVisible();
+      await expect(scheduledTemplateRow(page, toArchiveDesc)).toHaveCount(0);
 
       // Toggle active -> paused -> resend still works (archived never appears for toggle)
-      const activeItem = page.getByRole("listitem").filter({ hasText: activeDesc });
+      const activeItem = scheduledTemplateRow(page, activeDesc);
       await activeItem.getByRole("button", { name: "Pause" }).click();
       await expect(activeItem.getByRole("button", { name: "Resume" })).toBeVisible();
       // Paused items should be muted (opacity-50)
@@ -146,8 +148,8 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
 
       // Archived page must contain archived, not active
       await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
-      await expect(page.getByRole("listitem").filter({ hasText: toArchiveDesc })).toBeVisible();
-      await expect(page.getByRole("listitem").filter({ hasText: activeDesc })).toHaveCount(0);
+      await expect(archivedTemplateRow(page, toArchiveDesc)).toBeVisible();
+      await expect(archivedTemplateRow(page, activeDesc)).toHaveCount(0);
     } finally {
       await deleteFixtures(page, activeDesc, toArchiveDesc);
     }
@@ -161,10 +163,10 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
 
       await archiveScheduledTemplateFromDetail(page, templateId);
       await expect(page).toHaveURL(/\/finances\/scheduled$/);
-      await expect(page.getByRole("listitem").filter({ hasText: description })).toHaveCount(0);
+      await expect(scheduledTemplateRow(page, description)).toHaveCount(0);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
-      const archivedItem = page.getByRole("listitem").filter({ hasText: description });
+      const archivedItem = archivedTemplateRow(page, description);
       await expect(archivedItem).toBeVisible();
       await expect(archivedItem).not.toHaveClass(/opacity-50/);
     } finally {
@@ -180,10 +182,10 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
       await archiveScheduledTransactionTemplate(page, description);
 
       await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
-      const item = page.getByRole("listitem").filter({ hasText: description });
+      const item = archivedTemplateRow(page, description);
       await expect(item).toBeVisible();
       await expect(item).toHaveAttribute("data-template-id", /[0-9a-f-]{36}/);
-      // Click row should navigate to detail (via role button with aria-label)
+      // Activating the row (RAC's onAction) should navigate to the detail page
       await item.click();
       await expect(page).toHaveURL(/\/finances\/scheduled\/[0-9a-f-]{36}/);
       await expect(page.getByTestId("description-input")).toBeVisible();

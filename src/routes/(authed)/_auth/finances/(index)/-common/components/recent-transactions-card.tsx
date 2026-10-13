@@ -6,7 +6,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
-import { TransactionTable } from "../../../-common/components/transaction-table";
+import { TransactionList } from "../../../-common/components/transaction-list";
 
 export const RecentTransactionsCard = () => {
   const { transactions } = Route.useLoaderData();
@@ -41,7 +41,7 @@ export const RecentTransactionsCard = () => {
             </Empty>
           </div>
         ) : (
-          <TransactionTable transactions={transactions} label="Recent transactions" />
+          <TransactionList transactions={transactions} label="Recent transactions" />
         )}
       </CardContent>
     </Card>
