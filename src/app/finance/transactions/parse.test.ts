@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   MAX_DESCRIPTION_LENGTH,
@@ -155,4 +155,30 @@ describe("several entries", () => {
   it("returns an empty list for no input", () => {
     expect(parseTransactionTexts([], TODAY)).toEqual([]);
   });
+});
+
+describe("host timezone independence", () => {
+  const original = process.env.TZ;
+
+  afterEach(() => {
+    process.env.TZ = original;
+  });
+
+  // chrono resolves against the host's clock on both sides of the round trip, so an entry has to
+  // land on the same day wherever it is parsed. Workers and CI run in UTC, a developer's laptop
+  // usually does not, and these are the zones that caught it: far behind, far ahead, and the
+  // half-hour offsets in between.
+  it.each(["UTC", "Pacific/Honolulu", "Pacific/Kiritimati", "Asia/Kolkata", "America/New_York"])(
+    "resolves the same day under %s",
+    (zone) => {
+      process.env.TZ = zone;
+
+      expect(parse("taxi 350 last friday 8pm").transactedAt).toBe("2026-10-09");
+      expect(parse("coffee 85 last monday").transactedAt).toBe("2026-10-12");
+      expect(parse("grab 200 3 days ago").transactedAt).toBe("2026-10-10");
+      expect(parse("mcdonalds 275 yesterday morning").transactedAt).toBe("2026-10-12");
+      expect(parse("swiping 450 on october 5").transactedAt).toBe("2026-10-05");
+      expect(parse("paid 500 for the electric bill 2026-09-01").transactedAt).toBe("2026-09-01");
+    },
+  );
 });

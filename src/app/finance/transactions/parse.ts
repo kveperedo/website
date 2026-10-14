@@ -1,10 +1,11 @@
-import { casual } from "chrono-node/en";
+import { casual, type ParsedResult } from "chrono-node/en";
+import { format } from "date-fns";
 
 import type { ParsedTransaction } from "@/schema/transaction";
 
 import { MAX_DESCRIPTION_LENGTH, MAX_TRANSACTION_AMOUNT } from "@/schema/transaction";
 
-import { dateOnlyToDatabaseDate, formatLocal } from "../local-date";
+type ParsedComponents = ParsedResult["start"];
 
 /**
  * What the composer can work out on its own. `type` and `category` are the server's to decide, so
@@ -99,11 +100,34 @@ const tidy = (text: string): string => {
 };
 
 /**
+ * chrono resolves everything relative to the calendar day its reference falls on *in the host's
+ * timezone*, and it returns an instant built the same way. So both ends of the round trip have to
+ * be pinned to the host's wall clock for the answer to be the same wherever this runs: the
+ * reference is local noon on the day asked for, and the result is read back as the day chrono
+ * resolved rather than as the instant it produced. Re-formatting that instant through
+ * `formatLocal` instead would move the answer a day whenever the host is not Manila — "last
+ * friday 8pm" is 8pm UTC on a UTC host, which is already Saturday in Manila.
+ */
+const toDateOnly = (components: ParsedComponents): string | null => {
+  const year = components.get("year");
+  const month = components.get("month");
+  const day = components.get("day");
+
+  return year === null || month === null || day === null
+    ? null
+    : format(new Date(year, month - 1, day), "yyyy-MM-dd");
+};
+
+/** Local noon on the given day, so the reference's calendar day is the one asked for. */
+const toReference = (dateOnly: string): Date => {
+  const [year, month, day] = dateOnly.split("-").map(Number);
+  return new Date(year, month - 1, day, 12);
+};
+
+/**
  * `forwardDate` defaults to true, which resolves dates the user almost certainly meant in the
  * past: from a Tuesday, "last monday" becomes the *next* Monday and "Sept 12" becomes next year.
- * With it off, chrono reads "last"/past references as past. Results are read back through
- * `formatLocal`, not `toISOString`, so a result is always the user's calendar day and not the
- * UTC one.
+ * With it off, chrono reads "last"/past references as past.
  */
 const parseEntry = (rawText: string, reference: Date, fallbackDate: string): ParsedEntry => {
   // A multi-line paste is read straight off the clipboard and so skips the input's own length
@@ -111,7 +135,7 @@ const parseEntry = (rawText: string, reference: Date, fallbackDate: string): Par
   const text = rawText.slice(0, MAX_DESCRIPTION_LENGTH);
   const [match] = casual.parse(text, reference, { forwardDate: false });
 
-  const transactedAt = match ? formatLocal(match.start.date(), "yyyy-MM-dd") : fallbackDate;
+  const transactedAt = match ? (toDateOnly(match.start) ?? fallbackDate) : fallbackDate;
   const withoutDate = match ? removeSpan(text, match.index, match.text.length) : text;
 
   const amount = findAmount(withoutDate);
@@ -135,7 +159,7 @@ export const parseTransactionTexts = (
   items: Array<string>,
   referenceDate: string,
 ): Array<ParsedEntry> => {
-  const reference = dateOnlyToDatabaseDate(referenceDate);
+  const reference = toReference(referenceDate);
   let inherited = referenceDate;
 
   return items.map((item) => {
