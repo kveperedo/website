@@ -76,8 +76,9 @@ export type E2EFixtureInput = {
 };
 
 /**
- * Creates the same rows the UI flows write for a transaction dated today, without the AI
- * parse or page navigations, so tests whose subject is something else can set up quickly.
+ * Creates the same rows the UI flows write for a transaction dated today, without the
+ * composer's parse and classification or page navigations, so tests whose subject is
+ * something else can set up quickly.
  */
 export async function createE2EFixture(input: E2EFixtureInput) {
   const today = dateOnlyToDatabaseDate(todayDateOnly());

@@ -1,14 +1,12 @@
 import { waitUntil } from "cloudflare:workers";
-import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
 
-import { generateJson } from "@/app/ai/server";
+import { runDecisionModel, type ChoiceQuestion, type NoulQuestion } from "@/app/ai/server";
 import { getDb } from "@/db/client";
 import { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
-import { TransactionItemAISchema, type TransactionItemAIType } from "@/schema/transaction";
 
 import {
   databaseDateToDateOnly,
@@ -27,6 +25,13 @@ import {
   incrementTransactionMemoryUseCount,
   upsertTransactionMemories,
 } from "./memory.server";
+
+/** What the frontend parsed locally and hands over for a type and category. */
+type TransactionToClassify = {
+  description: string;
+  amount: number | null;
+  transactedAt: string;
+};
 
 export const getRecentTransactions = async () => {
   const { monthStart, monthEnd } = getCurrentMonthRange();
@@ -176,125 +181,162 @@ export const getCategoryTrends = async () => {
   }, []);
 };
 
-/** Healthy parses finish in a few seconds; Workers AI hangs run 30s+ (see `runWithTimeout`). */
-const PARSE_BASE_TIMEOUT_MS = 10_000;
-/** Each extra line adds output tokens, so larger batches get proportionally longer. */
-const PARSE_TIMEOUT_PER_ITEM_MS = 1_000;
+/** A memory query and an embedding call shouldn't stall the classification behind them. */
 const MEMORY_LOOKUP_TIMEOUT_MS = 5_000;
+/** Median decision latency is ~40ms, so anything past this is a hang rather than a slow call. */
+const DECISION_TIMEOUT_MS = 5_000;
+/** Bounds the fan-out so one batch of twenty can't open twenty binding calls at once. */
+const DECISION_CONCURRENCY = 5;
+/** Probability at or above which money is judged to be coming in. */
+const INCOME_PROBABILITY_THRESHOLD = 0.5;
 /** Stays under the 30s Workers allow `waitUntil` work to run after the response. */
 const MEMORY_UPDATE_TIMEOUT_MS = 20_000;
 
-const enrichTransactionsWithMemory = async (
-  transactions: Array<TransactionItemAIType>,
-): Promise<Array<TransactionItemAIType>> => {
+/** One question per transaction, so each description is judged on its own terms. */
+type TransactionQuestions = {
+  type: NoulQuestion;
+  category: ChoiceQuestion & { criteria: Record<TransactionCategory, string> };
+};
+
+/**
+ * The decision model answers a yes/no for the direction of cash flow and a pick-one for category.
+ * Category is asked unconditionally because the model scores all questions in one pass, but it is
+ * discarded for income — that pairing is not a meaningful one.
+ */
+const DECISION_QUESTIONS: TransactionQuestions = {
+  type: {
+    type: "noul",
+    instructions: "Is this transaction money coming in rather than money going out?",
+    criteria: {
+      true: "Money received: salary, refund, cashback, allowance, reimbursement, interest.",
+      false: "Money going out: a purchase, a bill, a payment, or a transfer.",
+    },
+  },
+  category: {
+    type: "choice",
+    instructions: "Which category best fits this transaction?",
+    criteria: {
+      food_drinks: "Meals, coffee, snacks, and food delivery.",
+      groceries_household: "Supermarket shopping, toiletries, and cleaning supplies.",
+      transportation: "Fuel, parking, rideshare, and public transit.",
+      bills_utilities: "Electricity, water, internet, phone, rent, and subscriptions.",
+      health_wellness: "Medicine, doctor visits, the gym, and vitamins.",
+      hobbies_lifestyle: "Entertainment, shopping, personal care, travel, and gifts.",
+      financial: "Transfers, bank fees, investments, and loan payments.",
+    },
+  },
+};
+
+const DecisionAnswerSchema = z.object({
+  answers: z.object({
+    type: z.object({ noul: z.number().min(0).max(1) }),
+    category: z.object({ choice: z.enum(TransactionCategory) }),
+  }),
+});
+
+export type TransactionClassification = {
+  type: TransactionType;
+  category: TransactionCategory | null;
+};
+
+/** An unclassified transaction still has to be saveable, so guess the common case and move on. */
+const fallbackClassification = (): TransactionClassification => ({
+  type: "expense",
+  category: null,
+});
+
+const classifyWithDecisionModel = async (
+  transaction: TransactionToClassify,
+): Promise<TransactionClassification> => {
   try {
-    const normalizedDescriptionList = transactions.map((tx) =>
-      normalizeTransactionDescription(tx.description),
+    const { answers } = await runDecisionModel(
+      { state: transaction, questions: DECISION_QUESTIONS },
+      DecisionAnswerSchema,
+      { timeoutMs: DECISION_TIMEOUT_MS },
     );
-    const exactMatches = await findExactTransactionMemory(
-      normalizedDescriptionList.filter((value) => value.length > 0),
-    );
 
-    const pending = new Map<number, string>();
-    transactions.forEach((tx, index) => {
-      const hit = exactMatches.get(normalizedDescriptionList[index]);
-      if (hit && normalizedDescriptionList[index].length > 0) {
-        tx.type = hit.type;
-        tx.category = hit.category;
-        void incrementTransactionMemoryUseCount(hit.id).catch((err) => {
-          console.error("Transaction memory touch failed:", err);
-        });
-      } else if (normalizedDescriptionList[index].length > 0) {
-        pending.set(index, normalizedDescriptionList[index]);
-      }
-    });
+    const type = answers.type.noul >= INCOME_PROBABILITY_THRESHOLD ? "income" : "expense";
 
-    if (pending.size > 0) {
-      const indexes = [...pending.keys()];
-      // Failure falls back to the AI result below, so a slow lookup isn't worth waiting on.
-      const vectors = await embedTransactionDescriptions(
-        indexes.map((index) => pending.get(index)!),
-        { timeoutMs: MEMORY_LOOKUP_TIMEOUT_MS },
-      );
-      const matches = await findClosestTransactionMemories(vectors);
-      for (const [i, index] of indexes.entries()) {
-        const match = matches[i];
-        if (match) {
-          const tx = transactions[index];
-          tx.type = match.type;
-          tx.category = match.category;
-          void incrementTransactionMemoryUseCount(match.id).catch((err) => {
-            console.error("Transaction memory touch failed:", err);
-          });
-        }
-      }
-    }
-
-    return transactions;
+    return { type, category: type === "income" ? null : answers.category.choice };
   } catch (err) {
-    console.error("Transaction memory lookup failed, using AI result:", err);
-    return transactions;
+    console.error("Decision model classification failed:", err);
+    return fallbackClassification();
   }
 };
 
-export const parseTransactions = async (
-  items: Array<string>,
-  localDate: string,
-): Promise<Array<TransactionItemAIType>> => {
-  const numberedItems = items.map((item, index) => `${index + 1}. ${item}`).join("\n");
+/**
+ * Learns from previous saves first: a remembered description is the user's own past decision and
+ * beats any model guess. Only descriptions with no memory hit reach the decision model.
+ */
+export const classifyTransactions = async (
+  transactions: Array<TransactionToClassify>,
+): Promise<Array<TransactionClassification>> => {
+  const classifications = transactions.map(fallbackClassification);
+  const normalized = transactions.map((transaction) =>
+    normalizeTransactionDescription(transaction.description),
+  );
 
-  const instructions = `You are a transaction parser. The user's local date is ${localDate}. If no date is mentioned, transactedAt must be exactly ${localDate}.
-
-Extract all transactions from the numbered input and return them in the transactions array — one entry per numbered input line, in the same order.
-
-Rules:
-- Each numbered input line is exactly one transaction — never merge lines and never split a line into multiple transactions.
-- Preserve the original text in description — do not paraphrase or reword. Only fix typos (and only if you're highly confident). Remove raw numbers (amount field captures them). Preserve merchant/vendor names when present.
-
-Examples:
-- "1. lunch at jollibee for 150" → 1 transaction
-- "1. lunch 150\\n2. grab home 200" → 2 transactions (same order)
-
-Categories — required for every expense, never null when a category clearly applies:
-- food_drinks: meals, coffee, snacks, delivery
-- groceries_household: supermarket, toiletries, cleaning
-- transportation: fuel, parking, rideshare, transit
-- bills_utilities: electricity, water, internet, phone, rent, subscriptions
-- health_wellness: medicine, doctor, gym, vitamins
-- hobbies_lifestyle: entertainment, shopping, personal care, travel, gifts
-- financial: transfers, bank fees, investments, loan payments
-Only use null for income transactions or truly unrecognizable text (e.g. "payment 500" with no context).`;
-
-  let result: { transactions: Array<TransactionItemAIType> };
-  try {
-    result = await generateJson({
-      instructions,
-      messages: [{ role: "user", content: numberedItems }],
-      schema: z.object({
-        transactions: z
-          .array(TransactionItemAISchema)
-          .describe(
-            "All transactions found in the input, one per numbered input line in the same order.",
-          ),
-      }),
-      maxTokens: 4096,
-      timeoutMs: PARSE_BASE_TIMEOUT_MS + items.length * PARSE_TIMEOUT_PER_ITEM_MS,
-      retries: 1,
+  const applyMemory = (index: number, memory: { id: string } & TransactionClassification) => {
+    classifications[index] = { type: memory.type, category: memory.category };
+    void incrementTransactionMemoryUseCount(memory.id).catch((err) => {
+      console.error("Transaction memory touch failed:", err);
     });
+  };
+
+  // Nothing to remember or look up for a description that normalises away, so those stay out of
+  // both the memory tiers and the model. Declared outside the try so a failed lookup leaves the
+  // rest to the model rather than silently dropping them.
+  let pending = normalized.flatMap((value, index) => (value.length > 0 ? [index] : []));
+
+  try {
+    const exactMatches = await findExactTransactionMemory(
+      pending.map((index) => normalized[index]),
+    );
+    const stillPending: Array<number> = [];
+
+    for (const index of pending) {
+      const hit = exactMatches.get(normalized[index]);
+      if (hit) {
+        applyMemory(index, hit);
+      } else {
+        stillPending.push(index);
+      }
+    }
+    pending = stillPending;
+
+    if (pending.length > 0) {
+      const vectors = await embedTransactionDescriptions(
+        pending.map((index) => normalized[index]),
+        { timeoutMs: MEMORY_LOOKUP_TIMEOUT_MS },
+      );
+      const matches = await findClosestTransactionMemories(vectors);
+      const undecided: Array<number> = [];
+
+      pending.forEach((index, position) => {
+        const match = matches[position];
+        if (match) {
+          applyMemory(index, match);
+        } else {
+          undecided.push(index);
+        }
+      });
+      pending = undecided;
+    }
   } catch (err) {
-    console.error("Workers AI parsing failed:", err);
-    throw new Error("Failed to parse transactions with AI. Please try again.");
+    console.error("Transaction memory lookup failed:", err);
   }
 
-  const parsed = result.transactions.map((tx) => ({
-    ...tx,
-    description: sanitizeHtml(tx.description, {
-      allowedTags: [],
-      allowedAttributes: {},
-    }),
-  }));
+  for (let start = 0; start < pending.length; start += DECISION_CONCURRENCY) {
+    const batch = pending.slice(start, start + DECISION_CONCURRENCY);
+    const decisions = await Promise.all(
+      batch.map((index) => classifyWithDecisionModel(transactions[index])),
+    );
+    batch.forEach((index, position) => {
+      classifications[index] = decisions[position];
+    });
+  }
 
-  return await enrichTransactionsWithMemory(parsed);
+  return classifications;
 };
 
 type CreateTransactionsInput = Omit<TransactionInputType, "template" | "templateId"> & {

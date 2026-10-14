@@ -30,9 +30,9 @@ type FixtureIds = { transactionId: string | null; templateId: string | null };
 const FIXTURES_URL = "/api/e2e/fixtures";
 
 /**
- * Fixtures write rows straight to the database through an E2E-only endpoint, skipping the AI
- * parse and the page loads of the UI flows. Use them when creation is setup, not the subject.
- * Every row is dated today in the app's time zone.
+ * Fixtures write rows straight to the database through an E2E-only endpoint, skipping the
+ * composer's parse and classification and the page loads of the UI flows. Use them when
+ * creation is setup, not the subject. Every row is dated today in the app's time zone.
  */
 async function createFixture(
   page: Page,

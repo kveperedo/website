@@ -1,17 +1,16 @@
-import { APICallError, NoObjectGeneratedError } from "ai";
+import { APICallError } from "ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 
-import { AIRequestTimeoutError, embedTexts, generateJson } from "./server";
+import { AIRequestTimeoutError, embedTexts, runDecisionModel } from "./server";
 
-const { generateTextMock, embedManyMock } = vi.hoisted(() => ({
-  generateTextMock: vi.fn(),
+const { embedManyMock, runMock } = vi.hoisted(() => ({
   embedManyMock: vi.fn(),
+  runMock: vi.fn(),
 }));
 
 vi.mock("ai", async (importOriginal) => ({
   ...(await importOriginal<typeof import("ai")>()),
-  generateText: generateTextMock,
   embedMany: embedManyMock,
 }));
 
@@ -19,17 +18,9 @@ vi.mock("workers-ai-provider", () => ({
   createWorkersAI: () => Object.assign(() => ({}), { textEmbedding: () => ({}) }),
 }));
 
-vi.mock("@/lib/env", () => ({ getBinding: () => ({}) }));
+vi.mock("@/lib/env", () => ({ getBinding: () => ({ run: runMock }) }));
 
 const never = () => new Promise<never>(() => {});
-
-const internalError = () =>
-  new APICallError({
-    message: "Error: internal error",
-    url: "workers-ai:binding/run",
-    requestBodyValues: {},
-    isRetryable: false,
-  });
 
 const badRequest = () =>
   new APICallError({
@@ -39,104 +30,99 @@ const badRequest = () =>
     statusCode: 400,
   });
 
-const malformedOutput = () =>
-  new NoObjectGeneratedError({
-    message: "No object generated: could not parse the response.",
-    text: "{ not json",
-    response: { id: "1", timestamp: new Date(0), modelId: "test" },
-    usage: {} as ConstructorParameters<typeof NoObjectGeneratedError>[0]["usage"],
-    finishReason: "stop",
-  });
+const AnswerSchema = z.object({
+  answers: z.object({
+    type: z.object({ noul: z.number() }),
+    category: z.object({ choice: z.string() }),
+  }),
+});
 
-const parse = (options: { timeoutMs?: number; retries?: number }) =>
-  generateJson({
-    instructions: "parse",
-    messages: [{ role: "user", content: "1. lunch 150" }],
-    schema: z.object({ ok: z.boolean() }),
-    ...options,
-  });
+const ask = (options: { timeoutMs?: number; retries?: number }) =>
+  runDecisionModel(
+    { state: { description: "lunch" }, questions: { type: { type: "noul", instructions: "?" } } },
+    AnswerSchema,
+    options,
+  );
 
-describe("generateJson", () => {
+describe("runDecisionModel", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    generateTextMock.mockReset();
+    runMock.mockReset();
   });
 
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it("cuts off a hung call and retries it", async () => {
-    generateTextMock.mockImplementationOnce(never).mockResolvedValueOnce({ output: { ok: true } });
+  it("narrows the binding's untyped response through the schema", async () => {
+    runMock.mockResolvedValueOnce({
+      model: "clef",
+      usage: { input_tokens: 12 },
+      answers: { type: { noul: 0.2 }, category: { choice: "food", confidence: 0.2 } },
+    });
 
-    const result = parse({ timeoutMs: 1_000, retries: 1 });
-    await vi.advanceTimersByTimeAsync(1_000);
-
-    await expect(result).resolves.toEqual({ ok: true });
-    expect(generateTextMock).toHaveBeenCalledTimes(2);
+    // The passthrough object carries fields the schema has no opinion about; the parsed one
+    // must not, which is what makes the schema worth having over the binding's `unknown`.
+    await expect(ask({})).resolves.toEqual({
+      answers: { type: { noul: 0.2 }, category: { choice: "food" } },
+    });
   });
 
-  it("aborts the hung attempt so the provider can stop", async () => {
-    generateTextMock.mockImplementationOnce(never).mockResolvedValueOnce({ output: { ok: true } });
+  it("rejects a response that fails the schema", async () => {
+    runMock.mockResolvedValueOnce({ answers: { type: { noul: 0.2 } } });
 
-    const result = parse({ timeoutMs: 1_000, retries: 1 });
+    await expect(ask({})).rejects.toThrow(ZodError);
+  });
+
+  it("calls the decision model with the given state and questions", async () => {
+    runMock.mockResolvedValueOnce({
+      answers: { type: { noul: 0.2 }, category: { choice: "food" } },
+    });
+
+    await ask({});
+
+    expect(runMock).toHaveBeenCalledWith(
+      expect.stringContaining("clef"),
+      expect.objectContaining({
+        model: "clef-flash",
+        state: { description: "lunch" },
+        questions: { type: { type: "noul", instructions: "?" } },
+      }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  it("cuts off a hung call and retries it", async () => {
+    runMock.mockImplementationOnce(never).mockResolvedValueOnce({
+      answers: { type: { noul: 0.2 }, category: { choice: "food" } },
+    });
+
+    const result = ask({ timeoutMs: 1_000, retries: 1 });
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    await expect(result).resolves.toMatchObject({ answers: { type: { noul: 0.2 } } });
+    expect(runMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("aborts the hung attempt so the binding can stop", async () => {
+    runMock.mockImplementationOnce(never).mockResolvedValueOnce({
+      answers: { type: { noul: 0.2 }, category: { choice: "food" } },
+    });
+
+    const result = ask({ timeoutMs: 1_000, retries: 1 });
     await vi.advanceTimersByTimeAsync(1_000);
     await result;
 
-    const [{ abortSignal }] = generateTextMock.mock.calls[0];
-    expect(abortSignal.aborted).toBe(true);
-    expect(abortSignal.reason).toBeInstanceOf(AIRequestTimeoutError);
+    const { signal } = runMock.mock.calls[0][2];
+    expect(signal.aborted).toBe(true);
+    expect(signal.reason).toBeInstanceOf(AIRequestTimeoutError);
   });
 
-  it("retries provider errors the SDK marks non-retryable", async () => {
-    generateTextMock
-      .mockRejectedValueOnce(internalError())
-      .mockResolvedValueOnce({ output: { ok: true } });
+  it("does not retry binding errors, which arrive untyped and are cheap to replace", async () => {
+    runMock.mockRejectedValueOnce(new Error("internal error"));
 
-    await expect(parse({ retries: 1 })).resolves.toEqual({ ok: true });
-    expect(generateTextMock).toHaveBeenCalledTimes(2);
-  });
-
-  it("retries output that fails the schema", async () => {
-    generateTextMock
-      .mockRejectedValueOnce(malformedOutput())
-      .mockResolvedValueOnce({ output: { ok: true } });
-
-    await expect(parse({ retries: 1 })).resolves.toEqual({ ok: true });
-    expect(generateTextMock).toHaveBeenCalledTimes(2);
-  });
-
-  it("does not retry 4xx provider errors", async () => {
-    generateTextMock.mockRejectedValueOnce(badRequest());
-
-    await expect(parse({ retries: 1 })).rejects.toThrow("Bad request");
-    expect(generateTextMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("disables the SDK's own retries so timing stays bounded", async () => {
-    generateTextMock.mockResolvedValueOnce({ output: { ok: true } });
-
-    await parse({});
-
-    expect(generateTextMock).toHaveBeenCalledWith(expect.objectContaining({ maxRetries: 0 }));
-  });
-
-  it("gives up after the last attempt times out", async () => {
-    generateTextMock.mockImplementation(never);
-
-    const result = parse({ timeoutMs: 1_000, retries: 1 });
-    const assertion = expect(result).rejects.toBeInstanceOf(AIRequestTimeoutError);
-    await vi.advanceTimersByTimeAsync(2_000);
-
-    await assertion;
-    expect(generateTextMock).toHaveBeenCalledTimes(2);
-  });
-
-  it("does not retry errors that are not from the provider", async () => {
-    generateTextMock.mockRejectedValueOnce(new TypeError("bad schema"));
-
-    await expect(parse({ retries: 1 })).rejects.toThrow("bad schema");
-    expect(generateTextMock).toHaveBeenCalledTimes(1);
+    await expect(ask({ retries: 1 })).rejects.toThrow("internal error");
+    expect(runMock).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -158,6 +144,29 @@ describe("embedTexts", () => {
     await vi.advanceTimersByTimeAsync(500);
 
     await assertion;
+    expect(embedManyMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries provider errors the SDK marks non-retryable", async () => {
+    embedManyMock
+      .mockRejectedValueOnce(
+        new APICallError({
+          message: "Error: internal error",
+          url: "workers-ai:binding/run",
+          requestBodyValues: {},
+          isRetryable: false,
+        }),
+      )
+      .mockResolvedValueOnce({ embeddings: [[0.1]] });
+
+    await expect(embedTexts(["lunch"], { retries: 1 })).resolves.toEqual([[0.1]]);
+    expect(embedManyMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry 4xx provider errors", async () => {
+    embedManyMock.mockRejectedValueOnce(badRequest());
+
+    await expect(embedTexts(["lunch"], { retries: 1 })).rejects.toThrow("Bad request");
     expect(embedManyMock).toHaveBeenCalledTimes(1);
   });
 

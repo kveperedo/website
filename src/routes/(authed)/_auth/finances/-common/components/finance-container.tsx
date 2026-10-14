@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useRef, useState, type PropsWithChildren } from "react";
 
-import type { TransactionItemAIType } from "@/schema/transaction";
+import type { ParsedTransaction } from "@/schema/transaction";
 
 import { Button, TanstackLinkButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -59,7 +59,7 @@ const FinanceContainerFooter = () => {
   const composerToggleRef = useRef<HTMLButtonElement>(null);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
-  const handleParsed = (transactions: Array<TransactionItemAIType>) => {
+  const handleParsed = (transactions: Array<ParsedTransaction>) => {
     setInputValue("");
     setIsComposerOpen(false);
     router.navigate({

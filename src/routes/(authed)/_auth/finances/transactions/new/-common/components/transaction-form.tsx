@@ -13,9 +13,9 @@ import {
 } from "react-hook-form";
 
 import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
-import type { TransactionItemAIType } from "@/schema/transaction";
+import type { ParsedTransaction } from "@/schema/transaction";
 
-import { dateOnlyToDatabaseDate, todayDateOnly } from "@/app/finance/local-date";
+import { dateOnlyToDatabaseDate } from "@/app/finance/local-date";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -153,21 +153,21 @@ const TransactionCard = ({
 export const FORM_ID = "new-transaction-form";
 
 type TransactionFormProps = {
-  transactions?: Array<TransactionItemAIType>;
+  transactions?: Array<ParsedTransaction>;
   onSubmit: (data: TransactionFormData) => void;
 };
 
 function TransactionForm({ transactions, onSubmit }: TransactionFormProps) {
-  const now = dateOnlyToDatabaseDate(todayDateOnly()).toISOString();
-
   const { control, getValues, handleSubmit, setValue } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
       transactions:
         transactions?.map((t) => ({
           description: t.description,
-          amount: t.amount,
-          transactedAt: t.transactedAt ? enrichDate(t.transactedAt) : now,
+          // Left undefined rather than null so the field renders empty and its own required
+          // validation drives the user to fill in an amount the parser could not find.
+          amount: t.amount ?? undefined,
+          transactedAt: enrichDate(t.transactedAt),
           type: t.type,
           category: t.category ?? null,
           scheduleEnabled: false,

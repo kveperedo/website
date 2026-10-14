@@ -3,12 +3,13 @@ import { z } from "zod";
 
 import { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 import { TransactionInputSchema } from "@/generated/zod/schemas";
-import { CreateTransactionsInputSchema } from "@/schema/transaction";
+import { CreateTransactionsInputSchema, ParsedTransactionSchema } from "@/schema/transaction";
 
 import { authMiddleware } from "../../auth/middleware";
 import { createRateLimitMiddleware } from "../../infra/rate-limit/middleware";
 import { getMonthlyHistory, getMonthlyNet } from "./history.server";
 import {
+  classifyTransactions,
   createTransactions,
   deleteTransaction,
   getCategorySummary,
@@ -18,7 +19,6 @@ import {
   getRecentTransactions,
   getTransactionById,
   getTransactionsByMonth,
-  parseTransactions,
   updateTransaction,
 } from "./server";
 
@@ -80,16 +80,18 @@ export const getTransactionsByMonthFn = createServerFn()
     return await getTransactionsByMonth(data);
   });
 
-export const parseTransactionWithAIFn = createServerFn({ method: "POST" })
+/** Exactly the parsed transaction minus the two fields the composer has no opinion about yet. */
+const TransactionToClassifySchema = ParsedTransactionSchema.pick({
+  description: true,
+  amount: true,
+  transactedAt: true,
+});
+
+export const classifyTransactionsFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware, createRateLimitMiddleware()])
-  .validator(
-    z.object({
-      items: z.array(z.string().trim().min(1).max(280)).min(1).max(20),
-      localDate: z.iso.date(),
-    }),
-  )
+  .validator(z.object({ items: z.array(TransactionToClassifySchema).min(1).max(20) }))
   .handler(async ({ data }) => {
-    return await parseTransactions(data.items, data.localDate);
+    return await classifyTransactions(data.items);
   });
 
 export const createTransactionsFn = createServerFn({ method: "POST" })
