@@ -29,14 +29,19 @@ function defineWebsiteWorker(resources: typeof PRODUCTION) {
       AI: bindings.ai({ dev: { remote: true } }),
       SESSION_SECRET: bindings.secret(),
       ADMIN_PASSWORD_HASH: bindings.secret(),
-      E2E_PASSWORD: bindings.secret(),
     },
   };
 }
 
 export default defineConfig(({ isPreview }) => {
   if (isPreview) {
-    return { worker: defineWebsiteWorker(PREVIEW) };
+    const worker = defineWebsiteWorker(PREVIEW);
+    return {
+      worker: {
+        ...worker,
+        env: { ...worker.env, E2E_PASSWORD: bindings.secret() },
+      },
+    };
   }
 
   return {

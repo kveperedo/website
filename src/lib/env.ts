@@ -1,11 +1,12 @@
 import { env } from "cloudflare:workers";
 
+// `-?`: bindings declared in only one config branch are optional on the merged Env.
 type StringEnvKeys = {
-  [K in keyof Cloudflare.Env]: Cloudflare.Env[K] extends string ? K : never;
+  [K in keyof Cloudflare.Env]-?: Cloudflare.Env[K] extends string ? K : never;
 }[keyof Cloudflare.Env];
 
 type BindingEnvKeys = {
-  [K in keyof Cloudflare.Env]: Cloudflare.Env[K] extends string ? never : K;
+  [K in keyof Cloudflare.Env]-?: Cloudflare.Env[K] extends string ? never : K;
 }[keyof Cloudflare.Env];
 
 export function requireEnv(name: StringEnvKeys): string {

@@ -120,7 +120,7 @@ The Preview name defaults to the current git branch; pass it positionally to ove
 pnpm run preview:deploy pr-123
 ```
 
-Preview bindings live in the `ctx.isPreview` branch of `cloudflare.config.ts`. Secrets are declared with `bindings.secret()` in both branches, but their values live on the Cloudflare account rather than in the config file. Set one with:
+Preview bindings live in the `ctx.isPreview` branch of `cloudflare.config.ts`. `SESSION_SECRET` and `ADMIN_PASSWORD_HASH` are declared with `bindings.secret()` in both branches, but their values live on the Cloudflare account rather than in the config file. Set one with:
 
 ```bash
 pnpm exec cf workers secrets update SESSION_SECRET --worker website --text <value>
@@ -132,12 +132,14 @@ Check what is registered:
 pnpm exec cf workers secrets list --worker website
 ```
 
+`E2E_PASSWORD` is declared in the Preview branch only — a declared secret has to be set on the Worker or the deploy is refused, and the E2E suite never runs against production. Without it a Preview still deploys, but `/api/e2e` answers 404 and the E2E suite cannot seed fixtures.
+
 Delete a Preview — the Worker name is the Preview name plus the `-website` suffix:
 
 ```bash
 pnpm run preview:delete pr-123-website
 ```
 
-Previews are not deleted automatically — CI removes its own `pr-<number>` Previews when a pull request closes, but anything you deploy by hand stays up until you delete it. Previews inherit the account-side secrets, so treat a live one as a real deployment.
+Previews are not deleted automatically — CI removes its own `pr-<number>` Previews when a pull request closes, but anything you deploy by hand stays up until you delete it. Previews carry their own secrets and are public while they exist, so treat a live one as a real deployment.
 
 The Worker configuration, custom domain, KV-backed rate limiting, cron trigger, and observability settings are defined in `cloudflare.config.ts`.
