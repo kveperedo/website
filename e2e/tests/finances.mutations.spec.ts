@@ -27,7 +27,7 @@ test.describe.configure({ timeout: 60000 });
 // Tests run in parallel, so rows saved here use descriptions the composer tests never type;
 // otherwise their exact-text assertions on "Milk 75"/"Bread 40" would match a saved list row.
 test.describe("transaction mutations", () => {
-  test("AI parse then save creates a transaction", async ({ page }) => {
+  test("parsing then saving creates a transaction", async ({ page }) => {
     const description = "Milk 75 saved";
 
     try {
@@ -56,7 +56,7 @@ test.describe("transaction mutations", () => {
 
     await expect(categoryField).toBeVisible();
 
-    // AI may pre-select Food & Drinks for "Milk 75" — only click when unselected
+    // Classification may already have selected Food & Drinks — only click when unselected
     // to avoid toggling an already-selected value off (ToggleGroup allows deselect).
     if ((await foodToggle.getAttribute("aria-checked")) !== "true") {
       await foodToggle.click();

@@ -8,7 +8,7 @@ import type { FileRouteTypes } from "@/routeTree.gen";
 import { createTransactionsFn } from "@/app/finance/transactions/functions";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { TransactionItemAISchema } from "@/schema/transaction";
+import { ParsedTransactionSchema } from "@/schema/transaction";
 
 import type { TransactionFormData } from "../../-common/transaction-form-schema";
 
@@ -28,7 +28,7 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 export const Route = createFileRoute("/(authed)/_auth/finances/transactions/new/")({
   head: () => ({ meta: META }),
   validateSearch: z.object({
-    transactions: z.array(TransactionItemAISchema),
+    transactions: z.array(ParsedTransactionSchema),
     returnTo: z.string().optional() as z.ZodType<AppRoutePath | undefined>,
   }),
   component: RouteComponent,

@@ -30,6 +30,8 @@ pnpm run dev
 
 The site is available at [http://localhost:3000](http://localhost:3000).
 
+`pnpm run dev` sets `CLOUDFLARE_PREVIEW_BUILD=true`, which makes `cloudflare.config.ts` resolve its `ctx.isPreview` branch locally. That branch declares `E2E_PASSWORD`, so the E2E endpoints exist and the local server matches the Worker Previews CI tests against.
+
 ## Environment Variables
 
 Set these values in `.env`:

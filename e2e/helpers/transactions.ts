@@ -27,14 +27,21 @@ export async function openTransactionComposer(page: Page) {
   await expect(page.getByPlaceholder("Add transaction...")).toBeVisible();
 }
 
-async function expectParsedDateToBeToday(page: Page) {
-  const { year, month, day } = await page.evaluate(() => {
-    const now = new Date();
-    return { year: now.getFullYear(), month: now.getMonth(), day: now.getDate() };
-  });
-  const today = format(new Date(year, month, day), "MMMM do, yyyy");
+/**
+ * The app pins transactions to Asia/Manila, which is not the runner's timezone — reading the
+ * runner's own "today" would flake on any machine whose local date disagrees with Manila's.
+ */
+function todayInManila() {
+  const [year, month, day] = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" })
+    .format(new Date())
+    .split("-")
+    .map(Number);
 
-  await expect(page.getByRole("button", { name: "Date" })).toContainText(today);
+  return format(new Date(year, month - 1, day), "MMMM do, yyyy");
+}
+
+async function expectParsedDateToBeToday(page: Page) {
+  await expect(page.getByRole("button", { name: "Date" })).toContainText(todayInManila());
 }
 
 export async function queueTransactionEntry(page: Page, text: string) {

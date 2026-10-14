@@ -4,21 +4,21 @@ import { useServerFn } from "@tanstack/react-start";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
-import type { TransactionItemAIType } from "@/schema/transaction";
-
 import { todayDateOnly } from "@/app/finance/local-date";
-import { parseTransactionWithAIFn } from "@/app/finance/transactions/functions";
+import { classifyTransactionsFn } from "@/app/finance/transactions/functions";
+import { parseTransactionTexts } from "@/app/finance/transactions/parse";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { MAX_DESCRIPTION_LENGTH, type ParsedTransaction } from "@/schema/transaction";
 
 type TransactionInputProps = {
   autoFocus?: boolean;
   value: string;
   onValueChange: (value: string) => void;
-  onParsed: (transactions: Array<TransactionItemAIType>) => void;
+  onParsed: (transactions: Array<ParsedTransaction>) => void;
   onEmptyBackspace?: () => void;
 };
 
@@ -35,10 +35,10 @@ function TransactionInput({
   onValueChange,
   value,
 }: TransactionInputProps) {
-  const parseTransactionWithAI = useServerFn(parseTransactionWithAIFn);
+  const classifyTransactions = useServerFn(classifyTransactionsFn);
 
   const [entries, setEntries] = useState<Array<string>>([]);
-  const [isParsing, setIsParsing] = useState(false);
+  const [isClassifying, setIsClassifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const commitEntry = () => {
@@ -60,18 +60,22 @@ function TransactionInput({
     if (items.length === 0) {
       return;
     }
-    setIsParsing(true);
     setError(null);
+
+    // Date, amount, and description are settled locally and instantly; only the type and
+    // category need a round trip.
+    const parsed = parseTransactionTexts(items, todayDateOnly());
+
+    setIsClassifying(true);
     try {
-      const result = await parseTransactionWithAI({
-        data: { items, localDate: todayDateOnly() },
-      });
+      const classifications = await classifyTransactions({ data: { items: parsed } });
+      setIsClassifying(false);
       setEntries([]);
       onValueChange("");
-      onParsed(result);
+      onParsed(parsed.map((transaction, index) => ({ ...transaction, ...classifications[index] })));
     } catch {
-      setError("Failed to parse transactions. Please try again.");
-      setIsParsing(false);
+      setError("Failed to classify transactions. Please try again.");
+      setIsClassifying(false);
     }
   };
 
@@ -151,7 +155,8 @@ function TransactionInput({
             }
           }}
           placeholder="Add transaction..."
-          disabled={isParsing}
+          maxLength={MAX_DESCRIPTION_LENGTH}
+          disabled={isClassifying}
         />
         <Button
           variant="default"
@@ -160,9 +165,9 @@ function TransactionInput({
           data-testid="parse-transaction"
           className="absolute top-1/2 right-3 size-8 -translate-y-1/2"
           onPress={handleParse}
-          isDisabled={!canSave || isParsing}
+          isDisabled={!canSave || isClassifying}
         >
-          {isParsing ? <Spinner /> : <PlusIcon />}
+          {isClassifying ? <Spinner /> : <PlusIcon />}
         </Button>
       </div>
     </div>

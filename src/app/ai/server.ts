@@ -1,32 +1,23 @@
-import { APICallError, embedMany, generateText, NoObjectGeneratedError, Output } from "ai";
+import { APICallError, embedMany } from "ai";
 import { createWorkersAI } from "workers-ai-provider";
 import { z } from "zod";
 
 import { getBinding } from "@/lib/env";
 
-export const TEXT_GENERATION_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast";
 export const EMBEDDING_MODEL = "@cf/qwen/qwen3-embedding-0.6b";
-/** Workers AI defaults max_tokens to 256, which would truncate a full parse batch. */
-const DEFAULT_MAX_TOKENS = 2048;
+/**
+ * Scores a state against typed questions and returns a probability per allowed option. It can
+ * classify but cannot generate or extract free-form values — there is no text decoding.
+ */
+export const DECISION_MODEL = "@cf/cloudflare/clef-flash";
+const DEFAULT_DECISION_VARIANT = "clef-flash";
 const DEFAULT_TIMEOUT_MS = 15_000;
-
-export type ChatMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
 
 type RequestOptions = {
   /** Hard cutoff per attempt. */
   timeoutMs?: number;
   /** Extra attempts after a timeout or provider error. */
   retries?: number;
-};
-
-type GenerateJsonInput<T> = RequestOptions & {
-  instructions: string;
-  messages: Array<ChatMessage>;
-  schema: z.ZodType<T>;
-  maxTokens?: number;
 };
 
 export class AIRequestTimeoutError extends Error {
@@ -39,12 +30,14 @@ export class AIRequestTimeoutError extends Error {
 const getProvider = () => createWorkersAI({ binding: getBinding("AI") });
 
 /**
- * Timeouts, provider errors without a 4xx status, and output that fails the schema are worth
- * another attempt. Small models produce malformed JSON intermittently; 4xx failures are
+ * Timeouts and provider errors without a 4xx status are worth another attempt. 4xx failures are
  * deterministic (e.g. input too long) and would just fail again.
+ *
+ * Decision-model failures arrive as plain errors from the binding, so they are not retried — the
+ * call is fast enough that a second attempt is worse than falling back.
  */
 const isRetryableError = (error: unknown): boolean => {
-  if (error instanceof AIRequestTimeoutError || NoObjectGeneratedError.isInstance(error)) {
+  if (error instanceof AIRequestTimeoutError) {
     return true;
   }
   if (APICallError.isInstance(error)) {
@@ -86,28 +79,58 @@ const runWithTimeout = async <T>(
   }
 };
 
-export const generateJson = async <T>({
-  instructions,
-  messages,
-  schema,
-  maxTokens,
-  ...requestOptions
-}: GenerateJsonInput<T>): Promise<T> => {
-  const { output } = await runWithTimeout(
+/** A yes/no question. Answers with the probability that the answer is yes. */
+export type NoulQuestion = {
+  type: "noul";
+  instructions: string;
+  criteria?: { true?: string; false?: string };
+};
+
+/** A pick-one question. Answers with the chosen option, its probability, and a confidence. */
+export type ChoiceQuestion = {
+  type: "choice";
+  instructions: string;
+  criteria: Record<string, string>;
+};
+
+/** An ordered rating. Answers with a probability-weighted position between the levels. */
+export type ScoreQuestion = {
+  type: "score";
+  instructions: string;
+  /** Level descriptions, lowest first; levels are indexed from 0. */
+  criteria: Array<string>;
+};
+
+export type DecisionQuestion = NoulQuestion | ChoiceQuestion | ScoreQuestion;
+
+export type DecisionRequest = {
+  /** The content to evaluate — a string or any structured value. */
+  state: unknown;
+  questions: Record<string, DecisionQuestion>;
+  variant?: string;
+};
+
+/**
+ * Decision models are not language models, so the AI SDK provider can't wrap them — the Workers AI
+ * binding is called directly. The binding also types unknown models as `Record<string, unknown>`,
+ * which makes `schema` the only thing giving the answer a real shape.
+ */
+export const runDecisionModel = async <T>(
+  { state, questions, variant = DEFAULT_DECISION_VARIANT }: DecisionRequest,
+  schema: z.ZodType<T>,
+  requestOptions: RequestOptions = {},
+): Promise<T> => {
+  const response = await runWithTimeout(
     (abortSignal) =>
-      generateText({
-        model: getProvider()(TEXT_GENERATION_MODEL),
-        instructions,
-        messages,
-        temperature: 0,
-        maxOutputTokens: maxTokens ?? DEFAULT_MAX_TOKENS,
-        output: Output.object({ schema }),
-        maxRetries: 0,
-        abortSignal,
-      }),
+      getBinding("AI").run(
+        DECISION_MODEL,
+        { model: variant, state, questions },
+        { signal: abortSignal },
+      ),
     requestOptions,
   );
-  return output;
+
+  return schema.parse(response);
 };
 
 export const embedTexts = async (
