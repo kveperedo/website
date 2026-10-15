@@ -33,7 +33,7 @@
 - Route groups: `(public)/` (homepage, login, config/mac setup) and `(authed)/_auth` (protected)
 - Server functions: `*.server.ts` (raw db/auth) + `*.functions.ts` (`createServerFn` wrappers); use `authMiddleware` for protected endpoints. `serverFunctionLoggingMiddleware` is registered globally: log failures, successful mutations, and reads slower than 500 ms; never log request payloads or sensitive data. Do not log individual rate-limit rejections.
 - Import alias: `@/*` → `src/*`
-- Auth: session cookie (15-day max age), env vars `SESSION_SECRET` + `ADMIN_PASSWORD_HASH`
+- Auth: session cookie sealed by **iron-session** (15-day TTL), env vars `SESSION_SECRET` (min 32 chars) + `ADMIN_PASSWORD_HASH`. Cookies are read/written through `getCookie`/`setCookie` in `src/app/auth/session.ts`
 - DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-pg` through a Cloudflare Hyperdrive binding; TCP connections support Prisma transactions. Start transactions at coordinated workflow boundaries and pass the transaction client to their write helpers. `DATABASE_URL` in `prisma.config.ts` is for Prisma CLI only
 - Prisma client outputs to `src/generated/prisma` (gitignored)
 - Validation: `zod` schema input validation on server functions (see `src/app/auth/functions.ts`)

@@ -36,14 +36,14 @@ The site is available at [http://localhost:3000](http://localhost:3000).
 
 Set these values in `.env`:
 
-| Variable                                                   | Purpose                                                                            |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `SESSION_SECRET`                                           | Long, random secret used to sign session cookies.                                  |
-| `ADMIN_PASSWORD_HASH`                                      | bcrypt hash of the password for the admin login.                                   |
-| `DATABASE_URL`                                             | Direct PostgreSQL connection string for Prisma CLI commands only.                  |
-| `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` | Direct PostgreSQL connection string for local Worker development.                  |
-| `BASE_URL`                                                 | Base URL for Playwright tests. Defaults to `http://localhost:3000`.                |
-| `E2E_PASSWORD`                                             | Plaintext admin password for local E2E tests; it must match `ADMIN_PASSWORD_HASH`. |
+| Variable                                                   | Purpose                                                                                 |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `SESSION_SECRET`                                           | At least 32 characters. Seals the session cookie; use a distinct value per environment. |
+| `ADMIN_PASSWORD_HASH`                                      | bcrypt hash of the password for the admin login.                                        |
+| `DATABASE_URL`                                             | Direct PostgreSQL connection string for Prisma CLI commands only.                       |
+| `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` | Direct PostgreSQL connection string for local Worker development.                       |
+| `BASE_URL`                                                 | Base URL for Playwright tests. Defaults to `http://localhost:3000`.                     |
+| `E2E_PASSWORD`                                             | Plaintext admin password for local E2E tests; it must match `ADMIN_PASSWORD_HASH`.      |
 
 Use `.env.example` as the source of truth for the local environment template. Deployed Workers use the `HYPERDRIVE` binding rather than a database URL; production and preview configurations target separate databases.
 

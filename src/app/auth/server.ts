@@ -1,69 +1,46 @@
 import { redirect } from "@tanstack/react-router";
-import { useSession } from "@tanstack/react-start/server";
 import bcrypt from "bcryptjs";
 
 import { requireEnv } from "@/lib/env";
 
 import { cacheControl } from "../infra/cache-control";
-
-type SessionData = {
-  isLoggedIn: boolean;
-};
-
-const useAppSession = () => {
-  const password = requireEnv("SESSION_SECRET");
-  return useSession<SessionData>({
-    name: "app-session",
-    password,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      httpOnly: true,
-      maxAge: 15 * 24 * 60 * 60, // 15 days
-    },
-  });
-};
+import { getAppSession } from "./session";
 
 export const requireSession = async () => {
-  const session = await useAppSession();
+  const session = await getAppSession();
 
-  if (!session.data.isLoggedIn) {
+  if (session.isLoggedIn !== true) {
     throw redirect({
       to: "/login",
       headers: await cacheControl("no-store"),
     });
   }
-
-  return session;
 };
 
 export const getCurrentUser = async () => {
-  const session = await useAppSession();
+  const session = await getAppSession();
 
-  if (!session.data.isLoggedIn) {
-    return false;
-  }
-
-  return session.data.isLoggedIn;
+  return session.isLoggedIn === true;
 };
 
 export const login = async (password: string) => {
-  const ADMIN_PASSWORD_HASH = requireEnv("ADMIN_PASSWORD_HASH");
-  const passwordMatch = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
+  const adminPasswordHash = requireEnv("ADMIN_PASSWORD_HASH");
+  const passwordMatch = await bcrypt.compare(password, adminPasswordHash);
 
   if (!passwordMatch) {
     throw new Error("Invalid password");
   }
 
-  const session = await useAppSession();
-  await session.update({ isLoggedIn: true });
+  const session = await getAppSession();
+  session.isLoggedIn = true;
+  await session.save();
 
   throw redirect({ to: "/finances" });
 };
 
 export const logout = async () => {
-  const session = await useAppSession();
-  await session.clear();
+  const session = await getAppSession();
+  session.destroy();
 
   throw redirect({ to: "/login" });
 };
