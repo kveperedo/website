@@ -3,6 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 
+import {
+  ScheduledFormEditSchema,
+  type ScheduledFormEditData,
+} from "@/app/finance/scheduled/scheduled.schema";
 import { Card } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import {
@@ -18,10 +22,6 @@ import {
   DescriptionField,
   TypeField,
 } from "@/routes/(authed)/_auth/finances/-common/components/transaction-fields";
-import {
-  ScheduledFormEditSchema,
-  type ScheduledFormEditData,
-} from "@/schema/scheduled-transaction";
 
 export const FORM_ID = "scheduled-transaction-form";
 

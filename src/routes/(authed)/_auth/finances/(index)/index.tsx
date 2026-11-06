@@ -1,19 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { formatInTimeZone } from "date-fns-tz";
 
-import { TIME_ZONE } from "@/app/finance/local-date";
-import { getCategoryTrendsVisibleCategoriesFn } from "@/app/finance/preferences/functions";
-import {
-  getScheduledExpensesForCurrentMonthFn,
-  getUpcomingScheduledTransactionTemplatesFn,
-} from "@/app/finance/scheduled-transactions/functions";
 import {
   getCategorySummaryFn,
   getCategoryTrendsFn,
   getMonthlyHistoryFn,
   getMonthlyNetFn,
-  getRecentTransactionsFn,
-} from "@/app/finance/transactions/functions";
+} from "@/app/finance/analytics/analytics.functions";
+import { getCategoryTrendsVisibleCategoriesFn } from "@/app/finance/preferences/preferences.functions";
+import {
+  getScheduledExpensesForCurrentMonthFn,
+  getUpcomingScheduledTransactionTemplatesFn,
+} from "@/app/finance/scheduled/scheduled.functions";
+import { TIME_ZONE } from "@/app/finance/shared/local-date";
+import { getRecentTransactionsFn } from "@/app/finance/transactions/transactions.functions";
 
 import { FinanceContainer } from "../-common/components/finance-container";
 import { CategorySummaryCard } from "./-common/components/category-summary-card";

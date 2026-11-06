@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import type { NetCardScenario } from "@/app/e2e/server";
+import type { NetCardScenario } from "@/app/e2e/e2e.service.server";
 
 import {
   getIsE2EAvailableFn,
   resetTestDataFn,
   seedTestDataFn,
   seedTrendsTestDataFn,
-} from "@/app/e2e/functions";
+} from "@/app/e2e/e2e.functions";
 import {
   AlertDialog,
   AlertDialogAction,

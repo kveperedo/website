@@ -3,7 +3,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 
-import { getTransactionByIdFn, updateTransactionFn } from "@/app/finance/transactions/functions";
+import {
+  getTransactionByIdFn,
+  updateTransactionFn,
+} from "@/app/finance/transactions/transactions.functions";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";

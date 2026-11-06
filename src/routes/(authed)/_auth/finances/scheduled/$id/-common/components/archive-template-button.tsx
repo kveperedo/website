@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArchiveIcon } from "lucide-react";
 import { useState } from "react";
 
-import { archiveScheduledTransactionTemplateFn } from "@/app/finance/scheduled-transactions/functions";
+import { archiveScheduledTransactionTemplateFn } from "@/app/finance/scheduled/scheduled.functions";
 import {
   AlertDialog,
   AlertDialogAction,

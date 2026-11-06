@@ -31,14 +31,24 @@
 
 - **TanStack Start** SSR app, file-based routing in `src/routes/`
 - Route groups: `(public)/` (homepage, login, config/mac setup) and `(authed)/_auth` (protected)
-- Server functions: `*.server.ts` (raw db/auth) + `*.functions.ts` (`createServerFn` wrappers); use `authMiddleware` for protected endpoints. `serverFunctionLoggingMiddleware` is registered globally: log failures, successful mutations, and reads slower than 500 ms; never log request payloads or sensitive data. Do not log individual rate-limit rejections.
+- Server functions: `*.functions.ts` (only place `createServerFn` lives) call `*.service.server.ts` (business rules) which call `*.repository.server.ts` (Prisma). Use `authMiddleware` for protected endpoints. `serverFunctionLoggingMiddleware` is registered globally: log failures, successful mutations, and reads slower than 500 ms; never log request payloads or sensitive data. Do not log individual rate-limit rejections.
 - Import alias: `@/*` → `src/*`
-- Auth: session cookie sealed by **iron-session** (15-day TTL), env vars `SESSION_SECRET` (min 32 chars) + `ADMIN_PASSWORD_HASH`. Cookies are read/written through `getCookie`/`setCookie` in `src/app/auth/session.ts`
-- DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-pg` through a Cloudflare Hyperdrive binding; TCP connections support Prisma transactions. Start transactions at coordinated workflow boundaries and pass the transaction client to their write helpers. `DATABASE_URL` in `prisma.config.ts` is for Prisma CLI only
+- Auth: session cookie sealed by **iron-session** (15-day TTL), env vars `SESSION_SECRET` (min 32 chars) + `ADMIN_PASSWORD_HASH`. Cookies are read/written through `getCookie`/`setCookie` in `src/app/auth/auth.session.server.ts`
+- DB: PostgreSQL via **Prisma v7** + `@prisma/adapter-pg` through a Cloudflare Hyperdrive binding; TCP connections support Prisma transactions. Start transactions at coordinated workflow boundaries with `withTransaction` in `src/app/infra/database/client.server.ts` and pass the transaction client to repository write helpers. `DATABASE_URL` in `prisma.config.ts` is for Prisma CLI only
 - Prisma client outputs to `src/generated/prisma` (gitignored)
-- Validation: `zod` schema input validation on server functions (see `src/app/auth/functions.ts`)
+- Validation: `zod` schema input validation on server functions (see `src/app/auth/auth.schema.ts`)
 - **React Compiler** enabled via `@rolldown/plugin-babel`
 - Prefer `date-fns` over native `Date` APIs for date manipulation and formatting
+
+## Backend Modules
+
+- `src/app/<domain>/` is organized by business domain; the full conventions live in `src/app/README.md`
+- Layer suffixes: `*.functions.ts` (transport), `*.schema.ts` / `*.types.ts` (DTOs), `*.service.server.ts` (business rules), `*.repository.server.ts` (Prisma), `*.middleware.ts` (guards)
+- `.server.` on a filename blocks client bundling; keep it on anything touching persistence, sessions, or server bindings
+- `createServerFn` stays in `*.functions.ts`; services are plain async functions because cron, Vitest, and E2E call them directly
+- Only repositories and `infra/` call `getDb`; auth uses `auth.session.server.ts` and e2e uses its service as documented exceptions
+- Cross-domain imports go through `*.service.server.ts` or `*.schema.ts`; no barrels. Exception: `transactions.service -> scheduled.service -> transactions.repository` is one-way, because routing the repository through the service would cycle
+- Use `.handler(serviceFn)` when no validator or argument mapping is needed
 
 ## Routing Conventions
 
@@ -58,21 +68,22 @@
 
 ## Key Files
 
-| File                      | Purpose                                                  |
-| ------------------------- | -------------------------------------------------------- |
-| `src/db/client.ts`        | Prisma client factory (Hyperdrive-backed pg adapter)     |
-| `src/app/auth/`           | Session logic, server functions, and auth middleware     |
-| `src/app/finance/`        | Finance-domain services and server functions             |
-| `src/app/infra/`          | Cache control, logging, and rate limiting                |
-| `src/app/e2e/`            | E2E fixture seeding and server functions                 |
-| `prisma/schema.prisma`    | Single model: `Expense`                                  |
-| `src/styles.css`          | Tailwind v4 theme, fonts, keyframes, CSS variables       |
-| `src/components/link.tsx` | RAC `<Link>` via `createLink` — TanStack Router typed    |
-| `src/components/ui/`      | shadcn components (button, badge, input, field, etc.)    |
-| `src/lib/env.ts`          | `requireEnv()` helper for env vars                       |
-| `cloudflare.config.ts`    | Cloudflare Workers config (KV, routes, bindings)         |
-| `.cloudflare/types/`      | Auto-generated Worker types (run `pnpm run cf:generate`) |
-| `components.json`         | shadcn registry config                                   |
+| File                                      | Purpose                                                  |
+| ----------------------------------------- | -------------------------------------------------------- |
+| `src/app/infra/database/client.server.ts` | Prisma client factory + `withTransaction`                |
+| `src/app/auth/`                           | Session logic, server functions, and auth middleware     |
+| `src/app/finance/`                        | Transactions, analytics, scheduled entries, preferences  |
+| `src/app/infra/`                          | Database, cache, logging, and rate limiting              |
+| `src/app/e2e/`                            | E2E fixture seeding and server functions                 |
+| `src/app/README.md`                       | Backend module naming, layering, and dependency rules    |
+| `prisma/schema.prisma`                    | Single model: `Expense`                                  |
+| `src/styles.css`                          | Tailwind v4 theme, fonts, keyframes, CSS variables       |
+| `src/components/link.tsx`                 | RAC `<Link>` via `createLink` — TanStack Router typed    |
+| `src/components/ui/`                      | shadcn components (button, badge, input, field, etc.)    |
+| `src/lib/env.ts`                          | `requireEnv()` helper for env vars                       |
+| `cloudflare.config.ts`                    | Cloudflare Workers config (KV, routes, bindings)         |
+| `.cloudflare/types/`                      | Auto-generated Worker types (run `pnpm run cf:generate`) |
+| `components.json`                         | shadcn registry config                                   |
 
 ## Gotchas
 

@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { getArchivedScheduledTransactionTemplatesFn } from "@/app/finance/scheduled-transactions/functions";
+import { getArchivedScheduledTransactionTemplatesFn } from "@/app/finance/scheduled/scheduled.functions";
 import { TanstackLinkButton } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";

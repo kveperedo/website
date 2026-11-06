@@ -5,10 +5,10 @@ import { z } from "zod";
 
 import type { FileRouteTypes } from "@/routeTree.gen";
 
-import { createTransactionsFn } from "@/app/finance/transactions/functions";
+import { createTransactionsFn } from "@/app/finance/transactions/transactions.functions";
+import { ParsedTransactionSchema } from "@/app/finance/transactions/transactions.schema";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { ParsedTransactionSchema } from "@/schema/transaction";
 
 import type { TransactionFormData } from "../../-common/transaction-form-schema";
 

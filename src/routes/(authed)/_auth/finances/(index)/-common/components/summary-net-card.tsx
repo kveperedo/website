@@ -1,6 +1,5 @@
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
 
-import { getExpenseProgress } from "@/app/finance/expense-progress";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
 import { TRANSACTION_TYPE_COLORS } from "../../../-common/constants";
+import { getExpenseProgress } from "../expense-progress";
 
 function NetHeadline() {
   const {

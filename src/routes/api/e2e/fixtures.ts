@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { createE2EFixture, deleteE2EFixtures, rejectUnlessE2E } from "@/app/e2e/server";
+import { createE2EFixture, deleteE2EFixtures, rejectUnlessE2E } from "@/app/e2e/e2e.service.server";
 import {
   ScheduledTransactionStatus,
   TransactionCategory,

@@ -2,13 +2,13 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import type { ScheduledFormEditData } from "@/app/finance/scheduled/scheduled.schema";
 import type { TransactionCategory } from "@/generated/prisma/enums";
-import type { ScheduledFormEditData } from "@/schema/scheduled-transaction";
 
 import {
   getScheduledTransactionTemplateByIdFn,
   updateScheduledTransactionTemplateFn,
-} from "@/app/finance/scheduled-transactions/functions";
+} from "@/app/finance/scheduled/scheduled.functions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
