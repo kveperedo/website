@@ -1,16 +1,22 @@
+import { useServerFn } from "@tanstack/react-start";
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
+import { useOptimistic, useState, useTransition } from "react";
 
+import { setHideSummaryCardAmountsFn } from "@/app/finance/preferences/preferences.functions";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
 import { TRANSACTION_TYPE_COLORS } from "../../../-common/constants";
 import { getExpenseProgress } from "../expense-progress";
+import { formatAmount } from "../format-amount";
+import { AmountsVisibilityToggle } from "./amounts-visibility";
 
-function NetHeadline() {
+type AmountVisibilityProps = { hideAmounts: boolean };
+
+function NetHeadline({ hideAmounts }: AmountVisibilityProps) {
   const {
     history: { current },
   } = Route.useLoaderData();
@@ -19,8 +25,8 @@ function NetHeadline() {
   const netColor = isNetPositive ? TRANSACTION_TYPE_COLORS.income : TRANSACTION_TYPE_COLORS.expense;
 
   return (
-    <p className={cn("font-mono text-lg sm:text-xl", netColor)}>
-      {formatCurrency(Math.abs(current.net))} {netLabel}
+    <p data-testid="net-headline" className={cn("font-mono text-lg sm:text-xl", netColor)}>
+      {formatAmount(Math.abs(current.net), { hidden: hideAmounts })} {netLabel}
     </p>
   );
 }
@@ -105,7 +111,7 @@ function ExpenseProgress() {
   );
 }
 
-function ExpenseBreakdown() {
+function ExpenseBreakdown({ hideAmounts }: AmountVisibilityProps) {
   const {
     history: { current },
     scheduledProjection,
@@ -126,9 +132,11 @@ function ExpenseBreakdown() {
     current.expenses,
     scheduledProjection.scheduledExpenses,
   );
-  const currentLabel = formatCurrency(current.expenses);
-  const incomeLabel = formatCurrency(current.income);
-  const scheduledLabel = formatCurrency(scheduledProjection.scheduledExpenses);
+  const currentLabel = formatAmount(current.expenses, { hidden: hideAmounts });
+  const incomeLabel = formatAmount(current.income, { hidden: hideAmounts });
+  const scheduledLabel = formatAmount(scheduledProjection.scheduledExpenses, {
+    hidden: hideAmounts,
+  });
 
   return (
     <div className="flex flex-col gap-2 font-mono text-xs">
@@ -159,7 +167,7 @@ function ExpenseBreakdown() {
   );
 }
 
-function PaceComparison() {
+function PaceComparison({ hideAmounts }: AmountVisibilityProps) {
   const {
     history: { prior, averagePriorExpenses, priorMonthCount, current },
   } = Route.useLoaderData();
@@ -189,7 +197,8 @@ function PaceComparison() {
           <TrendingDownIcon className="size-3 shrink-0" />
         )}
         <span>
-          {formatCurrency(Math.abs(paceDiff))} {paceDiff > 0 ? "above" : "below"}{" "}
+          {formatAmount(Math.abs(paceDiff), { hidden: hideAmounts })}{" "}
+          {paceDiff > 0 ? "above" : "below"}{" "}
           <span className="text-muted-foreground">your {priorMonthCount}-month pace</span>
         </span>
       </p>
@@ -209,7 +218,9 @@ function PaceComparison() {
             {index > 0 && <span className="text-muted-foreground/50">·</span>}
             <span className="text-muted-foreground">{month.label.split(" ")[0].slice(0, 3)}</span>
             {month.transactionCount > 0 ? (
-              <span className="text-foreground">{formatCurrency(month.expenses)}</span>
+              <span className="text-foreground">
+                {formatAmount(month.expenses, { hidden: hideAmounts })}
+              </span>
             ) : (
               <span className="text-muted-foreground">—</span>
             )}
@@ -223,15 +234,42 @@ function PaceComparison() {
 export const SummaryNetCard = () => {
   const {
     history: { current },
+    hideSummaryCardAmounts,
   } = Route.useLoaderData();
+  const persistHideAmounts = useServerFn(setHideSummaryCardAmountsFn);
+  const [persistedHideAmounts, setPersistedHideAmounts] = useState(hideSummaryCardAmounts);
+  const [hideAmounts, setOptimisticHideAmounts] = useOptimistic(persistedHideAmounts);
+  const [isPending, startTransition] = useTransition();
   const isEmpty = current.transactionCount === 0;
+
+  const toggleAmounts = () => {
+    const nextHideAmounts = !hideAmounts;
+
+    startTransition(async () => {
+      setOptimisticHideAmounts(nextHideAmounts);
+
+      try {
+        await persistHideAmounts({ data: nextHideAmounts });
+        setPersistedHideAmounts(nextHideAmounts);
+      } catch {
+        // Keep the last persisted value; the optimistic update reverts when the transition ends.
+      }
+    });
+  };
 
   return (
     <Card data-testid="summary-net-card" size="sm" className="min-w-0 flex-1">
       <CardContent className="flex flex-col gap-2">
-        <CardTitle className="text-muted-foreground">
-          Your <span className="text-foreground">{current.label}</span> finances so far
-        </CardTitle>
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-muted-foreground">
+            Your <span className="text-foreground">{current.label}</span> finances so far
+          </CardTitle>
+          <AmountsVisibilityToggle
+            hideAmounts={hideAmounts}
+            onToggle={toggleAmounts}
+            isPending={isPending}
+          />
+        </div>
         {isEmpty ? (
           <Empty>
             <EmptyHeader>
@@ -241,9 +279,9 @@ export const SummaryNetCard = () => {
           </Empty>
         ) : (
           <>
-            <NetHeadline />
-            <ExpenseBreakdown />
-            <PaceComparison />
+            <NetHeadline hideAmounts={hideAmounts} />
+            <ExpenseBreakdown hideAmounts={hideAmounts} />
+            <PaceComparison hideAmounts={hideAmounts} />
           </>
         )}
       </CardContent>

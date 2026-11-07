@@ -1,4 +1,4 @@
-type CurrencyFormatOptions = {
+export type CurrencyFormatOptions = {
   compact?: boolean;
   sign?: "positive" | "negative";
 };

@@ -7,7 +7,7 @@ import {
   getMonthlyHistoryFn,
   getMonthlyNetFn,
 } from "@/app/finance/analytics/analytics.functions";
-import { getCategoryTrendsVisibleCategoriesFn } from "@/app/finance/preferences/preferences.functions";
+import { getFinancePreferencesFn } from "@/app/finance/preferences/preferences.functions";
 import {
   getScheduledExpensesForCurrentMonthFn,
   getUpcomingScheduledTransactionTemplatesFn,
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       categorySummary,
       upcomingTransactions,
       categoryTrends,
-      categoryTrendsVisibleCategories,
+      financePreferences,
       history,
       monthlyNet,
       scheduledProjection,
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       getCategorySummaryFn(),
       getUpcomingScheduledTransactionTemplatesFn(),
       getCategoryTrendsFn(),
-      getCategoryTrendsVisibleCategoriesFn(),
+      getFinancePreferencesFn(),
       getMonthlyHistoryFn(),
       getMonthlyNetFn(),
       getScheduledExpensesForCurrentMonthFn(),
@@ -55,10 +55,11 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
       categorySummary,
       upcomingTransactions,
       categoryTrends,
-      categoryTrendsVisibleCategories,
+      categoryTrendsVisibleCategories: financePreferences.categoryTrendsVisibleCategories,
       history,
       monthlyNet,
       scheduledProjection,
+      hideSummaryCardAmounts: financePreferences.hideSummaryCardAmounts,
       monthLabel,
     };
   },
