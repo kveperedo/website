@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { addMonths, format } from "date-fns";
 
-import { gotoAndWaitForHydration } from "../helpers/auth";
+import { gotoAndWaitForHydration, waitForHydration } from "../helpers/auth";
 import {
   createScheduledTransactionFixture,
   createTransactionFixture,
@@ -568,5 +568,65 @@ test.describe("transaction input queue", () => {
     await expect(page.getByText("Milk 75", { exact: true })).toBeVisible();
     await expect(page.getByText("Bread 40", { exact: true })).toBeVisible();
     await expect(page.getByTestId("parse-transaction")).toBeEnabled();
+  });
+
+  test("queued entries survive a reload", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.fill("Milk 75");
+    await input.press("Enter");
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+
+    await page.reload();
+    await waitForHydration(page);
+
+    await expect(page.getByPlaceholder("Add transaction...")).toHaveCount(0);
+    await openTransactionComposer(page);
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+    await expect(page.getByText("Milk 75", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("parse-transaction")).toBeEnabled();
+  });
+
+  test("queued entries survive footer navigation", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.fill("Milk 75");
+    await input.press("Enter");
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+
+    const navigation = page.getByRole("navigation", { name: "Finance navigation" });
+    await navigation.getByRole("link", { name: "Transactions", exact: true }).click();
+    await expect(page).toHaveURL(/\/finances\/transactions$/);
+
+    await expect(page.getByPlaceholder("Add transaction...")).toHaveCount(0);
+    await openTransactionComposer(page);
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+    await expect(page.getByText("Milk 75", { exact: true })).toBeVisible();
+  });
+
+  test("queued entries are cleared once the review form opens", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.fill("Milk 75");
+    await input.press("Enter");
+    await expect(page.getByText("1 entry queued")).toBeVisible();
+
+    await page.getByTestId("parse-transaction").click();
+    await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+
+    const storedQueue = await page.evaluate(() =>
+      localStorage.getItem("finance.transaction-queue"),
+    );
+    expect(storedQueue).toBeNull();
+
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await expect(page.getByPlaceholder("Add transaction...")).toHaveCount(0);
+    await expect(page.getByText(/queued/)).toHaveCount(0);
   });
 });
