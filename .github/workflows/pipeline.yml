@@ -10,8 +10,9 @@ on:
       - main
 
 concurrency:
-  group: deploy-pipeline-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancel stale PR runs, but let production deploys finish.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
