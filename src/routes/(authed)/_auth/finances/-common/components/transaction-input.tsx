@@ -17,6 +17,8 @@ import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 
+import { clearQueuedEntries, useQueuedEntries, writeQueuedEntries } from "../transaction-queue";
+
 type TransactionInputProps = {
   autoFocus?: boolean;
   value: string;
@@ -40,21 +42,21 @@ function TransactionInput({
 }: TransactionInputProps) {
   const classifyTransactions = useServerFn(classifyTransactionsFn);
 
-  const [entries, setEntries] = useState<Array<string>>([]);
   const [isClassifying, setIsClassifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const entries = useQueuedEntries();
 
   const commitEntry = () => {
     const entry = value.trim();
     if (entry.length === 0) {
       return;
     }
-    setEntries((prev) => [...prev, entry]);
+    writeQueuedEntries([...entries, entry]);
     onValueChange("");
   };
 
   const removeEntry = (index: number) => {
-    setEntries((prev) => prev.filter((_, entryIndex) => entryIndex !== index));
+    writeQueuedEntries(entries.filter((_, entryIndex) => entryIndex !== index));
   };
 
   const handleParse = async () => {
@@ -73,7 +75,7 @@ function TransactionInput({
     try {
       const classifications = await classifyTransactions({ data: { items: parsed } });
       setIsClassifying(false);
-      setEntries([]);
+      clearQueuedEntries();
       onValueChange("");
       onParsed(parsed.map((transaction, index) => ({ ...transaction, ...classifications[index] })));
     } catch {
@@ -153,7 +155,7 @@ function TransactionInput({
               e.preventDefault();
               const next = splitEntries(text);
               if (next.length > 0) {
-                setEntries((prev) => [...prev, ...next]);
+                writeQueuedEntries([...entries, ...next]);
               }
             }
           }}
