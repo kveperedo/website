@@ -10,8 +10,9 @@ on:
       - main
 
 concurrency:
-  # Cancel stale PR runs, but let production deploys finish.
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Group PR runs by number: a merged PR's closed run uses the base branch
+  # as its ref, which collided with and canceled the push-to-main run.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
