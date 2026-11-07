@@ -192,3 +192,43 @@ test.describe("monthly net card", () => {
     await expect(card.getByText(`${currentMonth} (month-to-date)`, { exact: true })).toBeVisible();
   });
 });
+
+test.describe("summary card amounts visibility", () => {
+  test("eye toggle masks the summary amounts and the preference survives a reload", async ({
+    page,
+  }) => {
+    // Start from a fresh preferences row so creating one from the toggle is what is exercised.
+    await seedTrendsData(page);
+    await gotoAndWaitForHydration(page, "/finances");
+
+    const toggle = page.getByTestId("amounts-visibility-toggle");
+    const netHeadline = page.getByTestId("net-headline");
+
+    await expect(toggle).toHaveAccessibleName("Hide amounts");
+    await expect(netHeadline).toContainText(/₱\d/);
+
+    const hidden = waitForPreferenceUpdate(page);
+    await toggle.click();
+    await hidden;
+
+    await expect(toggle).toHaveAccessibleName("Show amounts");
+    await expect(netHeadline).toContainText(/₱•/);
+    await expect(netHeadline).not.toContainText(/₱\d/);
+
+    await gotoAndWaitForHydration(page, "/finances");
+
+    await expect(toggle).toHaveAccessibleName("Show amounts");
+    await expect(netHeadline).toContainText(/₱•/);
+    // Saving the hide preference must not look like an empty category trends filter.
+    const categoryTrends = page.getByTestId("category-trends-card");
+    await expect(categoryTrends).not.toContainText("No categories selected.");
+    await expect(categoryTrends.locator(".recharts-line")).toHaveCount(7);
+
+    const shown = waitForPreferenceUpdate(page);
+    await toggle.click();
+    await shown;
+
+    await expect(toggle).toHaveAccessibleName("Hide amounts");
+    await expect(netHeadline).toContainText(/₱\d/);
+  });
+});
