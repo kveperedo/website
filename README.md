@@ -51,7 +51,8 @@ Use `.env.example` as the source of truth for the local environment template. De
 
 ```text
 src/
-  app/            Domain services for auth, finance, infrastructure, and E2E fixtures
+  app/            Business-domain modules: auth, finance, AI, E2E, and infrastructure
+                  See src/app/README.md for the layering and naming rules
   components/     Shared UI components
   routes/         TanStack Start file-based routes
     (public)/     Homepage, login, and public configuration pages
@@ -59,6 +60,10 @@ src/
   styles.css      Global Tailwind theme tokens and styles
 prisma/           Prisma schema and committed database migrations
 ```
+
+Inside each domain, `*.functions.ts` is the HTTP boundary, `*.service.server.ts` holds business
+rules, and `*.repository.server.ts` is the only place that queries Prisma. The `.server.` suffix
+keeps server-only code out of client bundles.
 
 ## Database
 

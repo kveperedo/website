@@ -8,7 +8,7 @@ import {
   getArchivedScheduledTransactionTemplatesCountFn,
   getScheduledTransactionTemplatesFn,
   toggleScheduledTransactionTemplateFn,
-} from "@/app/finance/scheduled-transactions/functions";
+} from "@/app/finance/scheduled/scheduled.functions";
 import { TanstackLinkButton } from "@/components/ui/button";
 
 import { FinanceContainer } from "../../-common/components/finance-container";

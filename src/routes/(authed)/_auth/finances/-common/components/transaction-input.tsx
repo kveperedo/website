@@ -4,15 +4,18 @@ import { useServerFn } from "@tanstack/react-start";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
-import { todayDateOnly } from "@/app/finance/local-date";
-import { classifyTransactionsFn } from "@/app/finance/transactions/functions";
-import { parseTransactionTexts } from "@/app/finance/transactions/parse";
+import { todayDateOnly } from "@/app/finance/shared/local-date";
+import { classifyTransactionsFn } from "@/app/finance/transactions/transactions.functions";
+import { parseTransactionTexts } from "@/app/finance/transactions/transactions.parse";
+import {
+  MAX_DESCRIPTION_LENGTH,
+  type ParsedTransaction,
+} from "@/app/finance/transactions/transactions.schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { MAX_DESCRIPTION_LENGTH, type ParsedTransaction } from "@/schema/transaction";
 
 type TransactionInputProps = {
   autoFocus?: boolean;

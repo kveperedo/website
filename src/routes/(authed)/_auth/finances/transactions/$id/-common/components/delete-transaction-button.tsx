@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { deleteTransactionFn } from "@/app/finance/transactions/functions";
+import { deleteTransactionFn } from "@/app/finance/transactions/transactions.functions";
 import {
   AlertDialog,
   AlertDialogAction,

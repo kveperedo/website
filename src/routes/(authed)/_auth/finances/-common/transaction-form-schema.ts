@@ -1,7 +1,7 @@
 import { z } from "zod";
 
+import { ScheduledFormSchema } from "@/app/finance/scheduled/scheduled.schema";
 import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
-import { ScheduledFormSchema } from "@/schema/scheduled-transaction";
 
 export const scheduleFieldsSchema = z.object({
   dayOfMonth: z.number().optional(),

@@ -4,7 +4,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import { createScheduledTransactionTemplateFn } from "@/app/finance/scheduled-transactions/functions";
+import { createScheduledTransactionTemplateFn } from "@/app/finance/scheduled/scheduled.functions";
+import {
+  ScheduledFormSchema,
+  type ScheduledFormData,
+} from "@/app/finance/scheduled/scheduled.schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -24,7 +28,6 @@ import {
   EndTypeField,
   MaxOccurrencesField,
 } from "@/routes/(authed)/_auth/finances/-common/components/schedule-transaction-fields";
-import { ScheduledFormSchema, type ScheduledFormData } from "@/schema/scheduled-transaction";
 
 import { Route } from "../..";
 

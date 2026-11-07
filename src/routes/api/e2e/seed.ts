@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { rejectUnlessE2E, resetTestData, seedTestData, seedTrendsTestData } from "@/app/e2e/server";
+import {
+  rejectUnlessE2E,
+  resetTestData,
+  seedTestData,
+  seedTrendsTestData,
+} from "@/app/e2e/e2e.service.server";
 
 const SeedSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("reset") }),

@@ -5,7 +5,7 @@ import { useDebouncedCallback } from "use-debounce";
 
 import type { TransactionCategory } from "@/generated/prisma/enums";
 
-import { setCategoryTrendsVisibleCategoriesFn } from "@/app/finance/preferences/functions";
+import { setCategoryTrendsVisibleCategoriesFn } from "@/app/finance/preferences/preferences.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";

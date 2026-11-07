@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useRef, useState, type PropsWithChildren } from "react";
 
-import type { ParsedTransaction } from "@/schema/transaction";
+import type { ParsedTransaction } from "@/app/finance/transactions/transactions.schema";
 
 import { Button, TanstackLinkButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

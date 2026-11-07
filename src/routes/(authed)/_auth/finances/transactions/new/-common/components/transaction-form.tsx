@@ -12,10 +12,10 @@ import {
   type UseFormSetValue,
 } from "react-hook-form";
 
-import type { ScheduledTransactionInput } from "@/schema/scheduled-transaction";
-import type { ParsedTransaction } from "@/schema/transaction";
+import type { ScheduledTransactionInput } from "@/app/finance/scheduled/scheduled.schema";
+import type { ParsedTransaction } from "@/app/finance/transactions/transactions.schema";
 
-import { dateOnlyToDatabaseDate } from "@/app/finance/local-date";
+import { dateOnlyToDatabaseDate } from "@/app/finance/shared/local-date";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
