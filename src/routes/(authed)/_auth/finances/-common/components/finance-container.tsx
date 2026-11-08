@@ -8,10 +8,11 @@ import {
   ReceiptTextIcon,
   XIcon,
 } from "lucide-react";
-import { useRef, useState, type PropsWithChildren } from "react";
+import { useRef, useState } from "react";
 
 import type { ParsedTransaction } from "@/app/finance/transactions/transactions.schema";
 
+import { AppContainer, type AppContainerProps } from "@/components/app-container";
 import { Button, TanstackLinkButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -23,32 +24,13 @@ const ROUTE_DETAILS = {
   "/finances/scheduled": { icon: CalendarClockIcon, label: "Scheduled" },
 } as const;
 
-export type FinanceContainerProps = PropsWithChildren<{
-  header?: React.ReactNode;
-  footer?: React.ReactNode;
-}>;
+export type FinanceContainerProps = AppContainerProps;
 
 const FinanceContainerRoot = ({ header, footer, children }: FinanceContainerProps) => {
   return (
-    <div
-      className={cn(
-        "relative min-h-dvh",
-        footer &&
-          "pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(4rem+env(safe-area-inset-bottom))]",
-      )}
-    >
-      {header && (
-        <header className="sticky top-0 z-30 border-b border-border bg-background/85 p-4 backdrop-blur">
-          <div className="container mx-auto flex flex-col">{header}</div>
-        </header>
-      )}
-      <main className="flex flex-col">{children}</main>
-      {footer && (
-        <footer className="fixed inset-x-6 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-30 flex flex-col gap-2 rounded-none border border-border bg-background/90 shadow-xl backdrop-blur sm:inset-x-0 sm:bottom-0 sm:block sm:border-0 sm:border-t sm:pb-[env(safe-area-inset-bottom)] sm:shadow-none">
-          {footer}
-        </footer>
-      )}
-    </div>
+    <AppContainer header={header} footer={footer}>
+      {children}
+    </AppContainer>
   );
 };
 
