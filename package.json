@@ -67,6 +67,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "2.0.0-beta.sha-805ec1ff3",
     "@cloudflare/workers-types": "^4.20260702.1",
+    "@locator/babel-jsx": "^2.0.0",
     "@playwright/test": "^1.61.1",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tailwindcss/typography": "^0.5.20",
