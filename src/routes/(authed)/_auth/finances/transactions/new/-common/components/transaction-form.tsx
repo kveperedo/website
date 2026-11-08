@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useRef } from "react";
 import {
   Controller,
@@ -15,9 +16,11 @@ import {
 import type { ScheduledTransactionInput } from "@/app/finance/scheduled/scheduled.schema";
 import type { ParsedTransaction } from "@/app/finance/transactions/transactions.schema";
 
-import { dateOnlyToDatabaseDate } from "@/app/finance/shared/local-date";
+import { dateOnlyToDatabaseDate, todayDateOnly } from "@/app/finance/shared/local-date";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { type TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import {
@@ -47,16 +50,40 @@ const enrichDate = (dateStr: string) => {
   return dateOnlyToDatabaseDate(dateStr).toISOString();
 };
 
+type TransactionFormEntry = TransactionFormData["transactions"][number];
+
+const toFormEntry = (transaction: ParsedTransaction): TransactionFormEntry => ({
+  description: transaction.description,
+  // Zero renders the field empty; the form schema requires a positive amount so the
+  // user cannot save the blank value.
+  amount: transaction.amount ?? 0,
+  transactedAt: enrichDate(transaction.transactedAt),
+  type: transaction.type,
+  category: transaction.category ?? null,
+  scheduleEnabled: false,
+});
+
+const createBlankTransaction = (): TransactionFormEntry =>
+  toFormEntry({
+    description: "",
+    amount: null,
+    transactedAt: todayDateOnly(),
+    type: "expense",
+    category: null,
+  });
+
 const TransactionCard = ({
   control,
   getValues,
   index,
+  onRemove,
   setValue,
   totalCount,
 }: {
   control: Control<TransactionFormData>;
   getValues: UseFormGetValues<TransactionFormData>;
   index: number;
+  onRemove: () => void;
   setValue: UseFormSetValue<TransactionFormData>;
   totalCount: number;
 }) => {
@@ -69,11 +96,21 @@ const TransactionCard = ({
 
   return (
     <Card className="flex flex-col gap-5 p-5">
-      {totalCount > 1 && (
+      <div className="flex items-center justify-between gap-4">
         <p className="text-xs text-muted-foreground">
-          transaction {index + 1} of {totalCount}
+          Transaction {index + 1} of {totalCount}
         </p>
-      )}
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          aria-label={`Delete transaction ${index + 1}`}
+          onPress={onRemove}
+        >
+          <Trash2Icon data-icon="inline-start" />
+          Delete
+        </Button>
+      </div>
 
       <FieldGroup>
         <DescriptionField control={control} name={`transactions.${index}.description`} />
@@ -155,30 +192,31 @@ export const FORM_ID = "new-transaction-form";
 type TransactionFormProps = {
   transactions?: Array<ParsedTransaction>;
   onSubmit: (data: TransactionFormData) => void;
+  onCountChange: (count: number) => void;
 };
 
-function TransactionForm({ transactions, onSubmit }: TransactionFormProps) {
+function TransactionForm({ transactions, onSubmit, onCountChange }: TransactionFormProps) {
   const { control, getValues, handleSubmit, setValue } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
-      transactions:
-        transactions?.map((t) => ({
-          description: t.description,
-          // Left undefined rather than null so the field renders empty and its own required
-          // validation drives the user to fill in an amount the parser could not find.
-          amount: t.amount ?? undefined,
-          transactedAt: enrichDate(t.transactedAt),
-          type: t.type,
-          category: t.category ?? null,
-          scheduleEnabled: false,
-        })) ?? [],
+      transactions: (transactions ?? []).map(toFormEntry),
     },
   });
 
-  const { fields } = useFieldArray({
+  const { append, fields, remove } = useFieldArray({
     control,
     name: "transactions",
   });
+
+  const handleAdd = () => {
+    onCountChange(fields.length + 1);
+    append(createBlankTransaction(), { shouldFocus: true });
+  };
+
+  const handleRemove = (index: number) => {
+    onCountChange(fields.length - 1);
+    remove(index);
+  };
 
   return (
     <form
@@ -186,18 +224,43 @@ function TransactionForm({ transactions, onSubmit }: TransactionFormProps) {
       onSubmit={handleSubmit(onSubmit)}
       className="flex h-full w-full flex-col gap-6 self-stretch"
     >
-      <div className="grid min-h-0 flex-1 grid-cols-1 items-start gap-6 overflow-y-auto sm:grid-cols-2">
-        {fields.map((field, index) => (
-          <TransactionCard
-            key={field.id}
-            index={index}
-            control={control}
-            getValues={getValues}
-            setValue={setValue}
-            totalCount={fields.length}
-          />
-        ))}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {fields.length === 0 ? (
+          <Card className="flex flex-1 items-center py-6">
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>No transactions left.</EmptyTitle>
+                <EmptyDescription>
+                  Add a transaction below to continue, or cancel to go back.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
+            {fields.map((field, index) => (
+              <TransactionCard
+                key={field.id}
+                index={index}
+                control={control}
+                getValues={getValues}
+                onRemove={() => handleRemove(index)}
+                setValue={setValue}
+                totalCount={fields.length}
+              />
+            ))}
+          </div>
+        )}
       </div>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full shrink-0 sm:w-auto sm:self-start"
+        onPress={handleAdd}
+      >
+        <PlusIcon data-icon="inline-start" />
+        Add transaction
+      </Button>
     </form>
   );
 }

@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 import { ScheduledFormSchema } from "@/app/finance/scheduled/scheduled.schema";
+import {
+  positiveTransactionAmountSchema,
+  transactionDescriptionSchema,
+} from "@/app/finance/transactions/transactions.schema";
 import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
 export const scheduleFieldsSchema = z.object({
@@ -22,6 +26,10 @@ export const transactionFormSchema = z
   .object({
     transactions: z.array(
       TransactionInputSchema.extend({
+        // New cards start blank, so the form itself has to require the values the parser
+        // would otherwise guarantee.
+        description: transactionDescriptionSchema,
+        amount: positiveTransactionAmountSchema,
         transactedAt: z.iso.datetime(),
       }).and(ScheduleFormSchema),
     ),

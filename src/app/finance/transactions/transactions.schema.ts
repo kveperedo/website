@@ -8,10 +8,19 @@ import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/T
 export const MAX_TRANSACTION_AMOUNT = 10_000_000;
 export const MAX_DESCRIPTION_LENGTH = 280;
 
+export const transactionDescriptionSchema = TransactionInputSchema.shape.description
+  .trim()
+  .min(1, "Description is required")
+  .max(MAX_DESCRIPTION_LENGTH, `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer`);
+
+export const positiveTransactionAmountSchema = TransactionInputSchema.shape.amount
+  .positive("Amount must be greater than 0")
+  .max(MAX_TRANSACTION_AMOUNT, "Amount is too large");
+
 export const ParsedTransactionSchema = z.object({
-  description: TransactionInputSchema.shape.description.trim().min(1).max(MAX_DESCRIPTION_LENGTH),
+  description: transactionDescriptionSchema,
   /** Null when the entry carried no recognisable amount; the review form asks for one. */
-  amount: TransactionInputSchema.shape.amount.positive().max(MAX_TRANSACTION_AMOUNT).nullable(),
+  amount: positiveTransactionAmountSchema.nullable(),
   type: TransactionTypeSchema,
   category: TransactionCategorySchema.nullable(),
   transactedAt: z.iso.date(),

@@ -70,6 +70,103 @@ test.describe("transaction mutations", () => {
     await expect(categoryField).toBeVisible();
   });
 
+  test("deleting a card from the new transaction form drops that transaction", async ({ page }) => {
+    const keptDescription = "Form card kept";
+    const removedDescription = "Form card removed";
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances/transactions");
+      await openTransactionComposer(page);
+
+      const input = page.getByPlaceholder("Add transaction...");
+      await input.fill("Milk 75");
+      await input.press("Enter");
+      await expect(page.getByText("1 entry queued")).toBeVisible();
+      await input.fill("Bread 40");
+      await page.getByTestId("parse-transaction").click();
+      await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+
+      const descriptions = page.getByTestId("description-input");
+      await expect(descriptions).toHaveCount(2);
+      await descriptions.nth(0).fill(removedDescription);
+      await descriptions.nth(1).fill(keptDescription);
+
+      await page.getByRole("button", { name: "Delete transaction 1" }).click();
+      await expect(descriptions).toHaveCount(1);
+      await expect(descriptions).toHaveValue(keptDescription);
+
+      await page.getByRole("button", { name: "Save Transaction" }).click();
+      await page.waitForURL(/\/finances\/transactions$/, { timeout: 30000 });
+
+      await expect(page.locator("[data-transaction-id]", { hasText: keptDescription })).toHaveCount(
+        1,
+      );
+      await expect(
+        page.locator("[data-transaction-id]", { hasText: removedDescription }),
+      ).toHaveCount(0);
+    } finally {
+      await deleteFixtures(page, keptDescription, removedDescription);
+    }
+  });
+
+  test("adding a card to the new transaction form saves an extra transaction", async ({ page }) => {
+    const firstDescription = "Form card first added";
+    const secondDescription = "Form card second added";
+
+    try {
+      await gotoAndWaitForHydration(page, "/finances/transactions");
+      await openTransactionComposer(page);
+
+      const input = page.getByPlaceholder("Add transaction...");
+      await input.fill("Milk 75");
+      await page.getByTestId("parse-transaction").click();
+      await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+
+      const descriptions = page.getByTestId("description-input");
+      await expect(descriptions).toHaveCount(1);
+      await descriptions.fill(firstDescription);
+
+      await page.getByRole("button", { name: "Add transaction" }).click();
+      await expect(descriptions).toHaveCount(2);
+      await expect(page.getByText("Transaction 2 of 2")).toBeVisible();
+      await expect(descriptions.nth(1)).toBeFocused();
+      await descriptions.nth(1).fill(secondDescription);
+      await page.getByLabel("Amount", { exact: true }).nth(1).fill("40");
+
+      await page.getByRole("button", { name: "Save Transactions" }).click();
+      await page.waitForURL(/\/finances\/transactions$/, { timeout: 30000 });
+
+      await expect(
+        page.locator("[data-transaction-id]", { hasText: firstDescription }),
+      ).toHaveCount(1);
+      await expect(
+        page.locator("[data-transaction-id]", { hasText: secondDescription }),
+      ).toHaveCount(1);
+    } finally {
+      await deleteFixtures(page, firstDescription, secondDescription);
+    }
+  });
+
+  test("deleting every card shows the empty state and disables save", async ({ page }) => {
+    await gotoAndWaitForHydration(page, "/finances/transactions");
+    await openTransactionComposer(page);
+
+    const input = page.getByPlaceholder("Add transaction...");
+    await input.fill("Milk 75");
+    await page.getByTestId("parse-transaction").click();
+    await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
+
+    await page.getByRole("button", { name: "Delete transaction 1" }).click();
+    await expect(page.getByText("No transactions left.")).toBeVisible();
+
+    const saveButton = page.getByRole("button", { name: "Save Transaction" });
+    await expect(saveButton).toBeDisabled();
+
+    await page.getByRole("button", { name: "Add transaction" }).click();
+    await expect(page.getByTestId("description-input")).toHaveCount(1);
+    await expect(saveButton).toBeEnabled();
+  });
+
   test("updating a transaction persists the changes", async ({ page }) => {
     const description = "Bread loaf";
     const updated = "Bread loaf edited";
