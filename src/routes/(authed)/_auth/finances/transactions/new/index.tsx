@@ -28,7 +28,7 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 export const Route = createFileRoute("/(authed)/_auth/finances/transactions/new/")({
   head: () => ({ meta: META }),
   validateSearch: z.object({
-    transactions: z.array(ParsedTransactionSchema),
+    transactions: z.array(ParsedTransactionSchema).default([]),
     returnTo: z.string().optional() as z.ZodType<AppRoutePath | undefined>,
   }),
   component: RouteComponent,
@@ -39,12 +39,9 @@ function RouteComponent() {
   const { transactions, returnTo } = Route.useSearch();
   const createTransactions = useServerFn(createTransactionsFn);
   const [isSaving, setIsSaving] = useState(false);
+  const [transactionCount, setTransactionCount] = useState(transactions.length);
 
   const handleSubmit = async (data: TransactionFormData) => {
-    if (data.transactions.length === 0) {
-      return;
-    }
-
     setIsSaving(true);
     try {
       await createTransactions({
@@ -95,18 +92,20 @@ function RouteComponent() {
             className="flex-1 sm:flex-none"
             type="submit"
             form={FORM_ID}
-            isDisabled={isSaving}
+            isDisabled={isSaving || transactionCount === 0}
           >
             {isSaving && <Spinner data-icon="inline-start" />}
-            Save {transactions.length > 1 ? "Transactions" : "Transaction"}
+            Save {transactionCount > 1 ? "Transactions" : "Transaction"}
           </Button>
         </div>
       }
     >
       <div className="container mx-auto flex h-full flex-1 flex-col items-center justify-center p-6 sm:px-4 sm:py-8">
-        {transactions.length > 0 && (
-          <TransactionForm transactions={transactions} onSubmit={handleSubmit} />
-        )}
+        <TransactionForm
+          transactions={transactions}
+          onSubmit={handleSubmit}
+          onCountChange={setTransactionCount}
+        />
       </div>
     </FinanceContainer.Root>
   );
