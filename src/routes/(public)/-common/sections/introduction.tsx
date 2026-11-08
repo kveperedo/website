@@ -1,5 +1,5 @@
 import { getRouteApi } from "@tanstack/react-router";
-import { BanknoteIcon, LogInIcon, SettingsIcon } from "lucide-react";
+import { BanknoteIcon, BriefcaseBusinessIcon, LogInIcon, SettingsIcon } from "lucide-react";
 
 import { LinkButton, TanstackLinkButton } from "@/components/ui/button";
 
@@ -26,10 +26,16 @@ export const IntroductionSection = () => {
           Config
         </TanstackLinkButton>
         {isUserLoggedIn ? (
-          <TanstackLinkButton to="/finances" variant="ghost" size="sm">
-            <BanknoteIcon />
-            Finances
-          </TanstackLinkButton>
+          <>
+            <TanstackLinkButton to="/applications" variant="ghost" size="sm">
+              <BriefcaseBusinessIcon />
+              Applications
+            </TanstackLinkButton>
+            <TanstackLinkButton to="/finances" variant="ghost" size="sm">
+              <BanknoteIcon />
+              Finances
+            </TanstackLinkButton>
+          </>
         ) : (
           <TanstackLinkButton to="/login" variant="ghost" size="sm">
             <LogInIcon />

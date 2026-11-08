@@ -124,6 +124,13 @@ export async function deleteE2EFixtures(descriptions: Array<string>) {
   });
 }
 
+/** Hard-deletes job applications by company. Used to clean up rows created by E2E tests. */
+export async function deleteE2EApplications(companies: Array<string>) {
+  await getDb().jobApplication.deleteMany({
+    where: { company: { in: companies } },
+  });
+}
+
 export async function seedTestData(scenario?: NetCardScenario) {
   await getDb().$transaction(async (db) => {
     await clearTestData(db);

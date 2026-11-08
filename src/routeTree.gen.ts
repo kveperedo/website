@@ -13,9 +13,12 @@ import { Route as authedAuthRouteImport } from './routes/(authed)/_auth'
 import { Route as publicIndexRouteImport } from './routes/(public)/index'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
 import { Route as publicConfigIndexRouteImport } from './routes/(public)/config/index'
+import { Route as ApiE2eApplicationsRouteImport } from './routes/api/e2e/applications'
 import { Route as ApiE2eFixturesRouteImport } from './routes/api/e2e/fixtures'
 import { Route as ApiE2eSeedRouteImport } from './routes/api/e2e/seed'
 import { Route as authedAuthE2eIndexRouteImport } from './routes/(authed)/_auth/e2e/index'
+import { Route as authedAuthApplicationsIdIndexRouteImport } from './routes/(authed)/_auth/applications/$id/index'
+import { Route as authedAuthApplicationsindexIndexRouteImport } from './routes/(authed)/_auth/applications/(index)/index'
 import { Route as authedAuthFinancesindexIndexRouteImport } from './routes/(authed)/_auth/finances/(index)/index'
 import { Route as authedAuthFinancesScheduledIdIndexRouteImport } from './routes/(authed)/_auth/finances/scheduled/$id/index'
 import { Route as authedAuthFinancesScheduledindexIndexRouteImport } from './routes/(authed)/_auth/finances/scheduled/(index)/index'
@@ -44,6 +47,11 @@ const publicConfigIndexRoute = publicConfigIndexRouteImport.update({
   path: '/config/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiE2eApplicationsRoute = ApiE2eApplicationsRouteImport.update({
+  id: '/api/e2e/applications',
+  path: '/api/e2e/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiE2eFixturesRoute = ApiE2eFixturesRouteImport.update({
   id: '/api/e2e/fixtures',
   path: '/api/e2e/fixtures',
@@ -59,6 +67,18 @@ const authedAuthE2eIndexRoute = authedAuthE2eIndexRouteImport.update({
   path: '/e2e/',
   getParentRoute: () => authedAuthRoute,
 } as any)
+const authedAuthApplicationsIdIndexRoute =
+  authedAuthApplicationsIdIndexRouteImport.update({
+    id: '/applications/$id/',
+    path: '/applications/$id/',
+    getParentRoute: () => authedAuthRoute,
+  } as any)
+const authedAuthApplicationsindexIndexRoute =
+  authedAuthApplicationsindexIndexRouteImport.update({
+    id: '/applications/(index)/',
+    path: '/applications/',
+    getParentRoute: () => authedAuthRoute,
+  } as any)
 const authedAuthFinancesindexIndexRoute =
   authedAuthFinancesindexIndexRouteImport.update({
     id: '/finances/(index)/',
@@ -111,10 +131,13 @@ const authedAuthFinancesTransactionsNewIndexRoute =
 export interface FileRoutesByFullPath {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
+  '/api/e2e/applications': typeof ApiE2eApplicationsRoute
   '/api/e2e/fixtures': typeof ApiE2eFixturesRoute
   '/api/e2e/seed': typeof ApiE2eSeedRoute
   '/config/': typeof publicConfigIndexRoute
   '/e2e/': typeof authedAuthE2eIndexRoute
+  '/applications/$id/': typeof authedAuthApplicationsIdIndexRoute
+  '/applications/': typeof authedAuthApplicationsindexIndexRoute
   '/finances/': typeof authedAuthFinancesindexIndexRoute
   '/finances/scheduled/$id/': typeof authedAuthFinancesScheduledIdIndexRoute
   '/finances/scheduled/': typeof authedAuthFinancesScheduledindexIndexRoute
@@ -127,10 +150,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof publicLoginRoute
   '/': typeof publicIndexRoute
+  '/api/e2e/applications': typeof ApiE2eApplicationsRoute
   '/api/e2e/fixtures': typeof ApiE2eFixturesRoute
   '/api/e2e/seed': typeof ApiE2eSeedRoute
   '/config': typeof publicConfigIndexRoute
   '/e2e': typeof authedAuthE2eIndexRoute
+  '/applications/$id': typeof authedAuthApplicationsIdIndexRoute
+  '/applications': typeof authedAuthApplicationsindexIndexRoute
   '/finances': typeof authedAuthFinancesindexIndexRoute
   '/finances/scheduled/$id': typeof authedAuthFinancesScheduledIdIndexRoute
   '/finances/scheduled': typeof authedAuthFinancesScheduledindexIndexRoute
@@ -145,10 +171,13 @@ export interface FileRoutesById {
   '/(authed)/_auth': typeof authedAuthRouteWithChildren
   '/(public)/login': typeof publicLoginRoute
   '/(public)/': typeof publicIndexRoute
+  '/api/e2e/applications': typeof ApiE2eApplicationsRoute
   '/api/e2e/fixtures': typeof ApiE2eFixturesRoute
   '/api/e2e/seed': typeof ApiE2eSeedRoute
   '/(public)/config/': typeof publicConfigIndexRoute
   '/(authed)/_auth/e2e/': typeof authedAuthE2eIndexRoute
+  '/(authed)/_auth/applications/$id/': typeof authedAuthApplicationsIdIndexRoute
+  '/(authed)/_auth/applications/(index)/': typeof authedAuthApplicationsindexIndexRoute
   '/(authed)/_auth/finances/(index)/': typeof authedAuthFinancesindexIndexRoute
   '/(authed)/_auth/finances/scheduled/$id/': typeof authedAuthFinancesScheduledIdIndexRoute
   '/(authed)/_auth/finances/scheduled/(index)/': typeof authedAuthFinancesScheduledindexIndexRoute
@@ -163,10 +192,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/login'
     | '/'
+    | '/api/e2e/applications'
     | '/api/e2e/fixtures'
     | '/api/e2e/seed'
     | '/config/'
     | '/e2e/'
+    | '/applications/$id/'
+    | '/applications/'
     | '/finances/'
     | '/finances/scheduled/$id/'
     | '/finances/scheduled/'
@@ -179,10 +211,13 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/'
+    | '/api/e2e/applications'
     | '/api/e2e/fixtures'
     | '/api/e2e/seed'
     | '/config'
     | '/e2e'
+    | '/applications/$id'
+    | '/applications'
     | '/finances'
     | '/finances/scheduled/$id'
     | '/finances/scheduled'
@@ -196,10 +231,13 @@ export interface FileRouteTypes {
     | '/(authed)/_auth'
     | '/(public)/login'
     | '/(public)/'
+    | '/api/e2e/applications'
     | '/api/e2e/fixtures'
     | '/api/e2e/seed'
     | '/(public)/config/'
     | '/(authed)/_auth/e2e/'
+    | '/(authed)/_auth/applications/$id/'
+    | '/(authed)/_auth/applications/(index)/'
     | '/(authed)/_auth/finances/(index)/'
     | '/(authed)/_auth/finances/scheduled/$id/'
     | '/(authed)/_auth/finances/scheduled/(index)/'
@@ -214,6 +252,7 @@ export interface RootRouteChildren {
   authedAuthRoute: typeof authedAuthRouteWithChildren
   publicLoginRoute: typeof publicLoginRoute
   publicIndexRoute: typeof publicIndexRoute
+  ApiE2eApplicationsRoute: typeof ApiE2eApplicationsRoute
   ApiE2eFixturesRoute: typeof ApiE2eFixturesRoute
   ApiE2eSeedRoute: typeof ApiE2eSeedRoute
   publicConfigIndexRoute: typeof publicConfigIndexRoute
@@ -249,6 +288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicConfigIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/e2e/applications': {
+      id: '/api/e2e/applications'
+      path: '/api/e2e/applications'
+      fullPath: '/api/e2e/applications'
+      preLoaderRoute: typeof ApiE2eApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/e2e/fixtures': {
       id: '/api/e2e/fixtures'
       path: '/api/e2e/fixtures'
@@ -268,6 +314,20 @@ declare module '@tanstack/react-router' {
       path: '/e2e'
       fullPath: '/e2e/'
       preLoaderRoute: typeof authedAuthE2eIndexRouteImport
+      parentRoute: typeof authedAuthRoute
+    }
+    '/(authed)/_auth/applications/$id/': {
+      id: '/(authed)/_auth/applications/$id/'
+      path: '/applications/$id'
+      fullPath: '/applications/$id/'
+      preLoaderRoute: typeof authedAuthApplicationsIdIndexRouteImport
+      parentRoute: typeof authedAuthRoute
+    }
+    '/(authed)/_auth/applications/(index)/': {
+      id: '/(authed)/_auth/applications/(index)/'
+      path: '/applications'
+      fullPath: '/applications/'
+      preLoaderRoute: typeof authedAuthApplicationsindexIndexRouteImport
       parentRoute: typeof authedAuthRoute
     }
     '/(authed)/_auth/finances/(index)/': {
@@ -331,6 +391,8 @@ declare module '@tanstack/react-router' {
 
 interface authedAuthRouteChildren {
   authedAuthE2eIndexRoute: typeof authedAuthE2eIndexRoute
+  authedAuthApplicationsIdIndexRoute: typeof authedAuthApplicationsIdIndexRoute
+  authedAuthApplicationsindexIndexRoute: typeof authedAuthApplicationsindexIndexRoute
   authedAuthFinancesindexIndexRoute: typeof authedAuthFinancesindexIndexRoute
   authedAuthFinancesScheduledIdIndexRoute: typeof authedAuthFinancesScheduledIdIndexRoute
   authedAuthFinancesScheduledindexIndexRoute: typeof authedAuthFinancesScheduledindexIndexRoute
@@ -343,6 +405,8 @@ interface authedAuthRouteChildren {
 
 const authedAuthRouteChildren: authedAuthRouteChildren = {
   authedAuthE2eIndexRoute: authedAuthE2eIndexRoute,
+  authedAuthApplicationsIdIndexRoute: authedAuthApplicationsIdIndexRoute,
+  authedAuthApplicationsindexIndexRoute: authedAuthApplicationsindexIndexRoute,
   authedAuthFinancesindexIndexRoute: authedAuthFinancesindexIndexRoute,
   authedAuthFinancesScheduledIdIndexRoute:
     authedAuthFinancesScheduledIdIndexRoute,
@@ -368,6 +432,7 @@ const rootRouteChildren: RootRouteChildren = {
   authedAuthRoute: authedAuthRouteWithChildren,
   publicLoginRoute: publicLoginRoute,
   publicIndexRoute: publicIndexRoute,
+  ApiE2eApplicationsRoute: ApiE2eApplicationsRoute,
   ApiE2eFixturesRoute: ApiE2eFixturesRoute,
   ApiE2eSeedRoute: ApiE2eSeedRoute,
   publicConfigIndexRoute: publicConfigIndexRoute,

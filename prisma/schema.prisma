@@ -92,6 +92,32 @@ model TransactionMemory {
   @@map("transaction_memories")
 }
 
+enum ApplicationStatus {
+  saved
+  applied
+  offer
+  rejected
+  withdrawn
+
+  @@map("application_status")
+}
+
+model JobApplication {
+  id         String            @id @default(uuid()) @db.Uuid
+  position   String
+  company    String
+  link       String
+  status     ApplicationStatus @default(saved)
+  appliedAt  DateTime?         @map("applied_at") @db.Date
+  notes      String?
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("job_applications")
+}
+
 model FinancePreferences {
   id                              String              @id
   categoryTrendsVisibleCategories TransactionCategory[] @default([]) @map("category_trends_visible_categories")
