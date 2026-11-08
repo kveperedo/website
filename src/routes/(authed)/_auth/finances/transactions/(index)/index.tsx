@@ -8,7 +8,7 @@ import { z } from "zod";
 import type { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 
 import { getMonthlySummaryByMonthFn } from "@/app/finance/analytics/analytics.functions";
-import { formatLocal, getCurrentYearMonth } from "@/app/finance/shared/local-date";
+import { getCurrentYearMonth } from "@/app/finance/shared/local-date";
 import { getTransactionsByMonthFn } from "@/app/finance/transactions/transactions.functions";
 import { Button, TanstackLinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
 import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
+import { formatLocal } from "@/lib/date-only";
 import { CategoryFilter } from "@/routes/(authed)/_auth/finances/-common/components/category-filter";
 import { SummaryCard } from "@/routes/(authed)/_auth/finances/-common/components/summary-card";
 import { TransactionList } from "@/routes/(authed)/_auth/finances/-common/components/transaction-list";

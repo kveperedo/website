@@ -17,13 +17,9 @@ import type {
 
 import { getCurrentUser } from "@/app/auth/auth.service.server";
 import { getDb, type DbTransactionClient } from "@/app/infra/database/client.server";
+import { dateOnlyToDatabaseDate, todayDateOnly } from "@/lib/date-only";
 
-import {
-  dateOnlyToDatabaseDate,
-  getCurrentYearMonth,
-  startOfLocalMonth,
-  todayDateOnly,
-} from "../finance/shared/local-date";
+import { getCurrentYearMonth, startOfLocalMonth } from "../finance/shared/local-date";
 
 export type NetCardScenario = "below-pace" | "no-history" | "on-pace" | "over-income";
 
