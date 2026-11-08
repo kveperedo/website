@@ -8,7 +8,7 @@ import { defineConfig } from "vitest/config";
 
 const isTest = process.env.VITEST === "true";
 
-const config = defineConfig({
+const config = defineConfig(({ command }) => ({
   // `cf dev` forwards no extra arguments to Vite, so these live here.
   server: { port: 3000, host: true },
   resolve: { tsconfigPaths: true },
@@ -18,7 +18,12 @@ const config = defineConfig({
       : [devtools(), cloudflare({ viteEnvironment: { name: "ssr" } }), tanstackStart()]),
     tailwindcss(),
     viteReact(),
-    babel({ presets: [reactCompilerPreset()] }),
+    babel({
+      presets: [reactCompilerPreset()],
+      // LocatorJS (data-id): injects data-locatorjs-* for the browser extension.
+      plugins:
+        command === "serve" && !isTest ? [["@locator/babel-jsx/dist", { env: "development" }]] : [],
+    }),
   ],
   test: {
     environment: "node",
@@ -26,6 +31,6 @@ const config = defineConfig({
     setupFiles: ["./src/testing/setup.ts"],
     passWithNoTests: true,
   },
-});
+}));
 
 export default config;
