@@ -50,7 +50,7 @@ export const findTransactionsByMonth = async ({
 };
 
 export const findTransactionById = async (id: string) => {
-  const transaction = await getDb().transaction.findUniqueOrThrow({
+  const transaction = await getDb().transaction.findUnique({
     where: { id },
     include: {
       template: {
@@ -64,6 +64,10 @@ export const findTransactionById = async (id: string) => {
       },
     },
   });
+
+  if (!transaction) {
+    return null;
+  }
 
   return {
     ...transaction,
