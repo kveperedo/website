@@ -25,7 +25,11 @@ export const listApplications = async () => {
 };
 
 export const getApplication = async (id: string) => {
-  const application = await findApplicationById(id);
+  return await findApplicationById(id);
+};
+
+const requireApplication = async (id: string) => {
+  const application = await getApplication(id);
 
   if (!application) {
     throw new Error("Application not found.");
@@ -39,13 +43,13 @@ export const createApplication = async (input: CreateApplicationInput) => {
 };
 
 export const updateApplication = async ({ id, data }: UpdateApplicationInput) => {
-  await getApplication(id);
+  await requireApplication(id);
 
   return await updateApplicationRecord(id, toRecordFields(data));
 };
 
 export const changeApplicationStatus = async ({ id, status }: UpdateApplicationStatusInput) => {
-  const application = await getApplication(id);
+  const application = await requireApplication(id);
 
   let appliedAt = application.appliedAt;
 
@@ -59,7 +63,7 @@ export const changeApplicationStatus = async ({ id, status }: UpdateApplicationS
 };
 
 export const deleteApplication = async (id: string) => {
-  await getApplication(id);
+  await requireApplication(id);
 
   return await deleteApplicationRecord(id);
 };

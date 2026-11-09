@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "@tanstack/react-router";
+import { useRouter, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
@@ -58,6 +58,9 @@ const CreateApplicationFields = ({ isDisabled }: ApplicationFormRenderProps) => 
 
 const useCreateApplication = (onSuccess?: () => void) => {
   const router = useRouter();
+  const view = useRouterState({
+    select: (state) => (state.location.search as { view?: string }).view,
+  });
   const createApplication = useServerFn(createApplicationFn);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -66,6 +69,9 @@ const useCreateApplication = (onSuccess?: () => void) => {
     try {
       await createApplication({ data: { ...data, status: "saved", appliedAt: null } });
       await router.invalidate({ sync: true });
+      if (view === "closed") {
+        await router.navigate({ to: "/applications" });
+      }
       onSuccess?.();
     } finally {
       setIsSaving(false);
