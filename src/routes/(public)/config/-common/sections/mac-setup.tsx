@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 
 import { Setup } from "../components/setup";
+import { GitSetup, OpenCodeSetup, WorktrunkSetup } from "./ai-tools-setup";
 import { ChromeSetup, VSCodeSetup } from "./common-app-setup";
 import { JetbrainsFontSetup, NVMSetup, ZshSetup } from "./common-config-setup";
 
@@ -90,6 +91,9 @@ export const MacSetup = () => {
         <JetbrainsFontSetup />
         <ZshSetup />
         <NVMSetup />
+        <WorktrunkSetup />
+        <OpenCodeSetup />
+        <GitSetup />
         <Setup.Item
           label={
             <>
