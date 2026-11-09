@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
-import { gotoAndWaitForHydration } from "./auth";
+import { gotoAndWaitForHydration, waitForHydration } from "./auth";
 
 const APPLICATIONS_URL = "/applications";
 const APPLICATIONS_FIXTURES_URL = "/api/e2e/applications";
@@ -22,12 +22,34 @@ const STATUS_LABELS: Record<ApplicationStatus, string> = {
   withdrawn: "Withdrawn",
 };
 
-/** A board card, scoped by the company shown in its heading. */
+/** A board card or closed row, scoped by the company shown in its heading. */
 export const applicationCard = (page: Page, company: string): Locator =>
   page.locator("[data-application-id]").filter({ hasText: company });
 
 export async function gotoApplications(page: Page) {
   await gotoAndWaitForHydration(page, APPLICATIONS_URL);
+}
+
+/** Switches to the Closed view on the applications page. */
+export async function gotoClosed(page: Page) {
+  await page.getByRole("tab", { name: "Closed", exact: true }).click();
+  await page.waitForURL(/\/applications\?view=closed$/);
+  await waitForHydration(page);
+}
+
+/** Clicks a status filter tab on the closed page. */
+export async function filterClosed(
+  page: Page,
+  status: Extract<ApplicationStatus, "offer" | "rejected" | "withdrawn">,
+) {
+  const label = STATUS_LABELS[status];
+  await page.getByRole("radio", { name: label, exact: true }).click();
+}
+
+/** Picks a sort order on the closed page. */
+export async function sortClosed(page: Page, label: string) {
+  await page.getByRole("button", { name: /Sort closed applications/ }).click();
+  await page.getByRole("option", { name: label }).click();
 }
 
 /** Opens the add form, which is a side panel at `xl+` and a dialog below it. */
