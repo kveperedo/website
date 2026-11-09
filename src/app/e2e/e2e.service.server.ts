@@ -17,13 +17,9 @@ import type {
 
 import { getCurrentUser } from "@/app/auth/auth.service.server";
 import { getDb, type DbTransactionClient } from "@/app/infra/database/client.server";
+import { dateOnlyToDatabaseDate, todayDateOnly } from "@/lib/date-only";
 
-import {
-  dateOnlyToDatabaseDate,
-  getCurrentYearMonth,
-  startOfLocalMonth,
-  todayDateOnly,
-} from "../finance/shared/local-date";
+import { getCurrentYearMonth, startOfLocalMonth } from "../finance/shared/local-date";
 
 export type NetCardScenario = "below-pace" | "no-history" | "on-pace" | "over-income";
 
@@ -125,6 +121,13 @@ export async function deleteE2EFixtures(descriptions: Array<string>) {
     await db.scheduledTransactionTemplate.deleteMany({
       where: { description: { in: descriptions } },
     });
+  });
+}
+
+/** Hard-deletes job applications by company. Used to clean up rows created by E2E tests. */
+export async function deleteE2EApplications(companies: Array<string>) {
+  await getDb().jobApplication.deleteMany({
+    where: { company: { in: companies } },
   });
 }
 

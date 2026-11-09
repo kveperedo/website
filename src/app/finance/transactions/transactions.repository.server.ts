@@ -1,8 +1,8 @@
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
 import { getDb, type DbTransactionClient } from "@/app/infra/database/client.server";
+import { databaseDateToDateOnly } from "@/lib/date-only";
 
-import { databaseDateToDateOnly } from "../shared/local-date";
 import { buildTransactionFilters, type TransactionFilters } from "../shared/transaction-filters";
 
 type DateRange = {

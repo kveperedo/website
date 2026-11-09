@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
-import { todayDateOnly } from "@/app/finance/shared/local-date";
 import { classifyTransactionsFn } from "@/app/finance/transactions/transactions.functions";
 import { parseTransactionTexts } from "@/app/finance/transactions/transactions.parse";
 import {
@@ -16,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { todayDateOnly } from "@/lib/date-only";
 
 import { clearQueuedEntries, useQueuedEntries, writeQueuedEntries } from "../transaction-queue";
 

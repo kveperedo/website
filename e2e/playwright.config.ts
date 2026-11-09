@@ -23,6 +23,15 @@ export default defineConfig({
   projects: [
     { name: "auth.setup", testMatch: /auth\.setup\.ts/ },
     {
+      name: "applications",
+      testMatch: /applications\.spec\.ts$/,
+      dependencies: ["auth.setup"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+      },
+    },
+    {
       name: "finance.empty-state",
       testMatch: /finances\.empty-state\.spec\.ts$/,
       dependencies: ["auth.setup"],

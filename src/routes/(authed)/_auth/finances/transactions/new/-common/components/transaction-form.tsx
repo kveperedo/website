@@ -16,13 +16,13 @@ import {
 import type { ScheduledTransactionInput } from "@/app/finance/scheduled/scheduled.schema";
 import type { ParsedTransaction } from "@/app/finance/transactions/transactions.schema";
 
-import { dateOnlyToDatabaseDate, todayDateOnly } from "@/app/finance/shared/local-date";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { type TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
+import { dateOnlyToDatabaseDate, todayDateOnly } from "@/lib/date-only";
 import {
   DayOfMonthField,
   EndDateField,

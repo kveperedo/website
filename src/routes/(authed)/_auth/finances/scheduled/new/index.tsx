@@ -6,9 +6,9 @@ import type { ScheduledFormEditData } from "@/app/finance/scheduled/scheduled.sc
 import type { TransactionCategory } from "@/generated/prisma/enums";
 
 import { createStandaloneScheduledTemplateFn } from "@/app/finance/scheduled/scheduled.functions";
-import { todayDateOnly } from "@/app/finance/shared/local-date";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { todayDateOnly } from "@/lib/date-only";
 
 import {
   FORM_ID,

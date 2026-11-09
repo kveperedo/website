@@ -2,6 +2,7 @@ import { getDaysInMonth, subMonths } from "date-fns";
 import { formatInTimeZone, fromZonedTime, toZonedTime } from "date-fns-tz";
 
 import { TransactionCategory } from "@/generated/prisma/enums";
+import { TIME_ZONE } from "@/lib/date-only";
 
 import type { TransactionFilters } from "../shared/transaction-filters";
 import type { CategoryTrendRow, MonthlyHistory, MonthlyNetEntry } from "./analytics.types";
@@ -11,7 +12,6 @@ import {
   getCurrentYearMonth,
   startOfLocalMonth,
   startOfNextLocalMonth,
-  TIME_ZONE,
 } from "../shared/local-date";
 import {
   findMonthlyTransactionCategoryTotals,

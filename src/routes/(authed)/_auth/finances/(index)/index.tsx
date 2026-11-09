@@ -12,8 +12,8 @@ import {
   getScheduledExpensesForCurrentMonthFn,
   getUpcomingScheduledTransactionTemplatesFn,
 } from "@/app/finance/scheduled/scheduled.functions";
-import { TIME_ZONE } from "@/app/finance/shared/local-date";
 import { getRecentTransactionsFn } from "@/app/finance/transactions/transactions.functions";
+import { TIME_ZONE } from "@/lib/date-only";
 
 import { FinanceContainer } from "../-common/components/finance-container";
 import { CategorySummaryCard } from "./-common/components/category-summary-card";
