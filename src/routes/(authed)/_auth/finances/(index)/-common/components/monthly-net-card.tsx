@@ -35,7 +35,9 @@ const getFill = (net: number) => {
 };
 
 export const MonthlyNetCard = () => {
-  const { monthlyNet } = Route.useLoaderData();
+  const {
+    financeDashboard: { monthlyNet },
+  } = Route.useLoaderData();
   const descriptionId = useId();
   const isEmpty = monthlyNet.length === 0;
 

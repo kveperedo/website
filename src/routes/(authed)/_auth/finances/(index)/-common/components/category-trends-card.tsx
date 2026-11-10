@@ -45,7 +45,10 @@ function TrendsLegend({ visibleCategories }: { visibleCategories: Array<Transact
 }
 
 export const CategoryTrendsCard = () => {
-  const { categoryTrends, categoryTrendsVisibleCategories } = Route.useLoaderData();
+  const {
+    financeDashboard: { categoryTrends },
+    categoryTrendsVisibleCategories,
+  } = Route.useLoaderData();
   const setCategoryTrendsVisibleCategories = useServerFn(setCategoryTrendsVisibleCategoriesFn);
   const [visibleCategories, setVisibleCategories] = useState<Array<TransactionCategory>>(
     () => categoryTrendsVisibleCategories ?? CATEGORIES.map((category) => category.value),

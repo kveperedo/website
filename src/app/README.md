@@ -65,7 +65,7 @@ export const getRecentTransactionsFn = createServerFn()
 ```
 
 Keep an explicit lambda when a validator feeds the service, when arguments need mapping, or when
-optional parameters need defaults (`getMonthlyHistory`, `getMonthlyNet`).
+the service takes a parameter the handler context must not supply (`getFinanceDashboard`'s `now`).
 
 ## Repository scope
 
