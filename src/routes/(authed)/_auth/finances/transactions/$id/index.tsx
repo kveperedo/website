@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
@@ -31,6 +31,11 @@ export const Route = createFileRoute("/(authed)/_auth/finances/transactions/$id/
   validateSearch: searchSchema,
   loader: async ({ params }) => {
     const transaction = await getTransactionByIdFn({ data: params.id });
+
+    if (!transaction) {
+      throw redirect({ to: "/finances/transactions" });
+    }
+
     return { transaction };
   },
   head: ({ loaderData }) => {

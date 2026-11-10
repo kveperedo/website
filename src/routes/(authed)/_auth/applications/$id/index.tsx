@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
@@ -26,10 +26,16 @@ import {
 } from "../-common/components/application-fields";
 import { ApplicationForm, FORM_ID } from "../-common/components/application-form";
 import { DeleteApplicationButton } from "../-common/components/delete-application-button";
+import { CLOSED_APPLICATION_STATUSES } from "../-common/constants";
 
 export const Route = createFileRoute("/(authed)/_auth/applications/$id/")({
   loader: async ({ params }) => {
     const application = await getApplicationByIdFn({ data: params.id });
+
+    if (!application) {
+      throw redirect({ to: "/applications" });
+    }
+
     return { application };
   },
   head: ({ loaderData }) => ({
@@ -57,8 +63,12 @@ function RouteComponent() {
     notes: application.notes,
   };
 
+  const backSearch = CLOSED_APPLICATION_STATUSES.includes(application.status)
+    ? { view: "closed" as const }
+    : undefined;
+
   const handleBack = () => {
-    router.navigate({ to: "/applications" });
+    router.navigate({ to: "/applications", search: backSearch });
   };
 
   const handleSubmit = async (data: ApplicationFields) => {
@@ -79,7 +89,7 @@ function RouteComponent() {
       }}
       header={
         <div className="flex items-center gap-3">
-          <BackButton to="/applications" variant="icon" />
+          <BackButton to="/applications" search={backSearch} variant="icon" />
           <div className="flex min-w-0 flex-1 items-baseline gap-2">
             <h1 className="min-w-0 truncate font-heading text-lg font-medium text-foreground">
               {application.position}
@@ -90,7 +100,7 @@ function RouteComponent() {
           </div>
           <DeleteApplicationButton
             applicationId={application.id}
-            onDeleted={() => router.navigate({ to: "/applications" })}
+            onDeleted={() => router.navigate({ to: "/applications", search: backSearch })}
           />
         </div>
       }

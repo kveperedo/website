@@ -48,11 +48,11 @@ export const ApplicationBoardColumn = ({
   return (
     <section
       className={cn(
-        "flex min-h-0 min-w-0 flex-col gap-2 p-3",
+        "flex min-h-0 min-w-0 flex-col",
         status === "saved" ? "lg:flex-[2]" : "lg:flex-[3]",
       )}
     >
-      <div className="flex shrink-0 items-center gap-2 border-b border-border/60 px-1 pb-3">
+      <div className="flex shrink-0 items-center gap-2 border-b border-border/60 px-3 pt-3 pb-3">
         <h2 className="flex shrink-0 items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           <span
             aria-hidden
@@ -97,7 +97,7 @@ export const ApplicationBoardColumn = ({
           items={filteredApplications}
           dependencies={[highlightedId]}
           aria-label={`${label} applications`}
-          className="flex min-h-0 flex-col gap-0 divide-y divide-border/60 lg:flex-1 lg:overflow-y-auto lg:pr-1"
+          className="flex min-h-0 flex-col gap-0 divide-y divide-border/60 lg:flex-1 lg:overflow-y-auto"
         >
           {(application) => (
             <GridListItem
@@ -106,7 +106,7 @@ export const ApplicationBoardColumn = ({
               data-status={application.status}
               textValue={`${application.company}, ${application.position}`}
               className={cn(
-                "relative px-1 py-3 transition-colors hover:bg-muted/20",
+                "relative px-3 py-3 transition-colors hover:bg-muted/20",
                 application.id === highlightedId && "bg-primary/10",
               )}
             >
