@@ -16,7 +16,9 @@ import {
 const BAR_HEIGHT = 36;
 
 export const CategorySummaryCard = () => {
-  const { categorySummary } = Route.useLoaderData();
+  const {
+    financeDashboard: { categorySummary },
+  } = Route.useLoaderData();
   const isEmpty = categorySummary.length === 0;
 
   const chartData = categorySummary.map((item) => ({

@@ -18,7 +18,9 @@ type AmountVisibilityProps = { hideAmounts: boolean };
 
 function NetHeadline({ hideAmounts }: AmountVisibilityProps) {
   const {
-    history: { current },
+    financeDashboard: {
+      history: { current },
+    },
   } = Route.useLoaderData();
   const isNetPositive = current.net >= 0;
   const netLabel = isNetPositive ? "left" : "over income";
@@ -37,7 +39,9 @@ function hasScheduledProjection(projection: { scheduledCount: number; scheduledE
 
 function ExpenseProgress() {
   const {
-    history: { current },
+    financeDashboard: {
+      history: { current },
+    },
     scheduledProjection,
   } = Route.useLoaderData();
   if (!Number.isFinite(current.income) || current.income <= 0) {
@@ -113,7 +117,9 @@ function ExpenseProgress() {
 
 function ExpenseBreakdown({ hideAmounts }: AmountVisibilityProps) {
   const {
-    history: { current },
+    financeDashboard: {
+      history: { current },
+    },
     scheduledProjection,
   } = Route.useLoaderData();
   const hasIncome = current.income > 0;
@@ -169,7 +175,9 @@ function ExpenseBreakdown({ hideAmounts }: AmountVisibilityProps) {
 
 function PaceComparison({ hideAmounts }: AmountVisibilityProps) {
   const {
-    history: { prior, averagePriorExpenses, priorMonthCount, current },
+    financeDashboard: {
+      history: { prior, averagePriorExpenses, priorMonthCount, current },
+    },
   } = Route.useLoaderData();
   const paceDiff = averagePriorExpenses !== null ? current.expenses - averagePriorExpenses : null;
 
@@ -233,7 +241,9 @@ function PaceComparison({ hideAmounts }: AmountVisibilityProps) {
 
 export const SummaryNetCard = () => {
   const {
-    history: { current },
+    financeDashboard: {
+      history: { current },
+    },
     hideSummaryCardAmounts,
   } = Route.useLoaderData();
   const persistHideAmounts = useServerFn(setHideSummaryCardAmountsFn);

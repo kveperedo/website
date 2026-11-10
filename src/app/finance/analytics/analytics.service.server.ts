@@ -2,21 +2,21 @@ import { getDaysInMonth, subMonths } from "date-fns";
 import { formatInTimeZone, fromZonedTime, toZonedTime } from "date-fns-tz";
 
 import { TransactionCategory } from "@/generated/prisma/enums";
-import { TIME_ZONE } from "@/lib/date-only";
+import { databaseDateToDateOnly, TIME_ZONE } from "@/lib/date-only";
 
 import type { TransactionFilters } from "../shared/transaction-filters";
-import type { CategoryTrendRow, MonthlyHistory, MonthlyNetEntry } from "./analytics.types";
+import type { CategoryTrendRow, FinanceDashboard, MonthlyNetEntry } from "./analytics.types";
 
 import {
-  getCurrentMonthRange,
   getCurrentYearMonth,
   startOfLocalMonth,
   startOfNextLocalMonth,
 } from "../shared/local-date";
 import {
+  findDailyTransactionTypeTotals,
   findMonthlyTransactionCategoryTotals,
-  sumTransactionAmountsByCategoryInRange,
   sumTransactionAmountsByTypeInRange,
+  type DailyTransactionTypeTotal,
 } from "./analytics.repository.server";
 
 type GetMonthlySummaryInput = {
@@ -41,27 +41,19 @@ export const getMonthlySummaryByMonth = async ({
   });
 };
 
-export const getCategorySummary = async () => {
-  const { monthStart, monthEnd } = getCurrentMonthRange();
-
-  return await sumTransactionAmountsByCategoryInRange({ monthStart, monthEnd });
-};
-
 const ALL_CATEGORIES = Object.values(TransactionCategory);
-
-const TREND_MONTHS = 6;
 
 const emptyMonth = (): Record<TransactionCategory, number> =>
   Object.fromEntries(ALL_CATEGORIES.map((c) => [c, 0])) as Record<TransactionCategory, number>;
 
-export const getCategoryTrends = async () => {
-  const { year, month } = getCurrentYearMonth();
-  const monthStart = startOfLocalMonth(year, month - (TREND_MONTHS - 1));
-  const monthEnd = startOfNextLocalMonth(year, month);
+type MonthlyCategoryTotal = {
+  month: string;
+  category: TransactionCategory;
+  total: number;
+};
 
-  const rows = await findMonthlyTransactionCategoryTotals({ monthStart, monthEnd });
-
-  return rows.reduce<Array<CategoryTrendRow>>((result, row) => {
+const toCategoryTrends = (rows: Array<MonthlyCategoryTotal>): Array<CategoryTrendRow> =>
+  rows.reduce<Array<CategoryTrendRow>>((result, row) => {
     const last = result[result.length - 1];
     if (last?.month === row.month) {
       last[row.category] = row.total;
@@ -70,10 +62,14 @@ export const getCategoryTrends = async () => {
     }
     return result;
   }, []);
-};
 
-export const getPartialMonthRanges = (historyMonths: number) => {
-  const now = new Date();
+const toCategorySummary = (rows: Array<MonthlyCategoryTotal>, currentMonth: string) =>
+  rows
+    .filter((row) => row.month === currentMonth)
+    .map((row) => ({ category: row.category, total: row.total }))
+    .sort((a, b) => b.total - a.total);
+
+const getPartialMonthRanges = (historyMonths: number, now = new Date()) => {
   const zonedNow = toZonedTime(now, TIME_ZONE);
   const year = zonedNow.getFullYear();
   const monthIndex = zonedNow.getMonth();
@@ -111,26 +107,50 @@ export const getPartialMonthRanges = (historyMonths: number) => {
   return ranges;
 };
 
-export const getMonthlyHistory = async (historyMonths = 3): Promise<MonthlyHistory> => {
-  const ranges = getPartialMonthRanges(historyMonths);
+type TypeSummary = { income: number; expenses: number; transactionCount: number };
 
-  const results = await Promise.all(
-    ranges.map(async (range) => {
-      const summary = await sumTransactionAmountsByTypeInRange({
-        monthStart: range.monthStart,
-        monthEnd: range.monthEnd,
-      });
+const sumDailyTotals = (
+  totals: Array<DailyTransactionTypeTotal>,
+  monthStart: Date,
+  monthEnd: Date,
+): TypeSummary => {
+  const start = databaseDateToDateOnly(monthStart);
+  const end = databaseDateToDateOnly(monthEnd);
+  let income = 0;
+  let expenses = 0;
+  let transactionCount = 0;
 
-      return {
-        label: range.label,
-        income: summary.income,
-        expenses: summary.expenses,
-        net: summary.income - summary.expenses,
-        transactionCount: summary.transactionCount,
-        isCurrentMonth: range.isCurrentMonth,
-      };
-    }),
-  );
+  for (const total of totals) {
+    if (total.day < start || total.day >= end) {
+      continue;
+    }
+    transactionCount += total.count;
+    if (total.type === "income") {
+      income += total.total;
+    } else if (total.type === "expense") {
+      expenses += total.total;
+    }
+  }
+
+  return { income, expenses, transactionCount };
+};
+
+const toHistory = (
+  totals: Array<DailyTransactionTypeTotal>,
+  ranges: ReturnType<typeof getPartialMonthRanges>,
+) => {
+  const results = ranges.map((range) => {
+    const summary = sumDailyTotals(totals, range.monthStart, range.monthEnd);
+
+    return {
+      label: range.label,
+      income: summary.income,
+      expenses: summary.expenses,
+      net: summary.income - summary.expenses,
+      transactionCount: summary.transactionCount,
+      isCurrentMonth: range.isCurrentMonth,
+    };
+  });
 
   const current = results.find((r) => r.isCurrentMonth)!;
   const prior = results.filter((r) => !r.isCurrentMonth);
@@ -150,32 +170,70 @@ export const getMonthlyHistory = async (historyMonths = 3): Promise<MonthlyHisto
 };
 
 const MONTHLY_NET_MONTHS = 6;
+const TREND_MONTHS = 6;
+const HISTORY_MONTHS = 3;
 
-export const getMonthlyNet = async (now = new Date()): Promise<Array<MonthlyNetEntry>> => {
+const monthlyNetRanges = (now: Date) => {
   const { year, month } = getCurrentYearMonth(now);
   const zonedNow = toZonedTime(now, TIME_ZONE);
   const currentDayEnd = fromZonedTime(new Date(year, month - 1, zonedNow.getDate() + 1), TIME_ZONE);
 
-  const monthlyNet = await Promise.all(
-    Array.from({ length: MONTHLY_NET_MONTHS }, async (_, index) => {
-      const monthOffset = index - (MONTHLY_NET_MONTHS - 1);
-      const monthStart = startOfLocalMonth(year, month + monthOffset);
-      const isCurrentMonth = monthOffset === 0;
-      const monthEnd = isCurrentMonth
-        ? currentDayEnd
-        : startOfNextLocalMonth(year, month + monthOffset);
-      const summary = await sumTransactionAmountsByTypeInRange({ monthStart, monthEnd });
+  return Array.from({ length: MONTHLY_NET_MONTHS }, (_, index) => {
+    const monthOffset = index - (MONTHLY_NET_MONTHS - 1);
+    const monthStart = startOfLocalMonth(year, month + monthOffset);
+    const isCurrentMonth = monthOffset === 0;
+    const monthEnd = isCurrentMonth
+      ? currentDayEnd
+      : startOfNextLocalMonth(year, month + monthOffset);
 
-      return {
-        month: formatInTimeZone(monthStart, TIME_ZONE, "yyyy-MM"),
-        income: summary.income,
-        expenses: summary.expenses,
-        net: summary.income - summary.expenses,
-        transactionCount: summary.transactionCount,
-        isCurrentMonth,
-      };
-    }),
-  );
+    return { monthStart, monthEnd, isCurrentMonth };
+  });
+};
+
+const toMonthlyNet = (
+  totals: Array<DailyTransactionTypeTotal>,
+  ranges: ReturnType<typeof monthlyNetRanges>,
+): Array<MonthlyNetEntry> => {
+  const monthlyNet = ranges.map((range) => {
+    const summary = sumDailyTotals(totals, range.monthStart, range.monthEnd);
+
+    return {
+      month: formatInTimeZone(range.monthStart, TIME_ZONE, "yyyy-MM"),
+      income: summary.income,
+      expenses: summary.expenses,
+      net: summary.income - summary.expenses,
+      transactionCount: summary.transactionCount,
+      isCurrentMonth: range.isCurrentMonth,
+    };
+  });
 
   return monthlyNet.some((month) => month.transactionCount > 0) ? monthlyNet : [];
+};
+
+export const getFinanceDashboard = async (now = new Date()): Promise<FinanceDashboard> => {
+  const { year, month } = getCurrentYearMonth(now);
+  const dashboardMonthStart = startOfLocalMonth(
+    year,
+    month - (Math.max(TREND_MONTHS, MONTHLY_NET_MONTHS) - 1),
+  );
+  const netRanges = monthlyNetRanges(now);
+  const currentDayEnd = netRanges[netRanges.length - 1]!.monthEnd;
+  const currentMonth = formatInTimeZone(startOfLocalMonth(year, month), TIME_ZONE, "yyyy-MM");
+
+  // Month-to-date like the summary card, so transactions dated later this month don't count.
+  const dailyTotals = await findDailyTransactionTypeTotals({
+    monthStart: dashboardMonthStart,
+    monthEnd: currentDayEnd,
+  });
+  const categoryRows = await findMonthlyTransactionCategoryTotals({
+    monthStart: dashboardMonthStart,
+    monthEnd: currentDayEnd,
+  });
+
+  return {
+    categorySummary: toCategorySummary(categoryRows, currentMonth),
+    categoryTrends: toCategoryTrends(categoryRows),
+    history: toHistory(dailyTotals, getPartialMonthRanges(HISTORY_MONTHS, now)),
+    monthlyNet: toMonthlyNet(dailyTotals, netRanges),
+  };
 };

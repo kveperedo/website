@@ -18,6 +18,13 @@ export type MonthlyHistory = {
   priorMonthCount: number;
 };
 
+export type FinanceDashboard = {
+  categorySummary: Array<{ category: TransactionCategory; total: number }>;
+  categoryTrends: Array<CategoryTrendRow>;
+  history: MonthlyHistory;
+  monthlyNet: Array<MonthlyNetEntry>;
+};
+
 export type MonthlyNetEntry = {
   month: string;
   income: number;

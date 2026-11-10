@@ -1,12 +1,21 @@
 import type { TransactionCategory } from "@/generated/prisma/enums";
+import type { TransactionType } from "@/generated/zod/schemas/enums/TransactionType.schema";
 
 import { getDb } from "@/app/infra/database/client.server";
+import { TIME_ZONE } from "@/lib/date-only";
 
 import { buildTransactionFilters, type TransactionFilters } from "../shared/transaction-filters";
 
 type DateRange = {
   monthStart: Date;
   monthEnd: Date;
+};
+
+export type DailyTransactionTypeTotal = {
+  day: string;
+  type: TransactionType;
+  total: number;
+  count: number;
 };
 
 export type TransactionTypeSummary = {
@@ -37,23 +46,19 @@ export const sumTransactionAmountsByTypeInRange = async ({
   return { income, expenses, transactionCount };
 };
 
-export const sumTransactionAmountsByCategoryInRange = async ({
-  monthStart,
-  monthEnd,
-}: DateRange) => {
-  const grouped = await getDb().transaction.groupBy({
-    by: ["category"],
-    where: {
-      type: "expense",
-      category: { not: null },
-      transactedAt: { gte: monthStart, lt: monthEnd },
-    },
-    _sum: { amount: true },
-  });
-
-  return grouped
-    .map((g) => ({ category: g.category!, total: g._sum.amount!.toNumber() }))
-    .sort((a, b) => b.total - a.total);
+export const findDailyTransactionTypeTotals = async ({ monthStart, monthEnd }: DateRange) => {
+  return await getDb().$queryRaw<Array<DailyTransactionTypeTotal>>`
+    SELECT
+      TO_CHAR("transacted_at" AT TIME ZONE ${TIME_ZONE}, 'YYYY-MM-DD') AS day,
+      type,
+      SUM(amount)::float AS total,
+      COUNT(*)::int AS count
+    FROM transactions
+    WHERE "transacted_at" >= ${monthStart}
+      AND "transacted_at" < ${monthEnd}
+    GROUP BY day, type
+    ORDER BY day ASC
+  `;
 };
 
 export const findMonthlyTransactionCategoryTotals = async ({ monthStart, monthEnd }: DateRange) => {
@@ -61,7 +66,7 @@ export const findMonthlyTransactionCategoryTotals = async ({ monthStart, monthEn
     Array<{ month: string; category: TransactionCategory; total: number }>
   >`
     SELECT
-      TO_CHAR("transacted_at", 'YYYY-MM') AS month,
+      TO_CHAR("transacted_at" AT TIME ZONE ${TIME_ZONE}, 'YYYY-MM') AS month,
       category,
       SUM(amount)::float AS total
     FROM transactions

@@ -1,12 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { formatInTimeZone } from "date-fns-tz";
 
-import {
-  getCategorySummaryFn,
-  getCategoryTrendsFn,
-  getMonthlyHistoryFn,
-  getMonthlyNetFn,
-} from "@/app/finance/analytics/analytics.functions";
+import { getFinanceDashboardFn } from "@/app/finance/analytics/analytics.functions";
 import { getFinancePreferencesFn } from "@/app/finance/preferences/preferences.functions";
 import {
   getScheduledExpensesForCurrentMonthFn,
@@ -31,33 +26,24 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
   head: () => ({ meta: META }),
   loader: async () => {
     const [
+      financeDashboard,
       transactions,
-      categorySummary,
       upcomingTransactions,
-      categoryTrends,
       financePreferences,
-      history,
-      monthlyNet,
       scheduledProjection,
     ] = await Promise.all([
+      getFinanceDashboardFn(),
       getRecentTransactionsFn(),
-      getCategorySummaryFn(),
       getUpcomingScheduledTransactionTemplatesFn(),
-      getCategoryTrendsFn(),
       getFinancePreferencesFn(),
-      getMonthlyHistoryFn(),
-      getMonthlyNetFn(),
       getScheduledExpensesForCurrentMonthFn(),
     ]);
     const monthLabel = formatInTimeZone(new Date(), TIME_ZONE, "MMMM yyyy");
     return {
       transactions,
-      categorySummary,
+      financeDashboard,
       upcomingTransactions,
-      categoryTrends,
       categoryTrendsVisibleCategories: financePreferences.categoryTrendsVisibleCategories,
-      history,
-      monthlyNet,
       scheduledProjection,
       hideSummaryCardAmounts: financePreferences.hideSummaryCardAmounts,
       monthLabel,
