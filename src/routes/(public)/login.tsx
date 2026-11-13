@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { loginFn } from "@/app/auth/auth.functions";
+import { LoginSearchSchema } from "@/app/auth/auth.schema";
 import { cacheControl } from "@/app/infra/cache/cache-control";
 import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
@@ -20,10 +21,12 @@ const META: Array<React.JSX.IntrinsicElements["meta"]> = [
 export const Route = createFileRoute("/(public)/login")({
   headers: () => cacheControl(PUBLIC_CACHE_CONTROL),
   head: () => ({ meta: META }),
+  validateSearch: LoginSearchSchema,
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const { from } = Route.useSearch();
   const login = useServerFn(loginFn);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +54,7 @@ function RouteComponent() {
                 setIsLoading(true);
 
                 try {
-                  await login({ data: password });
+                  await login({ data: { password, from } });
                 } catch (err) {
                   console.error(err);
                   setError("Invalid password. Please try again.");

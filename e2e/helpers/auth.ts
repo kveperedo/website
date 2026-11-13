@@ -68,5 +68,5 @@ export async function loginAsAdmin(page: Page) {
   await page.getByLabel(/password/i).pressSequentially(password);
   await page.getByRole("button", { name: /continue/i }).click();
 
-  await page.waitForURL(/\/finances/, { timeout: 30000 });
+  await page.waitForURL((url) => url.pathname === "/", { timeout: 30000 });
 }

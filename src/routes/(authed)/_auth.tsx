@@ -5,12 +5,13 @@ import { cacheControl } from "@/app/infra/cache/cache-control";
 
 export const Route = createFileRoute("/(authed)/_auth")({
   headers: () => cacheControl("no-store"),
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const user = await getCurrentUserFn();
 
     if (!user) {
       throw redirect({
         to: "/login",
+        search: { from: location.href },
         headers: await cacheControl("no-store"),
       });
     }
