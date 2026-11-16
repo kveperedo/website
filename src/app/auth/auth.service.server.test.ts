@@ -55,10 +55,9 @@ const captureRedirect = async (run: () => Promise<unknown>) => {
 };
 
 const logIn = async () => {
-  // `login` writes the cookie and then always throws the /finances redirect.
   const redirect = await captureRedirect(() => login(PASSWORD));
 
-  expect(redirect.options.to).toBe("/finances");
+  expect(redirect.options.href).toBe("/");
 };
 
 describe("login", () => {
@@ -76,6 +75,41 @@ describe("login", () => {
     expect(written).toHaveLength(1);
     expect(written[0]?.name).toBe(SESSION_COOKIE);
     await expect(getCurrentUser()).resolves.toBe(true);
+  });
+
+  it("returns to the attempted location after login", async () => {
+    const redirect = await captureRedirect(() =>
+      login(PASSWORD, "/finances/transactions?view=all#recent"),
+    );
+
+    expect(redirect.options.href).toBe("/finances/transactions?view=all#recent");
+  });
+
+  it("falls back to the homepage without a destination", async () => {
+    const redirect = await captureRedirect(() => login(PASSWORD));
+
+    expect(redirect.options.href).toBe("/");
+  });
+
+  it.each([
+    "https://example.com",
+    "//example.com",
+    "/\\example.com",
+    "/..//evil.com",
+    "/finances/../login",
+    "/login",
+    "/login?from=/finances",
+    "/\t/evil.com",
+  ])("falls back to the homepage for unsafe target %j", async (from) => {
+    const redirect = await captureRedirect(() => login(PASSWORD, from));
+
+    expect(redirect.options.href).toBe("/");
+  });
+
+  it("normalizes control characters instead of throwing", async () => {
+    const redirect = await captureRedirect(() => login(PASSWORD, "/foo\nbar"));
+
+    expect(redirect.options.href).toBe("/foobar");
   });
 });
 
