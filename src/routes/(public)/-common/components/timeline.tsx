@@ -121,7 +121,7 @@ export const Timeline = ({
           </>
         </span>
 
-        <h3 className="mb-1 font-heading text-2xl">
+        <h3 className="mb-1 text-2xl">
           <span className="font-bold">{title}</span>
           {titleExtension}
         </h3>

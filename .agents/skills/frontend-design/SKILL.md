@@ -43,22 +43,17 @@ All at low opacity (10–50%) with `blur-3xl`. Avoid neon as solid fills on UI e
 
 ## Typography
 
-Two fonts — always use the Tailwind alias, never raw font names:
-
-| Alias | Font | Use |
-|---|---|---|
-| `font-mono` | JetBrains Mono Variable | Body text, code, monospace UI (also the base font — `src/styles.css:197`) |
-| `font-heading` | Manrope Variable | All headings, hero name, card titles, UI labels, brand text — covers everything previously split across `font-heading` and `font-display` |
+Typography uses the Tailwind font aliases set in `src/styles.css`. Heading hierarchy comes from size, weight, and tracking. Numbers — finance amounts, day badges, chart ticks, progress values, and application dates — use `font-mono` (Geist Mono); don't substitute `tabular-nums`.
 
 Heading / text scale (from actual pages):
-- Hero name: `font-heading text-5xl md:text-6xl lg:text-8xl text-foreground`
-- Section title (Experience, Education, Projects): `font-heading text-4xl font-medium mr-auto mb-16`
-- Subtitle (position): `font-heading text-2xl md:text-3xl lg:text-4xl tracking-wide text-muted-foreground`
-- Timeline item title: `font-heading text-2xl font-bold`
+- Hero name: `text-5xl md:text-6xl lg:text-8xl text-foreground`
+- Section title (Experience, Education, Projects): `text-4xl font-medium mr-auto mb-16`
+- Subtitle (position): `text-2xl md:text-3xl lg:text-4xl tracking-wide text-muted-foreground`
+- Timeline item title: `text-2xl font-bold`
 - Body summary: `text-base md:text-lg lg:text-xl leading-loose md:leading-[2.5] text-foreground`
 - List items: `text-sm leading-loose font-medium tracking-wide text-foreground`
-- Dates / captions: `font-mono text-sm text-muted-foreground`
-- Config page title: `font-mono text-5xl md:text-6xl font-medium text-foreground`
+- Dates / captions: `text-sm text-muted-foreground`
+- Config page title: `text-5xl md:text-6xl font-medium text-foreground`
 - Config description: `text-lg leading-loose text-muted-foreground`
 
 ## Spacing & Layout
@@ -193,7 +188,6 @@ Section headings are left-aligned with `mr-auto` when inside a centered containe
 ## Checklist Before Finishing Any UI Task
 
 - [ ] Using semantic tokens (`text-foreground`, `text-muted-foreground`, `bg-card`, `border-border`, `text-primary`, `bg-primary`)
-- [ ] Font: `font-mono` for body, `font-heading` for all headings and hero/brand text
 - [ ] All interactive: `focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50`
 - [ ] Cards: `rounded-none shadow-xl backdrop-blur` with hover border/ring highlight
 - [ ] Badges: use `<Badge>` from `@/components/ui/badge` with `variant="secondary"`

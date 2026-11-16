@@ -141,7 +141,7 @@ export const CategoryTrendsCard = () => {
                     const config =
                       CATEGORY_CHART_CONFIG[name as keyof typeof CATEGORY_CHART_CONFIG];
                     return [
-                      <span key="value" className="flex items-center gap-1.5 font-mono">
+                      <span key="value" className="flex items-center gap-1.5">
                         {config?.color && (
                           <span
                             className="inline-block h-2 w-2 shrink-0 rounded-xs"
@@ -151,7 +151,7 @@ export const CategoryTrendsCard = () => {
                         <span className="text-muted-foreground">
                           {config?.label ?? String(name)}
                         </span>
-                        <span className="ml-auto font-medium text-foreground">
+                        <span className="ml-auto font-mono font-medium text-foreground">
                           {formatCurrency(Number(value))}
                         </span>
                       </span>,

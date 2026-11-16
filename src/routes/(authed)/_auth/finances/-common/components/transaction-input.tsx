@@ -90,11 +90,7 @@ function TransactionInput({
     <div className="flex w-full flex-col gap-4">
       {error && <FieldError>{error}</FieldError>}
       <div className="flex flex-col gap-2">
-        <p
-          id="transaction-queue-hint"
-          aria-live="polite"
-          className="font-mono text-xs text-muted-foreground"
-        >
+        <p id="transaction-queue-hint" aria-live="polite" className="text-xs text-muted-foreground">
           {entries.length > 0
             ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} queued — press + to save`
             : "Press Enter to queue entries, + to save"}
@@ -105,7 +101,7 @@ function TransactionInput({
               <Badge
                 key={`${index}-${entry}`}
                 variant="secondary"
-                className="h-auto max-w-full py-1 font-mono normal-case"
+                className="h-auto max-w-full py-1 normal-case"
               >
                 <span className="min-w-0 flex-1 break-words whitespace-normal">{entry}</span>
                 <Button

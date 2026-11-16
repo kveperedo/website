@@ -42,7 +42,7 @@ export const TransactionList = ({
     <GridList
       items={transactions}
       aria-label={label}
-      className="w-full gap-0 font-mono text-sm"
+      className="w-full gap-0 text-sm"
       onAction={(id) =>
         router.navigate({
           to: "/finances/transactions/$id",
@@ -70,7 +70,7 @@ export const TransactionList = ({
           >
             <GridListCell className="pr-4 pl-2 text-foreground">
               <div className="flex min-h-10 items-center gap-3 py-1">
-                <span className="w-5 shrink-0 text-right text-xs text-muted-foreground">
+                <span className="w-5 shrink-0 text-right font-mono text-xs text-muted-foreground">
                   {format(transaction.transactedAt, "dd")}
                 </span>
                 <div className={cn("flex min-w-0 flex-col", !category && "justify-center")}>
@@ -96,7 +96,7 @@ export const TransactionList = ({
             </GridListCell>
             <GridListCell
               className={cn(
-                "self-center pr-4 text-right text-xs font-medium whitespace-nowrap",
+                "self-center pr-4 text-right font-mono text-xs font-medium whitespace-nowrap",
                 transaction.type === "income"
                   ? TRANSACTION_TYPE_COLORS.income
                   : TRANSACTION_TYPE_COLORS.expense,

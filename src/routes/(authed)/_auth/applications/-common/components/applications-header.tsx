@@ -22,7 +22,7 @@ export const ApplicationsHeader = ({ current, children }: ApplicationsHeaderProp
       <div className="flex min-w-0 items-center gap-3">
         <BackButton to={backTo} variant="icon" />
         <Breadcrumb>
-          <BreadcrumbList className="font-heading text-sm font-medium">
+          <BreadcrumbList className="text-sm font-medium">
             <BreadcrumbItem>
               <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
             </BreadcrumbItem>

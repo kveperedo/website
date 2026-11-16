@@ -27,8 +27,11 @@ function NetHeadline({ hideAmounts }: AmountVisibilityProps) {
   const netColor = isNetPositive ? TRANSACTION_TYPE_COLORS.income : TRANSACTION_TYPE_COLORS.expense;
 
   return (
-    <p data-testid="net-headline" className={cn("font-mono text-lg sm:text-xl", netColor)}>
-      {formatAmount(Math.abs(current.net), { hidden: hideAmounts })} {netLabel}
+    <p data-testid="net-headline" className={cn("text-lg sm:text-xl", netColor)}>
+      <span className="font-mono">
+        {formatAmount(Math.abs(current.net), { hidden: hideAmounts })}
+      </span>{" "}
+      {netLabel}
     </p>
   );
 }
@@ -126,7 +129,7 @@ function ExpenseBreakdown({ hideAmounts }: AmountVisibilityProps) {
 
   if (!hasIncome) {
     return (
-      <div className="flex flex-col gap-2 font-mono text-xs">
+      <div className="flex flex-col gap-2 text-xs">
         <p className="text-muted-foreground">No income recorded this month</p>
       </div>
     );
@@ -145,15 +148,15 @@ function ExpenseBreakdown({ hideAmounts }: AmountVisibilityProps) {
   });
 
   return (
-    <div className="flex flex-col gap-2 font-mono text-xs">
+    <div className="flex flex-col gap-2 text-xs">
       <p className="text-muted-foreground">
-        Expenses are <span className="text-foreground">{expensesPercent}%</span> of income
+        Expenses are <span className="font-mono text-foreground">{expensesPercent}%</span> of income
       </p>
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
         <ExpenseProgress />
         <span
           data-testid="expense-breakdown-label"
-          className="text-xxs whitespace-nowrap text-muted-foreground tabular-nums"
+          className="font-mono text-xxs whitespace-nowrap text-muted-foreground"
         >
           <span data-testid="expense-breakdown-current" className="text-foreground">
             {currentLabel}
@@ -205,7 +208,9 @@ function PaceComparison({ hideAmounts }: AmountVisibilityProps) {
           <TrendingDownIcon className="size-3 shrink-0" />
         )}
         <span>
-          {formatAmount(Math.abs(paceDiff), { hidden: hideAmounts })}{" "}
+          <span className="font-mono">
+            {formatAmount(Math.abs(paceDiff), { hidden: hideAmounts })}
+          </span>{" "}
           {paceDiff > 0 ? "above" : "below"}{" "}
           <span className="text-muted-foreground">your {priorMonthCount}-month pace</span>
         </span>
@@ -219,14 +224,14 @@ function PaceComparison({ hideAmounts }: AmountVisibilityProps) {
       {renderPaceMessage()}
       <div
         data-testid="pace-history"
-        className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-mono text-xs"
+        className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs"
       >
         {prior.map((month, index) => (
           <span key={month.label} className="flex items-center gap-1.5">
             {index > 0 && <span className="text-muted-foreground/50">·</span>}
             <span className="text-muted-foreground">{month.label.split(" ")[0].slice(0, 3)}</span>
             {month.transactionCount > 0 ? (
-              <span className="text-foreground">
+              <span className="font-mono text-foreground">
                 {formatAmount(month.expenses, { hidden: hideAmounts })}
               </span>
             ) : (

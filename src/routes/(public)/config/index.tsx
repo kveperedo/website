@@ -50,7 +50,7 @@ function ConfigRoute() {
           <div className="mt-4 flex items-center gap-3">
             <a
               href="#applications"
-              className="font-mono text-xs text-muted-foreground underline-offset-4 transition-all duration-500 hover:text-foreground hover:underline"
+              className="text-xs text-muted-foreground underline-offset-4 transition-all duration-500 hover:text-foreground hover:underline"
               onClick={(e) => {
                 e.preventDefault();
                 document.querySelector("#applications")?.scrollIntoView({ behavior: "smooth" });
@@ -61,7 +61,7 @@ function ConfigRoute() {
             <span className="text-muted-foreground/40">·</span>
             <a
               href="#config"
-              className="font-mono text-xs text-muted-foreground underline-offset-4 transition-all duration-500 hover:text-foreground hover:underline"
+              className="text-xs text-muted-foreground underline-offset-4 transition-all duration-500 hover:text-foreground hover:underline"
               onClick={(e) => {
                 e.preventDefault();
                 document.querySelector("#config")?.scrollIntoView({ behavior: "smooth" });

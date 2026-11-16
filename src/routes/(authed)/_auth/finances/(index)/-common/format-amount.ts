@@ -3,8 +3,8 @@ import { formatCurrency, type CurrencyFormatOptions } from "@/lib/currency";
 type FormatAmountOptions = CurrencyFormatOptions & { hidden?: boolean };
 
 /**
- * Formats currency, or masks every digit while hidden. The mask keeps each character in place,
- * and the summary card uses a monospaced font, so toggling never changes the layout.
+ * Formats currency, or masks every digit while hidden. Amounts render in a monospace
+ * font and the mask keeps the character count identical, so toggling preserves width.
  */
 export function formatAmount(
   amount: number,

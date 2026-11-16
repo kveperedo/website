@@ -54,7 +54,7 @@ function RouteComponent() {
             <CardTitle>Not Available</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="font-mono text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               E2E database tools are not available in this environment.
             </p>
           </CardContent>
@@ -178,7 +178,7 @@ function RouteComponent() {
           {status && (
             <div
               className={cn(
-                "rounded-none border px-3 py-2 font-mono text-xs",
+                "rounded-none border px-3 py-2 text-xs",
                 status.type === "success"
                   ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                   : "border-destructive/30 bg-destructive/10 text-destructive",

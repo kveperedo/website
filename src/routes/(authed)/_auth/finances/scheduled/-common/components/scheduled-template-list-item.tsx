@@ -64,16 +64,16 @@ export const ScheduledTemplateListItem = ({
         isMuted && "opacity-50",
       )}
     >
-      <div className="flex size-9 shrink-0 items-center justify-center bg-muted px-2 font-mono text-xs text-foreground tabular-nums">
+      <div className="flex size-9 shrink-0 items-center justify-center bg-muted px-2 font-mono text-xs text-foreground">
         <span aria-hidden="true">{day}</span>
         <span className="sr-only">Scheduled monthly on day {template.dayOfMonth}</span>
       </div>
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 pl-1.5 font-mono text-xs">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 pl-1.5 text-xs">
         <span className="truncate text-foreground">{template.description}</span>
         <span className="flex min-w-0 items-center gap-1 text-xxs">
           <span
             className={cn(
-              "shrink-0 font-medium",
+              "shrink-0 font-mono font-medium",
               template.type === "income"
                 ? TRANSACTION_TYPE_COLORS.income
                 : TRANSACTION_TYPE_COLORS.expense,
