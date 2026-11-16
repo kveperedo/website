@@ -155,7 +155,7 @@ function TransactionHeader() {
     <>
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-heading text-lg font-medium text-foreground">Transactions</h2>
+          <h2 className="text-lg font-medium text-foreground">Transactions</h2>
           <p className="text-xs text-muted-foreground">{monthLabel}</p>
         </div>
         <div className="flex items-center gap-0.5">

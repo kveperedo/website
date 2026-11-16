@@ -61,13 +61,13 @@ const PROJECTS: Array<{
 export const ProjectsSection = () => {
   return (
     <section id={SECTION_IDS.PROJECTS} className="relative flex flex-col items-center px-8 py-16">
-      <h1 className="mr-auto mb-20 font-heading text-4xl font-medium">Projects</h1>
+      <h1 className="mr-auto mb-20 text-4xl font-medium">Projects</h1>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {PROJECTS.map(({ name, summary, date, githubLink, technologies, link }) => (
           <Card key={name} className="w-full p-6 md:p-8">
             <div className="flex items-center justify-between">
-              <h4 className="mb-1 font-heading text-2xl font-semibold text-foreground">{name}</h4>
+              <h4 className="mb-1 text-2xl font-semibold text-foreground">{name}</h4>
 
               <div className="flex items-center gap-2">
                 <LinkButton
@@ -92,7 +92,7 @@ export const ProjectsSection = () => {
                 )}
               </div>
             </div>
-            <p className="mb-4 font-mono text-sm text-muted-foreground">{date}</p>
+            <p className="mb-4 text-sm text-muted-foreground">{date}</p>
             <div className="mb-8 flex flex-wrap items-center gap-2">
               {technologies.map((label) => (
                 <Badge key={label} variant="secondary">

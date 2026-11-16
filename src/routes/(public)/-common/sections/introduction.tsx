@@ -45,11 +45,11 @@ export const IntroductionSection = () => {
       </div>
 
       <div className="flex flex-col items-center justify-center gap-4">
-        <h1 className="mx-4 text-center font-heading text-5xl font-extralight tracking-wider text-foreground md:text-6xl lg:text-8xl">
+        <h1 className="mx-4 text-center text-5xl font-extralight tracking-wider text-foreground md:text-6xl lg:text-8xl">
           {NAME}
         </h1>
 
-        <h4 className="text-center font-heading text-2xl text-muted-foreground md:text-3xl lg:text-4xl">
+        <h4 className="text-center text-2xl text-muted-foreground md:text-3xl lg:text-4xl">
           {POSITION}
         </h4>
 

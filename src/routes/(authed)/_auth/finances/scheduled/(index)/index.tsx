@@ -74,9 +74,7 @@ function RouteComponent() {
     <FinanceContainer.Root
       header={
         <div className="flex items-center justify-between gap-4">
-          <h2 className="font-heading text-lg font-medium text-foreground">
-            Scheduled Transactions
-          </h2>
+          <h2 className="text-lg font-medium text-foreground">Scheduled Transactions</h2>
           <div className="flex items-center gap-2">
             <TanstackLinkButton
               to="/finances/scheduled/archived"

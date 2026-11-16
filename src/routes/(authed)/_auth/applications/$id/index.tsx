@@ -91,7 +91,7 @@ function RouteComponent() {
         <div className="flex items-center gap-3">
           <BackButton to="/applications" search={backSearch} variant="icon" />
           <div className="flex min-w-0 flex-1 items-baseline gap-2">
-            <h1 className="min-w-0 truncate font-heading text-lg font-medium text-foreground">
+            <h1 className="min-w-0 truncate text-lg font-medium text-foreground">
               {application.position}
             </h1>
             <span className="min-w-0 truncate text-xs text-muted-foreground">

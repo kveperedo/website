@@ -110,10 +110,10 @@ export const MonthlyNetCard = () => {
                         const data = payload as unknown as { income: number; expenses: number };
                         const net = Number(value);
                         return (
-                          <div className="grid w-full gap-1.5 font-mono">
+                          <div className="grid w-full gap-1.5">
                             <div className="flex justify-between gap-4">
                               <span className="text-muted-foreground">Net</span>
-                              <span className="font-medium text-foreground">
+                              <span className="font-mono font-medium text-foreground">
                                 {formatCurrency(net, {
                                   sign: getSign(net),
                                 })}

@@ -26,7 +26,7 @@ export const ApplicationBoardCard = ({
   return (
     <div ref={rootRef} className="relative">
       <div className="flex min-w-0 flex-col gap-1 pr-16">
-        <h3 className="flex min-w-0 items-center gap-2 font-heading text-sm font-medium text-foreground">
+        <h3 className="flex min-w-0 items-center gap-2 text-sm font-medium text-foreground">
           <span className="max-w-[60%] truncate">{application.company}</span>
           <span className="min-w-0 flex-1 truncate text-xs font-normal text-muted-foreground">
             {application.position}

@@ -26,7 +26,7 @@ export const ClosedRow = ({ application, highlighted, onStatusChange }: ClosedRo
   return (
     <div ref={rootRef} className="relative">
       <div className="flex min-w-0 flex-col gap-1">
-        <h2 className="flex min-w-0 items-center gap-2 pr-16 font-heading text-sm font-medium text-foreground">
+        <h2 className="flex min-w-0 items-center gap-2 pr-16 text-sm font-medium text-foreground">
           <span
             aria-hidden
             className={cn(

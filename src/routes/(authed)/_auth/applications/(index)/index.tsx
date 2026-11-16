@@ -127,16 +127,10 @@ function RouteComponent() {
             aria-label="Applications views"
             className="w-full justify-start gap-6 border-b border-border/60"
           >
-            <TabsTrigger
-              id="active"
-              className="flex-none px-1 font-heading text-sm after:bg-primary"
-            >
+            <TabsTrigger id="active" className="flex-none px-1 text-sm after:bg-primary">
               Active
             </TabsTrigger>
-            <TabsTrigger
-              id="closed"
-              className="flex-none px-1 font-heading text-sm after:bg-primary"
-            >
+            <TabsTrigger id="closed" className="flex-none px-1 text-sm after:bg-primary">
               Closed
             </TabsTrigger>
           </TabsList>

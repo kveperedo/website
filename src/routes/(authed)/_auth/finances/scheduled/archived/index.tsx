@@ -40,7 +40,7 @@ function RouteComponent() {
           <TanstackLinkButton to="/finances/scheduled" variant="ghost" size="icon">
             <ArrowLeftIcon className="size-3.5" />
           </TanstackLinkButton>
-          <h2 className="font-heading text-lg font-medium text-foreground">Archived Schedules</h2>
+          <h2 className="text-lg font-medium text-foreground">Archived Schedules</h2>
         </div>
       }
       footer={<FinanceContainer.Footer />}

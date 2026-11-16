@@ -27,7 +27,7 @@ export const CommandBlock = ({ command, language = "bash", className }: CommandB
       )}
     >
       <div className="flex items-center justify-between border-b border-border bg-card/60 px-4 py-2">
-        <span className="font-mono text-xs text-muted-foreground">{language}</span>
+        <span className="text-xs text-muted-foreground">{language}</span>
         <Button variant="ghost" size="xs" onClick={handleCopy} aria-label="Copy command">
           {copied ? (
             <>
@@ -43,7 +43,7 @@ export const CommandBlock = ({ command, language = "bash", className }: CommandB
         </Button>
       </div>
       <pre className="overflow-x-auto px-4 py-3">
-        <code className="font-mono text-sm text-foreground">{command}</code>
+        <code className="text-sm text-foreground">{command}</code>
       </pre>
     </div>
   );

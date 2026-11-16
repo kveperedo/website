@@ -22,10 +22,7 @@ function MonthGroup<T>({ label, items, children }: MonthGroupProps<T>) {
 
   return (
     <section className="flex flex-col gap-1.5">
-      <h3
-        id={headingId}
-        className="font-mono text-xxs tracking-wider text-muted-foreground uppercase"
-      >
+      <h3 id={headingId} className="text-xxs tracking-wider text-muted-foreground uppercase">
         {label}
       </h3>
       <GridList items={items} aria-labelledby={headingId}>
@@ -75,15 +72,15 @@ export const UpcomingTransactionsCard = () => {
                       textValue={`${t.description}, ${amount}`}
                       className="flex min-w-0 items-stretch"
                     >
-                      <div className="flex size-9 shrink-0 items-center justify-center bg-muted px-2 font-mono text-xs text-foreground tabular-nums">
+                      <div className="flex size-9 shrink-0 items-center justify-center bg-muted px-2 font-mono text-xs text-foreground">
                         <span aria-hidden="true">{day}</span>
                         <span className="sr-only">Scheduled monthly on day {t.dayOfMonth}</span>
                       </div>
-                      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 pl-1.5 font-mono text-xs">
+                      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 pl-1.5 text-xs">
                         <span className="truncate text-foreground">{t.description}</span>
                         <span
                           className={cn(
-                            "text-xxs",
+                            "font-mono text-xxs",
                             t.type === "income"
                               ? TRANSACTION_TYPE_COLORS.income
                               : TRANSACTION_TYPE_COLORS.expense,

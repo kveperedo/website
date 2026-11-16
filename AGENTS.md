@@ -59,7 +59,7 @@
 ## UI & Styling
 
 - **Tailwind CSS 4** — theme tokens in `src/styles.css`; dark base with neon accents
-- Font aliases: `font-mono` (JetBrains Mono — body), `font-heading` (Manrope Variable — all headings, hero, brand)
+- Numbers (finance amounts, day badges, chart ticks, progress values, application dates) use `font-mono`; other text uses the base `font-sans` alias
 - `cn()` from `@/lib/utils` (clsx + tailwind-merge); `cva` from `class-variance-authority` for multi-variant components
 - **react-aria-components** for interactive primitives: Button, Input, Separator, Accordion, Popover, Calendar
 - Lucide React for icons; shadcn/ui components in `src/components/ui/`

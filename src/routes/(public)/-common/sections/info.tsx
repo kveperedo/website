@@ -134,7 +134,7 @@ export const InfoSection = () => {
       className="relative flex flex-col items-center justify-center px-8 py-16 text-foreground"
     >
       <div>
-        <h1 className="mr-auto mb-16 text-left font-heading text-4xl font-medium">Experience</h1>
+        <h1 className="mr-auto mb-16 text-left text-4xl font-medium">Experience</h1>
 
         {EXPERIENCE.map(
           ({ position, company, details, location, startDate, endDate, technologies }) => (
@@ -152,7 +152,7 @@ export const InfoSection = () => {
           ),
         )}
 
-        <h1 className="my-16 mr-auto text-left font-heading text-4xl font-medium">Education</h1>
+        <h1 className="my-16 mr-auto text-left text-4xl font-medium">Education</h1>
 
         <Timeline
           startDate={EDUCATION.startDate}
@@ -163,9 +163,7 @@ export const InfoSection = () => {
           content={EDUCATION.details}
         />
 
-        <h1 className="my-16 mr-auto text-left font-heading text-4xl font-medium">
-          Licenses & Certificates
-        </h1>
+        <h1 className="my-16 mr-auto text-left text-4xl font-medium">Licenses & Certificates</h1>
 
         {LICENSES_AND_CERTIFICATIONS.map(({ name, issuer, date }, index) => {
           const isNotFirstItem = index !== 0;
