@@ -277,7 +277,7 @@ test.describe("expense breakdown label in summary net card", () => {
     await expect(label).not.toContainText("scheduled");
     await expect(label).not.toContainText("(+");
     await expect(label).toHaveClass(/text-muted-foreground/);
-    await expect(label).toHaveClass(/tabular-nums/);
+    await expect(label).toHaveClass(/font-mono/);
   });
 
   test("shows projected amount beside current expenses and reverts after archive", async ({
@@ -309,7 +309,7 @@ test.describe("expense breakdown label in summary net card", () => {
       "Plus scheduled expenses remaining this month",
     );
     await expect(label).toHaveClass(/text-muted-foreground/);
-    await expect(label).toHaveClass(/tabular-nums/);
+    await expect(label).toHaveClass(/font-mono/);
     await expect(label).not.toContainText("scheduled");
 
     // revert: delete template and verify breakdown returns to baseline
