@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "@tanstack/react-router";
 import { SearchIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -16,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { APPLICATION_STATUS_DOT_STYLES, APPLICATION_STATUS_LABELS } from "../constants";
+import { matchesApplicationQuery } from "../matches-query";
 import { ApplicationBoardCard } from "./application-board-card";
 
 type ApplicationBoardColumnProps = {
@@ -31,16 +33,13 @@ export const ApplicationBoardColumn = ({
   highlightedId,
   onStatusChange,
 }: ApplicationBoardColumnProps) => {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   const isFiltering = normalizedQuery.length > 0;
 
   const filteredApplications = isFiltering
-    ? applications.filter(
-        (application) =>
-          application.company.toLowerCase().includes(normalizedQuery) ||
-          application.position.toLowerCase().includes(normalizedQuery),
-      )
+    ? applications.filter((application) => matchesApplicationQuery(application, normalizedQuery))
     : applications;
 
   const label = APPLICATION_STATUS_LABELS[status];
@@ -52,8 +51,8 @@ export const ApplicationBoardColumn = ({
         status === "saved" ? "lg:flex-[2]" : "lg:flex-[3]",
       )}
     >
-      <div className="flex shrink-0 items-center gap-2 border-b border-border/60 px-3 pt-3 pb-3">
-        <h2 className="flex shrink-0 items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+      <div className="flex shrink-0 items-center gap-2 border-b border-subtle px-3 pt-3 pb-3">
+        <h2 className="flex shrink-0 items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground">
           <span
             aria-hidden
             className={cn("size-1.5 shrink-0 rounded-full", APPLICATION_STATUS_DOT_STYLES[status])}
@@ -61,7 +60,7 @@ export const ApplicationBoardColumn = ({
           {label}
         </h2>
 
-        <InputGroup className="ml-auto h-7 w-40 shrink-0 border-border/60">
+        <InputGroup className="ml-auto h-7 w-40 shrink-0">
           <InputGroupAddon>
             <SearchIcon />
           </InputGroupAddon>
@@ -97,7 +96,7 @@ export const ApplicationBoardColumn = ({
           items={filteredApplications}
           dependencies={[highlightedId]}
           aria-label={`${label} applications`}
-          className="flex min-h-0 flex-col gap-0 divide-y divide-border/60 lg:flex-1 lg:overflow-y-auto"
+          className="flex min-h-0 flex-col gap-0 divide-y divide-subtle lg:flex-1 lg:overflow-y-auto"
         >
           {(application) => (
             <GridListItem
@@ -105,8 +104,11 @@ export const ApplicationBoardColumn = ({
               data-application-id={application.id}
               data-status={application.status}
               textValue={`${application.company}, ${application.position}`}
+              onAction={() =>
+                router.navigate({ to: "/applications/$id", params: { id: application.id } })
+              }
               className={cn(
-                "relative px-3 py-3 transition-colors hover:bg-muted/20",
+                "relative cursor-pointer px-3 py-3 transition-colors hover:bg-muted/20",
                 application.id === highlightedId && "bg-primary/10",
               )}
             >

@@ -125,7 +125,7 @@ function RouteComponent() {
           <TabsList
             variant="line"
             aria-label="Applications views"
-            className="w-full justify-start gap-6 border-b border-border/60"
+            className="w-full justify-start gap-6 border-b border-subtle"
           >
             <TabsTrigger id="active" className="flex-none px-1 text-sm after:bg-primary">
               Active

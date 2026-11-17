@@ -78,7 +78,7 @@ export const ActiveView = ({ applications, highlightedId, onStatusChange }: Acti
           </Empty>
         </Card>
       ) : (
-        <Card className="flex min-h-0 flex-1 flex-col gap-0 border-border/60 py-0 shadow-none">
+        <Card className="flex min-h-0 flex-1 flex-col gap-0 border-subtle py-0 shadow-none">
           <div className="flex min-h-0 flex-1 flex-col divide-y divide-border lg:flex-row lg:divide-x lg:divide-y-0">
             {activeGroups.map((group) => (
               <ApplicationBoardColumn
