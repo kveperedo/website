@@ -32,8 +32,16 @@ export async function gotoApplications(page: Page) {
 
 /** Switches to the Closed view on the applications page. */
 export async function gotoClosed(page: Page) {
-  await page.getByRole("tab", { name: "Closed", exact: true }).click();
-  await page.waitForURL(/\/applications\?view=closed$/);
+  const closedTab = page.getByRole("tab", { name: "Closed", exact: true });
+
+  // On a slow runner a click that lands right after the hydration marker can be dropped
+  // without any navigation, so retry until the tab is actually selected.
+  await expect(async () => {
+    await closedTab.click();
+    await expect(closedTab).toHaveAttribute("aria-selected", "true", { timeout: 2000 });
+  }).toPass({ timeout: 20000 });
+
+  await expect(page).toHaveURL(/\/applications\?view=closed$/);
   await waitForHydration(page);
 }
 
