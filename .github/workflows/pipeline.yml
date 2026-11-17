@@ -110,6 +110,8 @@ jobs:
     environment: preview
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # needed to diff the PR against its base for route-changed selection
       - uses: ./.github/actions/setup
 
       - name: Cache Playwright browsers
@@ -124,10 +126,11 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium chromium-headless-shell
 
       - name: Run E2E tests
-        run: pnpm run test:e2e
+        run: pnpm run test:e2e:route-changed
         env:
           BASE_URL: ${{ needs.deploy.outputs.url }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          E2E_BASE_SHA: ${{ github.event.pull_request.base.sha }}
 
       - name: Upload Playwright report
         if: always()
