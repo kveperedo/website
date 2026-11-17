@@ -43,7 +43,7 @@ export async function filterClosed(
   status: Extract<ApplicationStatus, "offer" | "rejected" | "withdrawn">,
 ) {
   const label = STATUS_LABELS[status];
-  await page.getByRole("radio", { name: label, exact: true }).click();
+  await page.getByRole("tab", { name: label, exact: true }).click();
 }
 
 /** Picks a sort order on the closed page. */
@@ -103,8 +103,7 @@ export async function changeApplicationStatus(
 }
 
 export async function openApplicationDetail(page: Page, company: string) {
-  await openApplicationMenu(page, company);
-  await page.getByRole("menuitem", { name: "Edit" }).click();
+  await applicationCard(page, company).click();
   await page.waitForURL(/\/applications\/[0-9a-f-]{36}\/?$/);
 }
 

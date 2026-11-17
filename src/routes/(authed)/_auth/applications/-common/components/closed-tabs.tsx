@@ -1,6 +1,6 @@
 "use client";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 import {
@@ -17,38 +17,34 @@ type ClosedTabsProps = {
 
 export const ClosedTabs = ({ filter, onFilterChange }: ClosedTabsProps) => {
   return (
-    <ToggleGroup
-      selectionMode="single"
-      selectedKeys={[filter]}
-      onSelectionChange={(keys) => {
-        const next = ([...keys][0] as ClosedFilter | undefined) ?? "all";
-        onFilterChange(next);
-      }}
-      variant="outline"
-      size="sm"
-      spacing={0}
-      aria-label="Filter closed applications by status"
-      className="flex-wrap"
+    <Tabs
+      selectedKey={filter}
+      onSelectionChange={(key) => onFilterChange((key as ClosedFilter | null) ?? "all")}
+      className="gap-0"
     >
-      <ToggleGroupItem
-        id="all"
-        className="data-selected:bg-secondary data-selected:text-foreground"
+      <TabsList
+        variant="line"
+        aria-label="Filter closed applications by status"
+        className="flex-wrap"
       >
-        All
-      </ToggleGroupItem>
+        <TabsTrigger id="all">All</TabsTrigger>
+        {CLOSED_APPLICATION_STATUSES.map((status) => (
+          <TabsTrigger key={status} id={status}>
+            <span
+              aria-hidden
+              className={cn(
+                "size-1.5 shrink-0 rounded-full",
+                APPLICATION_STATUS_DOT_STYLES[status],
+              )}
+            />
+            {APPLICATION_STATUS_LABELS[status]}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      <TabsContent id="all" className="sr-only" />
       {CLOSED_APPLICATION_STATUSES.map((status) => (
-        <ToggleGroupItem
-          key={status}
-          id={status}
-          className="data-selected:bg-secondary data-selected:text-foreground"
-        >
-          <span
-            aria-hidden
-            className={cn("size-1.5 shrink-0 rounded-full", APPLICATION_STATUS_DOT_STYLES[status])}
-          />
-          {APPLICATION_STATUS_LABELS[status]}
-        </ToggleGroupItem>
+        <TabsContent key={status} id={status} className="sr-only" />
       ))}
-    </ToggleGroup>
+    </Tabs>
   );
 };

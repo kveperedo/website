@@ -13,6 +13,7 @@ import {
   gotoClosed,
   openApplicationDetail,
   openApplicationForm,
+  openApplicationMenu,
   sortClosed,
 } from "../helpers/applications";
 import { gotoAndWaitForHydration, waitForHydration } from "../helpers/auth";
@@ -59,9 +60,12 @@ test.describe("applications", () => {
       await expect(card.getByText(position)).toBeVisible();
       await expect(card.getByText(notes)).toBeVisible();
       await expect(card.getByText(DATE_TEXT)).toHaveCount(0);
-      await expect(
-        card.getByRole("link", { name: `Open ${position} at ${company} in a new tab` }),
-      ).toHaveAttribute("href", link);
+      await openApplicationMenu(page, company);
+      await expect(page.getByRole("menuitem", { name: "View job listing" })).toHaveAttribute(
+        "href",
+        link,
+      );
+      await page.keyboard.press("Escape");
 
       const form = page.locator("form:visible");
       await expect(form.getByLabel("Position")).toHaveValue("");
@@ -188,9 +192,12 @@ test.describe("applications", () => {
       await expect(row.getByText(position)).toBeVisible();
       await expect(row.getByText("Applied", { exact: false })).toBeVisible();
       await expect(row.getByText(/^Closed \d{2}\//)).toBeVisible();
-      await expect(
-        row.getByRole("link", { name: `Open ${position} at ${company} in a new tab` }),
-      ).toHaveAttribute("href", link);
+      await openApplicationMenu(page, company);
+      await expect(page.getByRole("menuitem", { name: "View job listing" })).toHaveAttribute(
+        "href",
+        link,
+      );
+      await page.keyboard.press("Escape");
 
       await page.reload();
       await waitForHydration(page);
@@ -206,10 +213,15 @@ test.describe("applications", () => {
     const rejectedCompany = uniqueCompany("Closed Alpha");
     const withdrawnCompany = uniqueCompany("Closed Beta");
     const sharedPosition = "Product Engineer";
+    const notesToken = uniqueCompany("Notes");
 
     try {
       await createApplication(page, { position: sharedPosition, company: offerCompany });
-      await createApplication(page, { position: "Data Analyst", company: rejectedCompany });
+      await createApplication(page, {
+        position: "Data Analyst",
+        company: rejectedCompany,
+        notes: notesToken,
+      });
       await createApplication(page, { position: "UI Engineer", company: withdrawnCompany });
       await changeApplicationStatus(page, offerCompany, "offer");
       await changeApplicationStatus(page, rejectedCompany, "rejected");
@@ -222,7 +234,7 @@ test.describe("applications", () => {
       await expect(applicationCard(page, rejectedCompany)).toHaveCount(0);
       await expect(applicationCard(page, withdrawnCompany)).toHaveCount(0);
 
-      await page.getByRole("radio", { name: "All", exact: true }).click();
+      await page.getByRole("tab", { name: "All", exact: true }).click();
       await expect(applicationCard(page, rejectedCompany)).toBeVisible();
       await expect(applicationCard(page, withdrawnCompany)).toBeVisible();
 
@@ -230,6 +242,10 @@ test.describe("applications", () => {
       await search.fill(sharedPosition);
       await expect(applicationCard(page, offerCompany)).toBeVisible();
       await expect(applicationCard(page, rejectedCompany)).toHaveCount(0);
+
+      await search.fill(notesToken);
+      await expect(applicationCard(page, rejectedCompany)).toBeVisible();
+      await expect(applicationCard(page, offerCompany)).toHaveCount(0);
 
       await search.fill("no-such-application");
       await expect(page.getByText("No matches")).toBeVisible();

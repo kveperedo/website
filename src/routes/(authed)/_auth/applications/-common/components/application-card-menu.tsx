@@ -2,7 +2,7 @@
 
 import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
+import { CheckIcon, ExternalLinkIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 
 import type { ApplicationStatus } from "@/generated/prisma/enums";
@@ -37,12 +37,14 @@ import {
 
 type ApplicationCardMenuProps = {
   applicationId: string;
+  link: string;
   status: ApplicationStatus;
   onStatusChange: (id: string, status: ApplicationStatus) => void;
 };
 
 export const ApplicationCardMenu = ({
   applicationId,
+  link,
   status,
   onStatusChange,
 }: ApplicationCardMenuProps) => {
@@ -79,15 +81,15 @@ export const ApplicationCardMenu = ({
           <MoreHorizontalIcon className="size-3.5" />
         </Button>
         <DropdownMenu className="w-48" placement="bottom end">
-          <DropdownMenuGroup aria-label="Application actions">
-            <DropdownMenuItem
-              onAction={() =>
-                router.navigate({ to: "/applications/$id", params: { id: applicationId } })
-              }
-            >
-              Edit
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
+          <DropdownMenuItem
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            textValue="View job listing"
+          >
+            <ExternalLinkIcon />
+            View job listing
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Status</DropdownMenuLabel>
           <DropdownMenuGroup aria-label="Change status">
