@@ -179,6 +179,7 @@ body,
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
+  --color-subtle: color-mix(in oklab, var(--border) 60%, transparent);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);

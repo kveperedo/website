@@ -28,7 +28,7 @@ type ClosedToolbarProps = {
 export const ClosedToolbar = ({ query, onQueryChange, sort, onSortChange }: ClosedToolbarProps) => {
   return (
     <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-      <InputGroup className="h-7 w-full border-border/60 sm:w-64">
+      <InputGroup className="h-7 w-full sm:w-64">
         <InputGroupAddon>
           <SearchIcon />
         </InputGroupAddon>
