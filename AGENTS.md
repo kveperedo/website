@@ -3,7 +3,7 @@
 ## Commands
 
 - **pnpm** (lockfile is `pnpm-lock.yaml`)
-- `pnpm run dev` — `CLOUDFLARE_PREVIEW_BUILD=true cf dev`; port 3000 and `--host` live in `vite.config.ts` because `cf dev` forwards no extra arguments to Vite. That env var is the only thing `isPreviewBuild()` reads, and it is what makes local dev take the `ctx.isPreview` config branch — without it `E2E_PASSWORD` is undeclared, `isE2EAvailable()` is false, and `/api/e2e` answers 404.
+- `pnpm run dev` — `CLOUDFLARE_PREVIEW_BUILD=true cf dev`; port 3000 and `--host` live in `vite.config.ts` because `cf dev` forwards no extra arguments to Vite. That env var is what makes local dev take the `ctx.isPreview` config branch — without it `E2E_PASSWORD` is undeclared, `isE2EAvailable()` is false, and `/api/e2e` answers 404.
 - `pnpm run lint` / `pnpm run format:check` — pre-commit runs both
 - `pnpm run db:generate` → `pnpm run db:deploy` — required before build if schema changed
 - `pnpm run test` — Vitest unit tests
@@ -17,12 +17,12 @@
 
 ## Previews
 
-- CI uses a single Preview name, `pr-<number>`, deleted on PR close by the `cleanup-preview` job. Nothing long-lived is deployed: pushing to `main` deploys production only, and `deploy.outputs.url` is therefore empty on `push`.
+- CI uses a single Preview name, `pr-<number>`. The `cleanup-preview` job in `pipeline.yml` is commented out because `cf` has no `previews delete`, so CI does **not** remove Previews on PR close — remove them via the Cloudflare dashboard until `cf previews delete` lands, then re-enable the job. Pushing to `main` deploys production only, and `deploy.outputs.url` is therefore empty on `push`.
 - Preview settings live in the `ctx.isPreview` branch of `cloudflare.config.ts` — these are Worker Previews, not environments, so nothing is inherited. Every binding read from `env` must be redeclared there, and `cf migrate` copies the whole Worker block into both branches; `defineWebsiteWorker()` in that file is the shared part.
 - The preview branch deliberately omits `domains` and `triggers`, so a Preview never claims `kevinperedo.com` and never receives `scheduled()` invocations. `cf migrate` puts them in both branches — that is a bug to keep from re-introducing.
 - Secrets (`SESSION_SECRET`, `ADMIN_PASSWORD_HASH`) are declared with `bindings.secret()` in both branches; the values live on the account, not in the config file. Set one with `pnpm exec cf workers secrets update <KEY> --worker website --text <VALUE>`, or upload several at once with `cf deploy --secrets-file <PATH>`. Locally they come from `.env`/`.dev.vars`.
 - `E2E_PASSWORD` is declared only in the `ctx.isPreview` branch. A declared secret must be set on the Worker or the deploy is refused, and E2E never runs against production, so declaring it there only broke `pnpm run deploy`. Bindings that exist in just one branch are typed as optional on `env`, which is why `src/lib/env.ts` strips optionality (`-?`) before filtering.
-- A PR preview is public for as long as the PR is open, and it has `E2E_PASSWORD` on it, so `isE2EAvailable()` is true and the E2E suite skips rate limits there. `loginFn` passes `alwaysEnforce` so its rate limit stays on regardless; every other rate-limited endpoint sits behind `authMiddleware`. In production `isE2EAvailable()` is false, so the E2E routes 404 and rate limits apply.
+- A PR preview is public for as long as the PR is open, and it has `E2E_PASSWORD` on it, so `isE2EAvailable()` is true. `createRateLimitMiddleware()` skips entirely when `env.E2E_PASSWORD` is set — including `loginFn`'s 10-request limit — so rate limits do not run on Previews; production has no `E2E_PASSWORD`, so rate limits apply and the E2E routes 404. Protected endpoints use `authMiddleware`.
 - A local `pnpm run preview:deploy` is not deleted for you, and the Preview carries its own secret values — run `pnpm run preview:delete` when you are done with the branch.
 - `X-Robots-Tag: noindex` is applied by Cloudflare to `workers.dev` Preview URLs only — a Preview served on a custom domain needs Cloudflare Access instead.
 - `cf previews deploy` prints its JSON result after the delegated Vite build log, so do not pipe it into `jq` expecting clean JSON. CI reconstructs the Preview URL as `<preview-name>-website.kevinperedo.workers.dev`.
@@ -39,6 +39,12 @@
 - Validation: `zod` schema input validation on server functions (see `src/app/auth/auth.schema.ts`)
 - **React Compiler** enabled via `@rolldown/plugin-babel`
 - Prefer `date-fns` over native `Date` APIs for date manipulation and formatting
+
+## Comments
+
+- Comments answer **why**, never _what_. Don't restate the code.
+- Short and clipped — fragments over sentences, grammar sacrificed for brevity.
+- Skip the obvious. Keep comments for intent, constraints, and non-obvious workarounds.
 
 ## Backend Modules
 
@@ -68,41 +74,48 @@
 
 ## Key Files
 
-| File                                      | Purpose                                                  |
-| ----------------------------------------- | -------------------------------------------------------- |
-| `src/app/infra/database/client.server.ts` | Prisma client factory + `withTransaction`                |
-| `src/app/auth/`                           | Session logic, server functions, and auth middleware     |
-| `src/app/finance/`                        | Transactions, analytics, scheduled entries, preferences  |
-| `src/app/infra/`                          | Database, cache, logging, and rate limiting              |
-| `src/app/e2e/`                            | E2E fixture seeding and server functions                 |
-| `src/app/README.md`                       | Backend module naming, layering, and dependency rules    |
-| `prisma/schema.prisma`                    | Single model: `Expense`                                  |
-| `src/styles.css`                          | Tailwind v4 theme, fonts, keyframes, CSS variables       |
-| `src/components/link.tsx`                 | RAC `<Link>` via `createLink` — TanStack Router typed    |
-| `src/components/ui/`                      | shadcn components (button, badge, input, field, etc.)    |
-| `src/lib/env.ts`                          | `requireEnv()` helper for env vars                       |
-| `cloudflare.config.ts`                    | Cloudflare Workers config (KV, routes, bindings)         |
-| `.cloudflare/types/`                      | Auto-generated Worker types (run `pnpm run cf:generate`) |
-| `components.json`                         | shadcn registry config                                   |
+| File                                      | Purpose                                                                    |
+| ----------------------------------------- | -------------------------------------------------------------------------- |
+| `src/app/infra/database/client.server.ts` | Prisma client factory + `withTransaction`                                  |
+| `src/app/auth/`                           | Session logic, server functions, and auth middleware                       |
+| `src/app/finance/`                        | Transactions, analytics, scheduled entries, preferences                    |
+| `src/app/infra/`                          | Database, cache, logging, and rate limiting                                |
+| `src/app/e2e/`                            | E2E fixture seeding and server functions                                   |
+| `src/app/README.md`                       | Backend module naming, layering, and dependency rules                      |
+| `prisma/schema.prisma`                    | Data model: applications, finance prefs, transactions, schedules, memories |
+| `src/styles.css`                          | Tailwind v4 theme, fonts, keyframes, CSS variables                         |
+| `src/components/ui/button.tsx`            | `Button`, `LinkButton` (RAC), `TanstackLinkButton` (typed internal nav)    |
+| `src/components/ui/`                      | shadcn components (button, badge, input, field, etc.)                      |
+| `src/lib/env.ts`                          | `requireEnv()` helper for env vars                                         |
+| `cloudflare.config.ts`                    | Cloudflare Workers config (KV, routes, bindings)                           |
+| `.cloudflare/types/`                      | Auto-generated Worker types (run `pnpm run cf:generate`)                   |
+| `components.json`                         | shadcn registry config                                                     |
 
 ## Gotchas
 
 - Build artifacts (`.output`, `.tanstack`, `.cloudflare`) are all gitignored
 - `cf` (the Cloudflare CLI) replaced Wrangler for build, deploy, and previews. Wrangler is no longer installed and `wrangler.jsonc` is gone — secrets go through `cf workers secrets update <KEY> --worker website --text <VALUE>` and live logs through `cf o11y telemetry live-tail`
 - `cloudflare.config.ts` must stay loadable by Node (Node >= 22.18, `"type": "module"` already set). It is imported by every `cf` command, including plain API commands
-- Oxlint ignores `src/routeTree.gen.ts`; oxfmt ignores it plus `.agents/*`, `.cloudflare/*`, and skill files
+- Oxlint ignores `src/routeTree.gen.ts`; oxfmt ignores it plus `.agents/*`, `.claude/skills/*`, `CLAUDE.md`, and `.cloudflare/*`
 - Skills in `.agents/skills/`; remotely-sourced skills mirrored in `skills-lock.json`
 - The deployed Worker must use the `HYPERDRIVE` binding; `DATABASE_URL` is reserved for local development and Prisma CLI commands
 - `.env.example` documents required env vars; use `tsx` to run TypeScript scripts locally
-- `"use client"` directive needed in any file that uses browser APIs (e.g., `label.tsx`)
-- Navigation: use `<Link>` from `@/components/link` for internal routes (TanStack Router typed `to`/`search`/`params`), `<LinkButton>` from `@/components/ui/button` for external `href` links
+- `"use client"` directive needed in any file that uses browser APIs (e.g., `input.tsx`, `calendar.tsx`, `finance-container.tsx`)
+- Navigation: use `TanstackLinkButton` from `@/components/ui/button` for internal routes (TanStack Router typed `to`/`search`/`params`), `LinkButton` from the same file for external `href` links
 - Detailed styling/component patterns live in the `frontend-design` skill at `.agents/skills/frontend-design/SKILL.md`
 
 ## Testing
 
 - **Vitest** for unit tests (`pnpm run test`): `environment: "node"`, runs in `checks` CI job
-- **Playwright** for E2E tests (`pnpm run test:e2e`): runs against the deployed Worker Preview URL in CI
-- E2E tests live in `e2e/tests/`; Playwright config at `e2e/playwright.config.ts`
-- Auth helper at `e2e/helpers/auth.ts` navigates to `/login`, fills password from `E2E_PASSWORD` (sourced from `.env` locally or injected as a CI secret), and waits for redirect to `/`
-- Vitest SSR plugins (`tanstackStart`, `nitro`, `devtools`) are disabled when `VITEST=true` to avoid transform conflicts
+- **Playwright** for E2E tests: CI runs `pnpm run test:e2e:route-changed` against the deployed Worker Preview URL; the `e2e` CI job runs on pull requests only, not on `push`. `pnpm run test:e2e` runs the full suite locally.
+- E2E tests live in `e2e/tests/`; Playwright config at `e2e/playwright.config.ts`. Named projects form a dependency chain; `auth.setup` logs in once and saves `e2e/.auth/user.json`, which authenticated projects reuse via `storageState`. Wire dependencies when adding a project.
+- Auth helper at `e2e/helpers/auth.ts` navigates to `/login`, fills password from `E2E_PASSWORD` (sourced from `.env` locally or injected as a CI secret), and waits for redirect to `/`. `e2e/auth.setup.ts` uses it to write the saved session.
+- Vitest SSR plugins (`devtools`, `cloudflare`, `tanstackStart`) are disabled when `VITEST=true` to avoid transform conflicts
 - For local E2E: start `pnpm run dev`, then `pnpm run test:e2e`. `BASE_URL` and `E2E_PASSWORD` are loaded from `.env` (see `.env.example`); the standalone `e2e/.env.test` file no longer exists
+
+### E2E selection
+
+- `pnpm run test:e2e:route-changed` (`e2e/route-changed.ts`) diffs against `E2E_BASE_SHA` in CI, the remote default branch locally, or `--base=<ref>`; staged, unstaged, and untracked files count.
+- Path prefixes map to Playwright projects; first match wins. New route/domain prefixes need a map entry for selective runs — unknown projects throw, unmapped ones fall back to the full suite.
+- Shared paths (config, `src/components/`, `e2e/`, etc.), an empty CI diff, or no mapped project run the full suite; a local no-change run skips.
+- Not Playwright's `--only-changed`: UI specs don't import routes, so it would select nothing.

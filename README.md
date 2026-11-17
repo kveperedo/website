@@ -147,6 +147,6 @@ Delete a Preview — the Worker name is the Preview name plus the `-website` suf
 pnpm run preview:delete pr-123-website
 ```
 
-Previews are not deleted automatically — CI removes its own `pr-<number>` Previews when a pull request closes, but anything you deploy by hand stays up until you delete it. Previews carry their own secrets and are public while they exist, so treat a live one as a real deployment.
+Previews are not deleted automatically — the `cleanup-preview` CI job is commented out because `cf` has no `previews delete`, so CI Previews and anything you deploy by hand stay up until you delete them manually. Previews carry their own secrets and are public while they exist, so treat a live one as a real deployment.
 
 The Worker configuration, custom domain, KV-backed rate limiting, cron trigger, and observability settings are defined in `cloudflare.config.ts`.
