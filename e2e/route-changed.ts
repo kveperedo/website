@@ -1,20 +1,12 @@
 /**
  * Runner for `pnpm run test:e2e:route-changed`.
  *
- * Runs only the Playwright projects whose feature changed. CI passes the PR
- * base via E2E_BASE_SHA; locally we diff against `main`. `--base=<ref>`
- * overrides the base for ad-hoc runs.
+ * Runs only the Playwright projects whose feature changed. CI passes the PR base
+ * via E2E_BASE_SHA; locally we diff against the default branch's remote-tracking
+ * ref. `--base=<ref>` overrides the base for ad-hoc runs.
  *
- * Feature boundaries come from the existing src/routes/ and src/app/finance/
- * directory groups — no separate mapping file to keep in sync.
- *
- * This is deliberately not Playwright's built-in `--only-changed`: that flag
- * selects specs via their import graph, and these UI-driven specs never import
- * the routes they exercise, so a route change would select zero tests.
- *
- * Playwright's config is the source of truth for project names. Unknown names
- * in the map throw; any project missing from the map falls back to the full
- * suite so a newly added project is never silently skipped.
+ * Deliberately not Playwright's `--only-changed`: these UI-driven specs never
+ * import the routes they exercise, so a route change would select zero tests.
  */
 import { execFileSync, spawnSync } from "node:child_process";
 
@@ -103,6 +95,27 @@ function gitPaths(args: Array<string>): Array<string> {
   return output.split("\0").filter(Boolean);
 }
 
+function safeGit(args: Array<string>): string | null {
+  try {
+    return execFileSync("git", args, { encoding: "utf8" }).trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function defaultBase(): string {
+  // Prefer origin's default branch: local `main` is often stale after PRs were
+  // merged via GitHub, which would misreport merged files as changed.
+  const remoteHead = safeGit(["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"]);
+  if (remoteHead && safeGit(["rev-parse", "--verify", "--quiet", remoteHead])) {
+    return remoteHead;
+  }
+  if (safeGit(["rev-parse", "--verify", "--quiet", "origin/main"])) {
+    return "origin/main";
+  }
+  return "main";
+}
+
 function gitFiles(diffArgs: Array<string>): Array<string> {
   return gitPaths(["diff", "--no-renames", "--name-only", "-z", ...diffArgs]);
 }
@@ -110,7 +123,7 @@ function gitFiles(diffArgs: Array<string>): Array<string> {
 function changedFiles(): Array<string> {
   const baseFlag = args.find((arg) => arg.startsWith(BASE_FLAG));
   const base =
-    (baseFlag ? baseFlag.slice(BASE_FLAG.length) : "") || process.env.E2E_BASE_SHA || "main";
+    (baseFlag ? baseFlag.slice(BASE_FLAG.length) : "") || process.env.E2E_BASE_SHA || defaultBase();
 
   // Three-dot diff = files introduced by the PR relative to its base.
   const files = new Set(gitFiles([`${base}...HEAD`]));
