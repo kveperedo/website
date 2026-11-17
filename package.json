@@ -17,6 +17,7 @@
     "cf:generate": "cf workers types",
     "test": "vitest run",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
+    "test:e2e:route-changed": "tsx e2e/route-changed.ts",
     "checks": "concurrently -n lint,format,test,typecheck \"pnpm:lint\" \"pnpm:format:check\" \"pnpm:test\" \"pnpm:typecheck\"",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
