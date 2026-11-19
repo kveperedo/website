@@ -15,11 +15,12 @@ export const RecentTransactionsCard = () => {
   return (
     <Card
       data-testid="recent-transactions-card"
-      className={cn("gap-0 py-0 sm:flex-1", isTransactionListEmpty && "pt-6")}
+      variant="flat"
+      className={cn("flex-1 lg:min-h-0 lg:border-0", isTransactionListEmpty && "pt-6")}
     >
       {!isTransactionListEmpty && (
-        <CardHeader className="flex flex-row items-center justify-between px-4 py-4">
-          <CardTitle className="text-muted-foreground">Recent transactions</CardTitle>
+        <CardHeader variant="flat" className="justify-between">
+          <CardTitle variant="flat">Recent transactions</CardTitle>
           <TanstackLinkButton
             to="/finances/transactions"
             variant="ghost"
@@ -30,7 +31,7 @@ export const RecentTransactionsCard = () => {
           </TanstackLinkButton>
         </CardHeader>
       )}
-      <CardContent className="p-0">
+      <CardContent className="min-h-0 p-0 lg:overflow-y-auto">
         {isTransactionListEmpty ? (
           <div className="px-6 pt-2 pb-6 md:px-8">
             <Empty>

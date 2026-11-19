@@ -182,10 +182,14 @@ export const CategoryTrendsCard = () => {
   };
 
   return (
-    <Card data-testid="category-trends-card" className={cn("flex-1 gap-0 py-0", isEmpty && "pt-6")}>
+    <Card
+      data-testid="category-trends-card"
+      variant="flat"
+      className={cn("flex-1 lg:border-0", isEmpty && "pt-6")}
+    >
       {!isEmpty && (
-        <CardHeader className="flex items-center justify-between px-4 py-4">
-          <CardTitle className="text-muted-foreground">Category trends</CardTitle>
+        <CardHeader variant="flat" className="justify-between">
+          <CardTitle variant="flat">Category trends</CardTitle>
           <CategoryFilter
             selectedCategories={visibleCategories}
             onSelectionChange={handleSelectionChange}
@@ -193,7 +197,7 @@ export const CategoryTrendsCard = () => {
           />
         </CardHeader>
       )}
-      <CardContent className="p-0">{renderTrendsContent()}</CardContent>
+      <CardContent className="pt-3 pb-0">{renderTrendsContent()}</CardContent>
     </Card>
   );
 };

@@ -8,10 +8,11 @@ import {
   getUpcomingScheduledTransactionTemplatesFn,
 } from "@/app/finance/scheduled/scheduled.functions";
 import { getRecentTransactionsFn } from "@/app/finance/transactions/transactions.functions";
+import { AppHeader } from "@/components/app-header";
+import { Card } from "@/components/ui/card";
 import { TIME_ZONE } from "@/lib/date-only";
 
 import { FinanceContainer } from "../-common/components/finance-container";
-import { CategorySummaryCard } from "./-common/components/category-summary-card";
 import { CategoryTrendsCard } from "./-common/components/category-trends-card";
 import { MonthlyNetCard } from "./-common/components/monthly-net-card";
 import { RecentTransactionsCard } from "./-common/components/recent-transactions-card";
@@ -56,21 +57,28 @@ function RouteComponent() {
   const { monthLabel } = Route.useLoaderData();
 
   return (
-    <FinanceContainer.Root footer={<FinanceContainer.Footer />}>
-      <div className="container mx-auto flex flex-1 flex-col gap-4 p-4">
+    <FinanceContainer.Root
+      header={<AppHeader current="Finances" backTo="/" />}
+      footer={<FinanceContainer.Footer />}
+    >
+      <div className="container mx-auto flex flex-1 flex-col gap-4 p-4 lg:px-0">
+        <h1 className="sr-only">Finances</h1>
         <h2 className="sr-only">{monthLabel}</h2>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+        <Card
+          variant="flat"
+          className="flex flex-col gap-4 border-0 bg-transparent lg:h-96 lg:flex-row lg:gap-px lg:border lg:bg-border"
+        >
           <SummaryNetCard />
-          <UpcomingTransactionsCard />
-        </div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
           <RecentTransactionsCard />
-          <CategorySummaryCard />
-        </div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+          <UpcomingTransactionsCard />
+        </Card>
+        <Card
+          variant="flat"
+          className="flex flex-col gap-4 border-0 bg-transparent lg:flex-row lg:gap-px lg:border lg:bg-border"
+        >
           <MonthlyNetCard />
           <CategoryTrendsCard />
-        </div>
+        </Card>
       </div>
     </FinanceContainer.Root>
   );

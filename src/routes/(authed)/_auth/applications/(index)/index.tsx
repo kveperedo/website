@@ -104,7 +104,7 @@ function RouteComponent() {
         main: "min-h-0 flex-1",
       }}
       header={
-        <ApplicationsHeader current={current}>
+        <ApplicationsHeader view={current}>
           <CreateApplicationDialog />
         </ApplicationsHeader>
       }

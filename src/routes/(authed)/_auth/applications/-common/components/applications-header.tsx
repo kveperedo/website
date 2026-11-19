@@ -1,38 +1,16 @@
 import type { ReactNode } from "react";
 
-import { BackButton } from "@/components/back-button";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  TanstackBreadcrumbLink,
-} from "@/components/ui/breadcrumb";
+import { AppHeader } from "@/components/app-header";
 
 type ApplicationsHeaderProps = {
-  current: "active" | "closed";
+  view: "active" | "closed";
   children?: ReactNode;
 };
 
-export const ApplicationsHeader = ({ current, children }: ApplicationsHeaderProps) => {
-  const backTo = current === "active" ? "/" : "/applications";
-
+export const ApplicationsHeader = ({ view, children }: ApplicationsHeaderProps) => {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex min-w-0 items-center gap-3">
-        <BackButton to={backTo} variant="icon" />
-        <Breadcrumb>
-          <BreadcrumbList className="text-sm font-medium">
-            <BreadcrumbItem>
-              <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbItem>
-              <BreadcrumbPage>Applications</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </div>
+    <AppHeader backTo={view === "active" ? "/" : "/applications"} current="Applications">
       {children}
-    </div>
+    </AppHeader>
   );
 };

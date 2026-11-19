@@ -1,43 +1,97 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+const cardVariants = cva(
+  "group/card flex flex-col rounded-none border bg-card text-xs/relaxed text-card-foreground [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 *:[img:first-child]:rounded-none *:[img:last-child]:rounded-none",
+  {
+    variants: {
+      variant: {
+        default: "gap-(--card-spacing) border-border py-(--card-spacing) shadow-xl backdrop-blur",
+        flat: "gap-0 border-subtle py-0 shadow-none",
+      },
+      size: {
+        default: "",
+        sm: "[--card-spacing:--spacing(3)]",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+);
+
+const cardHeaderVariants = cva(
+  "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-none has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto]",
+  {
+    variants: {
+      variant: {
+        default: "px-(--card-spacing) [.border-b]:pb-(--card-spacing)",
+        flat: "flex items-center border-b border-subtle p-3",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+);
+
+const cardTitleVariants = cva("", {
+  variants: {
+    variant: {
+      default: "text-sm font-medium group-data-[size=sm]/card:text-sm",
+      flat: "text-xs/7 font-medium text-muted-foreground",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
 function Card({
   className,
+  variant = "default",
   size = "default",
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+}: React.ComponentProps<"div"> & VariantProps<typeof cardVariants>) {
   return (
     <div
       data-slot="card"
+      data-variant={variant}
       data-size={size}
-      className={cn(
-        "group/card flex flex-col gap-(--card-spacing) rounded-none border border-border bg-card py-(--card-spacing) text-xs/relaxed text-card-foreground shadow-xl backdrop-blur [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-none *:[img:last-child]:rounded-none",
-        className,
-      )}
+      className={cn(cardVariants({ variant, size, className }))}
       {...props}
     />
   );
 }
 
-function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+function CardHeader({
+  className,
+  variant = "default",
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof cardHeaderVariants>) {
   return (
     <div
       data-slot="card-header"
-      className={cn(
-        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-none px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
-        className,
-      )}
+      data-variant={variant}
+      className={cn(cardHeaderVariants({ variant, className }))}
       {...props}
     />
   );
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+function CardTitle({
+  className,
+  variant = "default",
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof cardTitleVariants>) {
   return (
     <div
       data-slot="card-title"
-      className={cn("text-sm font-medium group-data-[size=sm]/card:text-sm", className)}
+      data-variant={variant}
+      className={cn(cardTitleVariants({ variant, className }))}
       {...props}
     />
   );
