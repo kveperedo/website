@@ -51,7 +51,7 @@ export const ActiveView = ({ applications, highlightedId, onStatusChange }: Acti
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {activeApplications.length === 0 ? (
-        <Card className="flex flex-1 items-center justify-center p-8 shadow-none">
+        <Card variant="flat" className="flex flex-1 items-center justify-center p-8">
           <Empty>
             <EmptyHeader>
               <EmptyTitle>
@@ -78,7 +78,7 @@ export const ActiveView = ({ applications, highlightedId, onStatusChange }: Acti
           </Empty>
         </Card>
       ) : (
-        <Card className="flex min-h-0 flex-1 flex-col gap-0 border-subtle py-0 shadow-none">
+        <Card variant="flat" className="flex min-h-0 flex-1 flex-col">
           <div className="flex min-h-0 flex-1 flex-col divide-y divide-border lg:flex-row lg:divide-x lg:divide-y-0">
             {activeGroups.map((group) => (
               <ApplicationBoardColumn

@@ -54,6 +54,10 @@ export async function resetTestData() {
   await getDb().$transaction(clearTestData);
 }
 
+export async function resetFinancePreferences() {
+  await getDb().financePreferences.deleteMany();
+}
+
 export type E2EFixtureInput = {
   description: string;
   amount: number;

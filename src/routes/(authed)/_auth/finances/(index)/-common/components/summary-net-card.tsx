@@ -3,13 +3,17 @@ import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
 import { useOptimistic, useState, useTransition } from "react";
 
 import { setHideSummaryCardAmountsFn } from "@/app/finance/preferences/preferences.functions";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 import { Route } from "../..";
-import { TRANSACTION_TYPE_COLORS } from "../../../-common/constants";
+import {
+  CATEGORY_CHART_COLORS,
+  CATEGORY_LABELS,
+  TRANSACTION_TYPE_COLORS,
+} from "../../../-common/constants";
 import { getExpenseProgress } from "../expense-progress";
 import { formatAmount } from "../format-amount";
 import { AmountsVisibilityToggle } from "./amounts-visibility";
@@ -220,7 +224,9 @@ function PaceComparison({ hideAmounts }: AmountVisibilityProps) {
 
   return (
     <>
-      <Separator />
+      <div className="-mx-3">
+        <Separator />
+      </div>
       {renderPaceMessage()}
       <div
         data-testid="pace-history"
@@ -239,6 +245,72 @@ function PaceComparison({ hideAmounts }: AmountVisibilityProps) {
             )}
           </span>
         ))}
+      </div>
+    </>
+  );
+}
+
+function SpendingBreakdown({ hideAmounts }: AmountVisibilityProps) {
+  const {
+    financeDashboard: { categorySummary },
+  } = Route.useLoaderData();
+
+  if (categorySummary.length === 0) {
+    return (
+      <>
+        <div className="-mx-3">
+          <Separator />
+        </div>
+        <div data-testid="category-summary-card">
+          <p className="text-xs text-muted-foreground">No expenses recorded this month.</p>
+        </div>
+      </>
+    );
+  }
+
+  const total = categorySummary.reduce((sum, item) => sum + item.total, 0);
+  const items = categorySummary.map((item) => ({
+    label: CATEGORY_LABELS[item.category],
+    color: CATEGORY_CHART_COLORS[item.category],
+    amount: formatAmount(item.total, { hidden: hideAmounts, compact: true }),
+    percent: total > 0 ? (item.total / total) * 100 : 0,
+  }));
+
+  return (
+    <>
+      <div className="-mx-3">
+        <Separator />
+      </div>
+      <div data-testid="category-summary-card" className="flex flex-col gap-2">
+        <h3 className="sr-only">Spending breakdown</h3>
+        <div
+          role="img"
+          aria-label="Spending by category"
+          className="flex h-2.5 w-full overflow-hidden bg-muted"
+        >
+          {items.map((item) => (
+            <div
+              key={item.label}
+              style={{ width: `${item.percent}%`, backgroundColor: item.color }}
+              title={`${item.label}: ${item.amount}`}
+            />
+          ))}
+        </div>
+        <ul className="grid grid-cols-1 gap-x-3 gap-y-1 lg:grid-cols-2">
+          {items.map((item) => (
+            <li key={item.label} className="flex min-w-0 items-center gap-1.5 text-xxs">
+              <span
+                aria-hidden
+                className="size-1.5 shrink-0"
+                style={{ backgroundColor: item.color }}
+              />
+              <span className="min-w-0 truncate text-muted-foreground">{item.label}</span>
+              <span className="ml-auto shrink-0 font-mono text-muted-foreground">
+                {item.amount}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </>
   );
@@ -273,18 +345,23 @@ export const SummaryNetCard = () => {
   };
 
   return (
-    <Card data-testid="summary-net-card" size="sm" className="min-w-0 flex-1">
-      <CardContent className="flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-muted-foreground">
-            Your <span className="text-foreground">{current.label}</span> finances so far
-          </CardTitle>
-          <AmountsVisibilityToggle
-            hideAmounts={hideAmounts}
-            onToggle={toggleAmounts}
-            isPending={isPending}
-          />
-        </div>
+    <Card
+      data-testid="summary-net-card"
+      size="sm"
+      variant="flat"
+      className="min-w-0 flex-1 lg:min-h-0 lg:border-0"
+    >
+      <CardHeader variant="flat" className="justify-between gap-2">
+        <CardTitle variant="flat">
+          Your <span className="text-foreground">{current.label}</span> finances so far
+        </CardTitle>
+        <AmountsVisibilityToggle
+          hideAmounts={hideAmounts}
+          onToggle={toggleAmounts}
+          isPending={isPending}
+        />
+      </CardHeader>
+      <CardContent className="flex min-h-0 flex-col gap-2 p-3 lg:overflow-y-auto">
         {isEmpty ? (
           <Empty>
             <EmptyHeader>
@@ -299,6 +376,7 @@ export const SummaryNetCard = () => {
             <PaceComparison hideAmounts={hideAmounts} />
           </>
         )}
+        <SpendingBreakdown hideAmounts={hideAmounts} />
       </CardContent>
     </Card>
   );

@@ -9,6 +9,7 @@ import type { ApplicationFields } from "@/app/applications/applications.schema";
 
 import { createApplicationFn } from "@/app/applications/applications.functions";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogDescription,
@@ -86,7 +87,7 @@ export const CreateApplicationPanel = () => {
 
   return (
     <aside className="hidden w-72 shrink-0 xl:block 2xl:w-80">
-      <div className="flex max-h-full flex-col gap-3 overflow-y-auto border border-border/50 bg-card p-4">
+      <Card variant="flat" className="max-h-full gap-3 overflow-y-auto p-4">
         <p className="shrink-0 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           Add application
         </p>
@@ -103,7 +104,7 @@ export const CreateApplicationPanel = () => {
           {isSaving && <Spinner data-icon="inline-start" />}
           Add application
         </Button>
-      </div>
+      </Card>
     </aside>
   );
 };

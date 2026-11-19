@@ -42,12 +42,12 @@ export const TransactionList = ({
     <GridList
       items={transactions}
       aria-label={label}
-      className="w-full gap-0 text-sm"
+      className="w-full gap-0 divide-y divide-subtle text-sm"
       onAction={(id) =>
         router.navigate({
           to: "/finances/transactions/$id",
           params: { id: String(id) },
-          search: transactionSearch,
+          search: (current) => ({ ...transactionSearch, ...current }),
         })
       }
     >
@@ -63,13 +63,13 @@ export const TransactionList = ({
             data-transaction-id={transaction.id}
             textValue={`${format(transaction.transactedAt, "MMMM d")}, ${transaction.description}, ${amount}`}
             className={cn(
-              "grid grid-cols-[1fr_7rem] border-l-2 odd:bg-muted/30",
+              "grid grid-cols-[1fr_7rem] border-l-2 px-3 py-3 transition-colors",
               category ? CATEGORY_COLORS[category]?.border : "border-l-transparent",
-              "cursor-pointer hover:bg-muted/50 focus-visible:bg-muted/50",
+              "cursor-pointer hover:bg-muted/20 focus-visible:bg-muted/20",
             )}
           >
-            <GridListCell className="pr-4 pl-2 text-foreground">
-              <div className="flex min-h-10 items-center gap-3 py-1">
+            <GridListCell className="pr-3 text-foreground">
+              <div className="flex min-h-8 items-center gap-3">
                 <span className="w-5 shrink-0 text-right font-mono text-xs text-muted-foreground">
                   {format(transaction.transactedAt, "dd")}
                 </span>
@@ -96,7 +96,7 @@ export const TransactionList = ({
             </GridListCell>
             <GridListCell
               className={cn(
-                "self-center pr-4 text-right font-mono text-xs font-medium whitespace-nowrap",
+                "self-center text-right font-mono text-xs font-medium whitespace-nowrap",
                 transaction.type === "income"
                   ? TRANSACTION_TYPE_COLORS.income
                   : TRANSACTION_TYPE_COLORS.expense,

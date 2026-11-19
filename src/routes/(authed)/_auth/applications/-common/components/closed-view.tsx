@@ -65,7 +65,7 @@ export const ClosedView = ({ applications, highlightedId, onStatusChange }: Clos
   const closedTotal = closedApplications.length;
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col gap-0 border-subtle py-0 shadow-none">
+    <Card variant="flat" className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 flex-col gap-3 border-b border-subtle bg-card p-3 lg:flex-row lg:items-center lg:justify-between">
         <ClosedTabs filter={filter} onFilterChange={setFilter} />
         <ClosedToolbar query={query} onQueryChange={setQuery} sort={sort} onSortChange={setSort} />

@@ -4,7 +4,7 @@ import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import path from "node:path";
 
 import { gotoAndWaitForHydration } from "../helpers/auth";
-import { seedTrendsData } from "../helpers/database";
+import { resetFinancePreferences, seedTrendsData, setCategoryTrends } from "../helpers/database";
 
 test.describe.configure({ mode: "serial" });
 
@@ -38,11 +38,22 @@ function waitForPreferenceUpdate(page: Page, predicate: (body: string) => boolea
   });
 }
 
-function excludesFoodAndDrinks(body: string) {
-  return !body.includes("food_drinks") && body.includes("transportation");
-}
+const ALL_CATEGORIES = [
+  "food_drinks",
+  "groceries_household",
+  "transportation",
+  "bills_utilities",
+  "health_wellness",
+  "hobbies_lifestyle",
+  "financial",
+];
+const WITHOUT_FOOD_AND_DRINKS = ALL_CATEGORIES.filter((category) => category !== "food_drinks");
 
 test.describe("category trends card", () => {
+  test.beforeEach(async ({ page }) => {
+    await resetFinancePreferences(page);
+  });
+
   test("dashboard shows the category trends card", async ({ page }) => {
     await gotoAndWaitForHydration(page, "/finances");
 
@@ -71,55 +82,46 @@ test.describe("category trends card", () => {
   test("category trends filter shows an empty state and can restore all categories", async ({
     page,
   }) => {
+    await setCategoryTrends(page, []);
     await gotoAndWaitForHydration(page, "/finances");
 
     const card = page.getByTestId("category-trends-card");
-    await card.getByRole("button", { name: "Filter" }).click();
-    await page.getByRole("menuitem", { name: "Deselect all" }).click();
-
-    await expect(page.getByRole("menu")).toBeVisible();
     await expect(card.getByText("No categories selected.")).toBeVisible();
     await expect(card.locator(".recharts-line")).toHaveCount(0);
 
-    await page.keyboard.press("Escape");
+    const persistedAllCategories = waitForPreferenceUpdate(
+      page,
+      (body) => body.includes("food_drinks") && body.includes("bills_utilities"),
+    );
     await card.getByRole("button", { name: "Select all categories" }).click();
+    await persistedAllCategories;
     await expect(card.locator(".recharts-line")).toHaveCount(7);
     await expect(card.getByText("No categories selected.")).toHaveCount(0);
   });
 
-  test("category trends filter toggles individual series and legend labels", async ({ page }) => {
+  test("category trends renders only the selected series and legend labels", async ({ page }) => {
+    await setCategoryTrends(page, WITHOUT_FOOD_AND_DRINKS);
     await gotoAndWaitForHydration(page, "/finances");
 
     const card = page.getByTestId("category-trends-card");
     const legend = page.getByTestId("category-trends-legend");
-    await card.getByRole("button", { name: "Filter" }).click();
-    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
-
     await expect(card.locator(".recharts-line")).toHaveCount(6);
     await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
     await expect(legend.getByText("Transport", { exact: true })).toBeVisible();
 
-    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
+    await setCategoryTrends(page, ALL_CATEGORIES);
+    await gotoAndWaitForHydration(page, "/finances");
     await expect(card.locator(".recharts-line")).toHaveCount(7);
     await expect(legend.getByText("Food & Drinks", { exact: true })).toBeVisible();
   });
 
-  test("category trends filter persists selected categories after reload", async ({ page }) => {
+  test("category trends selection persists after reload", async ({ page }) => {
+    await setCategoryTrends(page, WITHOUT_FOOD_AND_DRINKS);
     await gotoAndWaitForHydration(page, "/finances");
 
-    const card = page.getByTestId("category-trends-card");
     const legend = page.getByTestId("category-trends-legend");
-    await card.getByRole("button", { name: "Filter" }).click();
-    await page.getByRole("menuitem", { name: "Deselect all" }).click();
-    await page.keyboard.press("Escape");
-    await card.getByRole("button", { name: "Select all categories" }).click();
-    await card.getByRole("button", { name: "Filter" }).click();
-    const persistedSelection = waitForPreferenceUpdate(page, excludesFoodAndDrinks);
-    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
-
     await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
     await expect(legend.getByText("Transport", { exact: true })).toBeVisible();
-    await persistedSelection;
 
     await gotoAndWaitForHydration(page, "/finances");
 
@@ -128,26 +130,14 @@ test.describe("category trends card", () => {
   });
 
   test("category trends selection persists when leaving the dashboard", async ({ page }) => {
+    await setCategoryTrends(page, WITHOUT_FOOD_AND_DRINKS);
     await gotoAndWaitForHydration(page, "/finances");
 
-    const card = page.getByTestId("category-trends-card");
     const legend = page.getByTestId("category-trends-legend");
     const navigation = page.getByRole("navigation", { name: "Finance navigation" });
-    await card.getByRole("button", { name: "Filter" }).click();
-    await page.getByRole("menuitem", { name: "Deselect all" }).click();
-    await page.keyboard.press("Escape");
-    const persistedBaseline = waitForPreferenceUpdate(page, (body) => body.includes("food_drinks"));
-    await card.getByRole("button", { name: "Select all categories" }).click();
-    await persistedBaseline;
-    await page.clock.install();
-    await card.getByRole("button", { name: "Filter" }).click();
-    await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
-
     await expect(legend.getByText("Food & Drinks", { exact: true })).toHaveCount(0);
-    await page.keyboard.press("Escape");
-    const persistedSelection = waitForPreferenceUpdate(page, excludesFoodAndDrinks);
+
     await navigation.getByRole("link", { name: "Transactions", exact: true }).click();
-    await persistedSelection;
     await expect(page).toHaveURL(/\/finances\/transactions$/);
     await navigation.getByRole("link", { name: "Dashboard", exact: true }).click();
     await expect(page).toHaveURL(/\/finances$/);

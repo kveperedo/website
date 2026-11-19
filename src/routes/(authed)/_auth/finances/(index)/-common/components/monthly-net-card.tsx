@@ -42,13 +42,17 @@ export const MonthlyNetCard = () => {
   const isEmpty = monthlyNet.length === 0;
 
   return (
-    <Card data-testid="monthly-net-card" className={cn("flex-1 gap-0 py-0", isEmpty && "pt-6")}>
+    <Card
+      data-testid="monthly-net-card"
+      variant="flat"
+      className={cn("flex-1 lg:border-0", isEmpty && "pt-6")}
+    >
       {!isEmpty && (
-        <CardHeader className="px-4 py-4">
-          <CardTitle className="text-muted-foreground">Monthly net</CardTitle>
+        <CardHeader variant="flat">
+          <CardTitle variant="flat">Monthly net</CardTitle>
         </CardHeader>
       )}
-      <CardContent className="flex flex-col p-0 sm:min-h-0 sm:flex-1">
+      <CardContent className="flex flex-col pt-3 pb-0 lg:min-h-0 lg:flex-1">
         {isEmpty ? (
           <div className="px-6 pt-2 pb-6 md:px-8">
             <Empty>
@@ -66,7 +70,7 @@ export const MonthlyNetCard = () => {
             <ChartContainer
               data-testid="monthly-net-chart"
               config={NET_CHART_CONFIG}
-              className="aspect-auto h-60 w-full px-4 pb-4 sm:h-auto sm:min-h-0 sm:flex-1"
+              className="aspect-auto h-60 w-full px-4 pb-4 lg:h-auto lg:min-h-0 lg:flex-1"
               initialDimension={{ width: 320, height: 350 }}
             >
               <BarChart

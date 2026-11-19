@@ -222,6 +222,8 @@ test.describe("transactions", () => {
       "aria-checked",
       "true",
     );
+    await expect(page.getByRole("row", { name: /Client dinner/ })).toBeVisible();
+
     await page.keyboard.press("Escape");
 
     const listUrl = page.url();
