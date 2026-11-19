@@ -14,7 +14,7 @@ The personal website for [Kevin Von Erich Peredo](https://kevinperedo.com). It i
 
 - Node.js 22+
 - pnpm
-- A PostgreSQL database
+- Docker (for the local PostgreSQL database)
 
 ## Local Development
 
@@ -24,9 +24,16 @@ Install dependencies, create your local environment file, generate the Prisma cl
 pnpm install
 cp .env.example .env
 pnpm run db:generate
+pnpm run db:local:up
 pnpm run db:deploy
 pnpm run dev
 ```
+
+`pnpm run db:local:up` starts a PostgreSQL 17 container with pgvector on port
+5433 and waits for it to be healthy. Run `pnpm run db:deploy` to apply
+migrations. The connection strings in `.env.example` already point at it.
+pgvector is required by the transaction-memory migration. Use
+`pnpm run db:local:down` to stop the database.
 
 The site is available at [http://localhost:3000](http://localhost:3000).
 
@@ -67,7 +74,7 @@ keeps server-only code out of client bundles.
 
 ## Database
 
-The project uses Prisma with PostgreSQL. Workers connect through Cloudflare Hyperdrive; Prisma CLI commands connect directly through `DATABASE_URL`. Generate the client after dependency or schema changes, then use the appropriate migration command for the environment.
+The project uses Prisma with PostgreSQL. Workers connect through Cloudflare Hyperdrive; Prisma CLI commands connect directly through `DATABASE_URL`. Locally, `cf dev` simulates the Hyperdrive binding using `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`, which points at the Compose database. Deployed Workers keep using the `HYPERDRIVE` binding in `cloudflare.config.ts`. Generate the client after dependency or schema changes, then use the appropriate migration command for the environment.
 
 ```bash
 # Generate Prisma client and Zod schemas
@@ -94,12 +101,17 @@ pnpm run typecheck
 pnpm run test
 ```
 
-Run E2E tests against a running local server:
+Run E2E tests against a running local server and the local Compose database:
 
 ```bash
+pnpm run db:local:up
+pnpm run db:deploy
 pnpm run dev
 pnpm run test:e2e
 ```
+
+Local E2E resets and seeds the local database. CI E2E instead runs against the
+deployed Preview Worker and its remote database.
 
 ## Build And Deploy
 

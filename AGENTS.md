@@ -4,6 +4,7 @@
 
 - **pnpm** (lockfile is `pnpm-lock.yaml`)
 - `pnpm run dev` — `CLOUDFLARE_PREVIEW_BUILD=true cf dev`; port 3000 and `--host` live in `vite.config.ts` because `cf dev` forwards no extra arguments to Vite. That env var is what makes local dev take the `ctx.isPreview` config branch — without it `E2E_PASSWORD` is undeclared, `isE2EAvailable()` is false, and `/api/e2e` answers 404.
+- `pnpm run db:local:up` — starts the local Postgres container and waits for health; run `pnpm run db:deploy` afterwards to apply migrations. `db:local:down` stops it.
 - `pnpm run lint` / `pnpm run format:check` — pre-commit runs both
 - `pnpm run db:generate` → `pnpm run db:deploy` — required before build if schema changed
 - `pnpm run test` — Vitest unit tests
