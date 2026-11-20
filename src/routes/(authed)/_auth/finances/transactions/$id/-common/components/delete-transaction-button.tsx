@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 
 import { deleteTransactionFn } from "@/app/finance/transactions/transactions.functions";
@@ -42,8 +43,14 @@ export const DeleteTransactionButton = () => {
 
   return (
     <AlertDialogTrigger>
-      <Button variant="destructive" isDisabled={isDeleting}>
-        Delete Transaction
+      <Button
+        variant="destructive"
+        size="sm"
+        aria-label="Delete Transaction"
+        isDisabled={isDeleting}
+      >
+        <Trash2Icon data-icon="inline-start" />
+        Delete
       </Button>
       <AlertDialog>
         <AlertDialogHeader>

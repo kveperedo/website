@@ -130,7 +130,7 @@ function TypeField<TFieldValues extends FieldValues>({
           <RadioGroup
             value={typeField.value}
             onChange={typeField.onChange}
-            className="flex gap-4"
+            className="flex h-8 items-center gap-4"
             isDisabled={isDisabled}
           >
             <div className="flex items-center gap-2">

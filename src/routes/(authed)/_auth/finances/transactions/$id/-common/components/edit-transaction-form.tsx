@@ -1,10 +1,12 @@
+import type { ReactNode } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import type { TransactionCategory } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
 
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import { TransactionInputSchema } from "@/generated/zod/schemas/variants/input/Transaction.input";
 import {
@@ -28,9 +30,10 @@ export type EditFormData = z.infer<typeof editFormSchema>;
 
 type EditTransactionFormProps = {
   onSubmit: (data: EditFormData) => Promise<void>;
+  actions?: ReactNode;
 };
 
-function EditTransactionForm({ onSubmit }: EditTransactionFormProps) {
+function EditTransactionForm({ onSubmit, actions }: EditTransactionFormProps) {
   const { transaction } = Route.useLoaderData();
 
   const {
@@ -62,32 +65,47 @@ function EditTransactionForm({ onSubmit }: EditTransactionFormProps) {
   };
 
   return (
-    <form
-      id={FORM_ID}
-      onSubmit={handleSubmit(handleSave)}
-      className="flex h-full w-full flex-col gap-6 self-stretch"
-    >
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto sm:flex-row sm:items-start">
-        <Card className="flex flex-1 flex-col gap-5 p-5">
-          <FieldGroup>
-            <DescriptionField control={control} name="description" />
-            <AmountField control={control} name="amount" />
-            <DateField control={control} name="transactedAt" />
-          </FieldGroup>
-
-          <TypeField control={control} name="type" />
-
-          {watchType === "expense" && <CategoryField control={control} name="category" />}
+    <form id={FORM_ID} onSubmit={handleSubmit(handleSave)} className="flex w-full flex-col gap-4">
+      <Card
+        variant="flat"
+        className="flex flex-col gap-4 border-0 bg-transparent lg:flex-row lg:gap-px lg:border lg:bg-border"
+      >
+        <Card variant="flat" className="flex min-w-0 flex-1 flex-col lg:border-0">
+          <CardHeader variant="flat" className="justify-between gap-2">
+            <CardTitle variant="flat">Transaction details</CardTitle>
+            <DeleteTransactionButton />
+          </CardHeader>
+          <CardContent className="p-3">
+            <FieldGroup className="gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <div className="min-w-0 sm:flex-[6]">
+                  <DescriptionField control={control} name="description" />
+                </div>
+                <div className="min-w-0 sm:flex-[4]">
+                  <AmountField control={control} name="amount" />
+                </div>
+              </div>
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <div className="min-w-0 sm:flex-[5]">
+                  <DateField control={control} name="transactedAt" />
+                </div>
+                <div className="min-w-0 sm:flex-[5]">
+                  <TypeField control={control} name="type" />
+                </div>
+              </div>
+              {watchType === "expense" && <CategoryField control={control} name="category" />}
+            </FieldGroup>
+          </CardContent>
+          {actions && <CardFooter className="justify-end gap-2 p-3">{actions}</CardFooter>}
         </Card>
-        <div className="flex flex-col gap-4 sm:shrink-0 sm:basis-xs">
+        <div className="lg:w-xs lg:shrink-0">
           {transaction.template ? (
             <ScheduledTransactionCard />
           ) : (
             <CreateScheduleCard transactedAt={new Date(watchTransactedAt)} isDisabled={isDirty} />
           )}
-          <DeleteTransactionButton />
         </div>
-      </div>
+      </Card>
     </form>
   );
 }

@@ -87,12 +87,12 @@ export const CreateScheduleCard = ({ isDisabled, transactedAt }: CreateScheduleC
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recurring schedule</CardTitle>
-        <CardDescription>Create a monthly schedule from this transaction.</CardDescription>
+    <Card variant="flat" className="h-full lg:border-0">
+      <CardHeader variant="flat">
+        <CardTitle variant="flat">Recurring schedule</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-2">
+      <CardContent className="flex flex-col gap-2 p-3">
+        <CardDescription>Create a monthly schedule from this transaction.</CardDescription>
         <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
           <Button variant="outline" isDisabled={isDisabled || isCreating}>
             Make recurring

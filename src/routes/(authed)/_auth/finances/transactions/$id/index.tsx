@@ -7,6 +7,8 @@ import {
   getTransactionByIdFn,
   updateTransactionFn,
 } from "@/app/finance/transactions/transactions.functions";
+import { AppHeader } from "@/components/app-header";
+import { BreadcrumbItem, BreadcrumbPage, TanstackBreadcrumbLink } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
@@ -85,25 +87,42 @@ function RouteComponent() {
 
   return (
     <FinanceContainer.Root
-      footer={
-        <div className="container mx-auto flex h-16 items-center justify-end gap-4 px-4">
-          <Button variant="secondary" className="flex-1 sm:flex-none" onPress={handleBack}>
-            Cancel
-          </Button>
-          <Button
-            className="flex-1 sm:flex-none"
-            type="submit"
-            form={FORM_ID}
-            isDisabled={isSaving}
-          >
-            {isSaving && <Spinner data-icon="inline-start" />}
-            Save Changes
-          </Button>
-        </div>
+      classNames={{ root: "flex flex-col lg:h-dvh lg:overflow-hidden", main: "min-h-0 flex-1" }}
+      header={
+        <AppHeader>
+          <BreadcrumbItem>
+            <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <TanstackBreadcrumbLink to="/finances">Finances</TanstackBreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Edit Transaction</BreadcrumbPage>
+          </BreadcrumbItem>
+        </AppHeader>
       }
     >
-      <div className="container mx-auto flex h-full flex-1 flex-col items-center justify-center p-4 sm:py-8">
-        <EditTransactionForm onSubmit={handleSubmit} />
+      <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col items-center justify-center gap-4 p-4 sm:px-0">
+        <h1 className="sr-only">Edit transaction</h1>
+        <EditTransactionForm
+          onSubmit={handleSubmit}
+          actions={
+            <>
+              <Button variant="secondary" className="flex-1 sm:flex-none" onPress={handleBack}>
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 sm:flex-none"
+                type="submit"
+                form={FORM_ID}
+                isDisabled={isSaving}
+              >
+                {isSaving && <Spinner data-icon="inline-start" />}
+                Save Changes
+              </Button>
+            </>
+          }
+        />
       </div>
     </FinanceContainer.Root>
   );

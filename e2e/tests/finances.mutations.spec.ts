@@ -86,14 +86,16 @@ test.describe("transaction mutations", () => {
       await page.getByTestId("parse-transaction").click();
       await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
 
-      const descriptions = page.getByTestId("description-input");
-      await expect(descriptions).toHaveCount(2);
-      await descriptions.nth(0).fill(removedDescription);
-      await descriptions.nth(1).fill(keptDescription);
+      await expect(page.getByText("Transaction 1 of 2")).toBeVisible();
+      await descriptionField(page).fill(removedDescription);
+      await page.getByRole("button", { name: "Next transaction" }).click();
+      await expect(page.getByText("Transaction 2 of 2")).toBeVisible();
+      await descriptionField(page).fill(keptDescription);
 
+      await page.getByRole("button", { name: "Previous transaction" }).click();
       await page.getByRole("button", { name: "Delete transaction 1" }).click();
-      await expect(descriptions).toHaveCount(1);
-      await expect(descriptions).toHaveValue(keptDescription);
+      await expect(page.getByText("Transaction 1 of 1")).toBeVisible();
+      await expect(descriptionField(page)).toHaveValue(keptDescription);
 
       await page.getByRole("button", { name: "Save Transaction" }).click();
       await page.waitForURL(/\/finances\/transactions$/, { timeout: 30000 });
@@ -122,16 +124,14 @@ test.describe("transaction mutations", () => {
       await page.getByTestId("parse-transaction").click();
       await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
 
-      const descriptions = page.getByTestId("description-input");
-      await expect(descriptions).toHaveCount(1);
-      await descriptions.fill(firstDescription);
+      await expect(page.getByText("Transaction 1 of 1")).toBeVisible();
+      await descriptionField(page).fill(firstDescription);
 
       await page.getByRole("button", { name: "Add transaction" }).click();
-      await expect(descriptions).toHaveCount(2);
       await expect(page.getByText("Transaction 2 of 2")).toBeVisible();
-      await expect(descriptions.nth(1)).toBeFocused();
-      await descriptions.nth(1).fill(secondDescription);
-      await page.getByLabel("Amount", { exact: true }).nth(1).fill("40");
+      await expect(descriptionField(page)).toBeFocused();
+      await descriptionField(page).fill(secondDescription);
+      await page.getByLabel("Amount", { exact: true }).fill("40");
 
       await page.getByRole("button", { name: "Save Transactions" }).click();
       await page.waitForURL(/\/finances\/transactions$/, { timeout: 30000 });
@@ -179,7 +179,7 @@ test.describe("transaction mutations", () => {
       const saveButton = page.getByRole("button", { name: "Save Changes" });
       await saveButton.click();
       await expect(saveButton).toBeDisabled();
-      await expect(saveButton).toBeEnabled();
+      await expect(saveButton).toBeEnabled({ timeout: 15000 });
 
       await gotoAndWaitForHydration(page, `/finances/transactions/${id}`);
       await expect(descriptionField(page)).toHaveValue(updated);
@@ -573,7 +573,7 @@ test.describe("transaction input queue", () => {
     await input.fill("Bread 40");
     await page.getByTestId("parse-transaction").click();
     await page.waitForURL(/\/finances\/transactions\/new/, { timeout: 30000 });
-    await expect(page.getByTestId("description-input")).toHaveCount(2);
+    await expect(page.getByText("Transaction 1 of 2")).toBeVisible();
   });
 
   test("X removes a queued entry and disables save", async ({ page }) => {

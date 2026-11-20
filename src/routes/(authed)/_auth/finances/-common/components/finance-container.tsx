@@ -26,9 +26,9 @@ const ROUTE_DETAILS = {
 
 export type FinanceContainerProps = AppContainerProps;
 
-const FinanceContainerRoot = ({ header, footer, children }: FinanceContainerProps) => {
+const FinanceContainerRoot = ({ header, footer, children, classNames }: FinanceContainerProps) => {
   return (
-    <AppContainer header={header} footer={footer}>
+    <AppContainer header={header} footer={footer} classNames={classNames}>
       {children}
     </AppContainer>
   );

@@ -9,6 +9,7 @@ import {
 } from "@/app/finance/scheduled/scheduled.functions";
 import { getRecentTransactionsFn } from "@/app/finance/transactions/transactions.functions";
 import { AppHeader } from "@/components/app-header";
+import { BreadcrumbItem, BreadcrumbPage, TanstackBreadcrumbLink } from "@/components/ui/breadcrumb";
 import { Card } from "@/components/ui/card";
 import { TIME_ZONE } from "@/lib/date-only";
 
@@ -58,7 +59,16 @@ function RouteComponent() {
 
   return (
     <FinanceContainer.Root
-      header={<AppHeader current="Finances" backTo="/" />}
+      header={
+        <AppHeader>
+          <BreadcrumbItem>
+            <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Finances</BreadcrumbPage>
+          </BreadcrumbItem>
+        </AppHeader>
+      }
       footer={<FinanceContainer.Footer />}
     >
       <div className="container mx-auto flex flex-1 flex-col gap-4 p-4 lg:px-0">
