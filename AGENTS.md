@@ -47,6 +47,11 @@
 - Short and clipped — fragments over sentences, grammar sacrificed for brevity.
 - Skip the obvious. Keep comments for intent, constraints, and non-obvious workarounds.
 
+## Naming
+
+- Variables and functions must be descriptive enough that their purpose is obvious at the call site — no guessing. `goTo` is vague; `setActiveTransaction` says what it changes.
+- Prefer names tied to the domain concept over generic helpers (`data`, `item`, `handler`, `flag`).
+
 ## Backend Modules
 
 - `src/app/<domain>/` is organized by business domain; the full conventions live in `src/app/README.md`
@@ -68,7 +73,7 @@
 - **Tailwind CSS 4** — theme tokens in `src/styles.css`; dark base with neon accents
 - Numbers (finance amounts, day badges, chart ticks, progress values, application dates) use `font-mono`; other text uses the base `font-sans` alias
 - `cn()` from `@/lib/utils` (clsx + tailwind-merge); `cva` from `class-variance-authority` for multi-variant components
-- **react-aria-components** for interactive primitives: Button, Input, Separator, Accordion, Popover, Calendar
+- **react-aria-components** for interactive primitives: Button, Input, Separator, Accordion, Popover, Calendar. Import the styled wrapper from `src/components/ui/` when styling is needed; import the primitive directly from `react-aria-components` when an unstyled element is needed (e.g. `Button`)
 - Lucide React for icons; shadcn/ui components in `src/components/ui/`
 - `components.json` configures the shadcn registry
 - `@tailwindcss/typography` plugin and `tw-animate-css` imported in styles
