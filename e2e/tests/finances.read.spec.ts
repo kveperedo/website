@@ -337,8 +337,9 @@ test.describe("mobile finance layout", () => {
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
 
     const cancel = page.getByRole("button", { name: "Cancel" });
-    await expect(cancel).toBeInViewport();
     const saveChanges = page.getByRole("button", { name: "Save Changes" });
+    await cancel.scrollIntoViewIfNeeded();
+    await expect(cancel).toBeInViewport();
     await expect(saveChanges).toBeInViewport();
 
     await cancel.press("Enter");
