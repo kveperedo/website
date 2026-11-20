@@ -7,6 +7,8 @@ import type { FileRouteTypes } from "@/routeTree.gen";
 
 import { createTransactionsFn } from "@/app/finance/transactions/transactions.functions";
 import { ParsedTransactionSchema } from "@/app/finance/transactions/transactions.schema";
+import { AppHeader } from "@/components/app-header";
+import { BreadcrumbItem, BreadcrumbPage, TanstackBreadcrumbLink } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -83,28 +85,43 @@ function RouteComponent() {
 
   return (
     <FinanceContainer.Root
-      footer={
-        <div className="container mx-auto flex h-16 items-center justify-end gap-4 px-4">
-          <Button variant="secondary" className="flex-1 sm:flex-none" onPress={handleBack}>
-            Cancel
-          </Button>
-          <Button
-            className="flex-1 sm:flex-none"
-            type="submit"
-            form={FORM_ID}
-            isDisabled={isSaving || transactionCount === 0}
-          >
-            {isSaving && <Spinner data-icon="inline-start" />}
-            Save {transactionCount > 1 ? "Transactions" : "Transaction"}
-          </Button>
-        </div>
+      classNames={{ root: "flex flex-col lg:h-dvh lg:overflow-hidden", main: "min-h-0 flex-1" }}
+      header={
+        <AppHeader>
+          <BreadcrumbItem>
+            <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <TanstackBreadcrumbLink to="/finances">Finances</TanstackBreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbPage>New Transaction</BreadcrumbPage>
+          </BreadcrumbItem>
+        </AppHeader>
       }
     >
-      <div className="container mx-auto flex h-full flex-1 flex-col items-center justify-center p-6 sm:px-4 sm:py-8">
+      <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col items-center justify-center gap-4 p-4 sm:px-0">
+        <h1 className="sr-only">New Transaction</h1>
         <TransactionForm
           transactions={transactions}
           onSubmit={handleSubmit}
           onCountChange={setTransactionCount}
+          actions={
+            <>
+              <Button variant="secondary" className="flex-1 sm:flex-none" onPress={handleBack}>
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 sm:flex-none"
+                type="submit"
+                form={FORM_ID}
+                isDisabled={isSaving || transactionCount === 0}
+              >
+                {isSaving && <Spinner data-icon="inline-start" />}
+                Save {transactionCount > 1 ? "Transactions" : "Transaction"}
+              </Button>
+            </>
+          }
         />
       </div>
     </FinanceContainer.Root>
