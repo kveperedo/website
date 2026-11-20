@@ -10,11 +10,12 @@ import {
   getApplicationsFn,
 } from "@/app/applications/applications.functions";
 import { AppContainer } from "@/components/app-container";
+import { AppHeader } from "@/components/app-header";
+import { BreadcrumbItem, BreadcrumbPage, TanstackBreadcrumbLink } from "@/components/ui/breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { dateOnlyToDatabaseDate, todayDateOnly } from "@/lib/date-only";
 
 import { ActiveView } from "../-common/components/active-view";
-import { ApplicationsHeader } from "../-common/components/applications-header";
 import { ClosedView } from "../-common/components/closed-view";
 import {
   CreateApplicationDialog,
@@ -104,9 +105,14 @@ function RouteComponent() {
         main: "min-h-0 flex-1",
       }}
       header={
-        <ApplicationsHeader view={current}>
-          <CreateApplicationDialog />
-        </ApplicationsHeader>
+        <AppHeader trailingElement={<CreateApplicationDialog />}>
+          <BreadcrumbItem>
+            <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Applications</BreadcrumbPage>
+          </BreadcrumbItem>
+        </AppHeader>
       }
     >
       <div className="container mx-auto flex min-h-0 flex-1 flex-col gap-4 p-4 lg:px-0">
