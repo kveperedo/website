@@ -8,138 +8,140 @@ const APPLICATIONS_FIXTURES_URL = "/api/e2e/applications";
 export type ApplicationStatus = "saved" | "applied" | "offer" | "rejected" | "withdrawn";
 
 export type ApplicationInput = {
-  position: string;
-  company: string;
-  link?: string;
-  notes?: string;
+    position: string;
+    company: string;
+    link?: string;
+    notes?: string;
 };
 
 const STATUS_LABELS: Record<ApplicationStatus, string> = {
-  saved: "Saved",
-  applied: "Applied",
-  offer: "Offer",
-  rejected: "Rejected",
-  withdrawn: "Withdrawn",
+    saved: "Saved",
+    applied: "Applied",
+    offer: "Offer",
+    rejected: "Rejected",
+    withdrawn: "Withdrawn",
 };
 
 /** A board card or closed row, scoped by the company shown in its heading. */
 export const applicationCard = (page: Page, company: string): Locator =>
-  page.locator("[data-application-id]").filter({ hasText: company });
+    page.locator("[data-application-id]").filter({ hasText: company });
 
 export async function gotoApplications(page: Page) {
-  await gotoAndWaitForHydration(page, APPLICATIONS_URL);
+    await gotoAndWaitForHydration(page, APPLICATIONS_URL);
 }
 
 /** Switches to the Closed view on the applications page. */
 export async function gotoClosed(page: Page) {
-  const closedTab = page.getByRole("tab", { name: "Closed", exact: true });
+    const closedTab = page.getByRole("tab", { name: "Closed", exact: true });
 
-  // On a slow runner a click that lands right after the hydration marker can be dropped
-  // without any navigation, so retry until the tab is actually selected.
-  await expect(async () => {
-    await closedTab.click();
-    await expect(closedTab).toHaveAttribute("aria-selected", "true", { timeout: 2000 });
-  }).toPass({ timeout: 20000 });
+    // On a slow runner a click that lands right after the hydration marker can be dropped
+    // without any navigation, so retry until the tab is actually selected.
+    await expect(async () => {
+        await closedTab.click();
+        await expect(closedTab).toHaveAttribute("aria-selected", "true", { timeout: 2000 });
+    }).toPass({ timeout: 20000 });
 
-  await expect(page).toHaveURL(/\/applications\?view=closed$/);
-  await waitForHydration(page);
+    await expect(page).toHaveURL(/\/applications\?view=closed$/);
+    await waitForHydration(page);
 }
 
 /** Clicks a status filter tab on the closed page. */
 export async function filterClosed(
-  page: Page,
-  status: Extract<ApplicationStatus, "offer" | "rejected" | "withdrawn">,
+    page: Page,
+    status: Extract<ApplicationStatus, "offer" | "rejected" | "withdrawn">,
 ) {
-  const label = STATUS_LABELS[status];
-  await page.getByRole("tab", { name: label, exact: true }).click();
+    const label = STATUS_LABELS[status];
+    await page.getByRole("tab", { name: label, exact: true }).click();
 }
 
 /** Picks a sort order on the closed page. */
 export async function sortClosed(page: Page, label: string) {
-  await page.getByRole("button", { name: /Sort closed applications/ }).click();
-  await page.getByRole("option", { name: label }).click();
+    await page.getByRole("button", { name: /Sort closed applications/ }).click();
+    await page.getByRole("option", { name: label }).click();
 }
 
 /** Opens the add form, which is a side panel at `xl+` and a dialog below it. */
 export async function openApplicationForm(page: Page): Promise<Locator> {
-  if ((await page.locator("form:visible").count()) === 0) {
-    await page.getByRole("button", { name: "New application" }).click();
-  }
+    if ((await page.locator("form:visible").count()) === 0) {
+        await page.getByRole("button", { name: "New application" }).click();
+    }
 
-  const form = page.locator("form:visible");
-  await expect(form).toBeVisible();
+    const form = page.locator("form:visible");
+    await expect(form).toBeVisible();
 
-  return form;
+    return form;
 }
 
 /** Fills and submits the add form on the current applications page. */
 export async function addApplication(page: Page, input: ApplicationInput) {
-  const form = await openApplicationForm(page);
+    const form = await openApplicationForm(page);
 
-  await form.getByLabel("Position").fill(input.position);
-  await form.getByLabel("Company").fill(input.company);
-  await form.getByLabel("Job listing link").fill(input.link ?? "https://example.com/jobs/e2e");
+    await form.getByLabel("Position").fill(input.position);
+    await form.getByLabel("Company").fill(input.company);
+    await form.getByLabel("Job listing link").fill(input.link ?? "https://example.com/jobs/e2e");
 
-  if (input.notes) {
-    await form.getByLabel("Notes").fill(input.notes);
-  }
+    if (input.notes) {
+        await form.getByLabel("Notes").fill(input.notes);
+    }
 
-  await page.getByRole("button", { name: "Add application" }).click();
-  await expect(applicationCard(page, input.company)).toBeVisible();
+    await page.getByRole("button", { name: "Add application" }).click();
+    await expect(applicationCard(page, input.company)).toBeVisible();
 }
 
 export async function createApplication(page: Page, input: ApplicationInput) {
-  await gotoApplications(page);
-  await addApplication(page, input);
+    await gotoApplications(page);
+    await addApplication(page, input);
 }
 
 export async function openApplicationMenu(page: Page, company: string) {
-  await applicationCard(page, company).getByRole("button", { name: "Application actions" }).click();
+    await applicationCard(page, company)
+        .getByRole("button", { name: "Application actions" })
+        .click();
 }
 
 export async function changeApplicationStatus(
-  page: Page,
-  company: string,
-  status: ApplicationStatus,
+    page: Page,
+    company: string,
+    status: ApplicationStatus,
 ) {
-  await openApplicationMenu(page, company);
+    await openApplicationMenu(page, company);
 
-  await Promise.all([
-    page.waitForResponse((response) => response.request().method() === "POST" && response.ok()),
-    page.getByRole("menuitem", { name: STATUS_LABELS[status] }).click(),
-  ]);
+    await Promise.all([
+        page.waitForResponse((response) => response.request().method() === "POST" && response.ok()),
+        page.getByRole("menuitem", { name: STATUS_LABELS[status] }).click(),
+    ]);
 }
 
 export async function openApplicationDetail(page: Page, company: string) {
-  await applicationCard(page, company).click();
-  await page.waitForURL(/\/applications\/[0-9a-f-]{36}\/?$/);
+    await applicationCard(page, company).click();
+    await page.waitForURL(/\/applications\/[0-9a-f-]{36}\/?$/);
 }
 
 async function confirmDeleteDialog(page: Page) {
-  const dialog = page.getByRole("alertdialog");
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Delete", exact: true }).click();
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "Delete", exact: true }).click();
 }
 
 export async function deleteApplicationFromBoard(page: Page, company: string) {
-  await openApplicationMenu(page, company);
-  await page.getByRole("menuitem", { name: "Delete" }).click();
-  await confirmDeleteDialog(page);
-  await expect(applicationCard(page, company)).toHaveCount(0);
+    await openApplicationMenu(page, company);
+    await page.getByRole("menuitem", { name: "Delete" }).click();
+    await confirmDeleteDialog(page);
+    await expect(applicationCard(page, company)).toHaveCount(0);
 }
 
 export async function deleteApplicationFromDetail(page: Page, company: string) {
-  await openApplicationDetail(page, company);
-  await page.getByRole("button", { name: "Delete application" }).click();
-  await confirmDeleteDialog(page);
-  await expect(page).toHaveURL(/\/applications\/?$/);
-  await expect(applicationCard(page, company)).toHaveCount(0);
+    await openApplicationDetail(page, company);
+    await page.getByRole("button", { name: "Delete application" }).click();
+    await confirmDeleteDialog(page);
+    await expect(page).toHaveURL(/\/applications\/?$/);
+    await expect(applicationCard(page, company)).toHaveCount(0);
 }
 
 /** Hard-deletes job applications by company after a test. */
 export async function deleteApplicationFixtures(page: Page, ...companies: Array<string>) {
-  const response = await page.request.delete(APPLICATIONS_FIXTURES_URL, {
-    data: { companies },
-  });
-  expect(response.status(), await response.text()).toBe(204);
+    const response = await page.request.delete(APPLICATIONS_FIXTURES_URL, {
+        data: { companies },
+    });
+    expect(response.status(), await response.text()).toBe(204);
 }

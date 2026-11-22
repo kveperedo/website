@@ -2,12 +2,12 @@ import type { TransactionCategory, TransactionType } from "@/generated/prisma/en
 
 /** What the frontend parsed locally and hands over for a type and category. */
 export type TransactionToClassify = {
-  description: string;
-  amount: number | null;
-  transactedAt: string;
+    description: string;
+    amount: number | null;
+    transactedAt: string;
 };
 
 export type TransactionClassification = {
-  type: TransactionType;
-  category: TransactionCategory | null;
+    type: TransactionType;
+    category: TransactionCategory | null;
 };

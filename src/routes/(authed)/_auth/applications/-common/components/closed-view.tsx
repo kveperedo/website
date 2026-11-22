@@ -18,106 +18,114 @@ import { ClosedTabs } from "./closed-tabs";
 import { ClosedToolbar } from "./closed-toolbar";
 
 type ClosedViewProps = {
-  applications: Array<JobApplication>;
-  highlightedId: string | null;
-  onStatusChange: (id: string, status: ApplicationStatus) => void;
+    applications: Array<JobApplication>;
+    highlightedId: string | null;
+    onStatusChange: (id: string, status: ApplicationStatus) => void;
 };
 
 export const ClosedView = ({ applications, highlightedId, onStatusChange }: ClosedViewProps) => {
-  const router = useRouter();
-  const [filter, setFilter] = useState<ClosedFilter>("all");
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<ClosedSort>("applied-date");
+    const router = useRouter();
+    const [filter, setFilter] = useState<ClosedFilter>("all");
+    const [query, setQuery] = useState("");
+    const [sort, setSort] = useState<ClosedSort>("applied-date");
 
-  const closedApplications = applications.filter((application) =>
-    CLOSED_APPLICATION_STATUSES.includes(application.status),
-  );
+    const closedApplications = applications.filter((application) =>
+        CLOSED_APPLICATION_STATUSES.includes(application.status),
+    );
 
-  const normalizedQuery = query.trim().toLowerCase();
-  const isFiltering = normalizedQuery.length > 0;
+    const normalizedQuery = query.trim().toLowerCase();
+    const isFiltering = normalizedQuery.length > 0;
 
-  const filteredApplications = closedApplications
-    .filter((application) => filter === "all" || application.status === filter)
-    .filter((application) =>
-      isFiltering ? matchesApplicationQuery(application, normalizedQuery) : true,
-    )
-    .sort((first, second) => {
-      if (sort === "company") {
-        const companyDifference = first.company.localeCompare(second.company);
+    const filteredApplications = closedApplications
+        .filter((application) => filter === "all" || application.status === filter)
+        .filter((application) =>
+            isFiltering ? matchesApplicationQuery(application, normalizedQuery) : true,
+        )
+        .sort((first, second) => {
+            if (sort === "company") {
+                const companyDifference = first.company.localeCompare(second.company);
 
-        if (companyDifference !== 0) {
-          return companyDifference;
-        }
+                if (companyDifference !== 0) {
+                    return companyDifference;
+                }
 
-        return first.position.localeCompare(second.position);
-      }
+                return first.position.localeCompare(second.position);
+            }
 
-      const appliedAtDifference =
-        (second.appliedAt?.getTime() ?? 0) - (first.appliedAt?.getTime() ?? 0);
+            const appliedAtDifference =
+                (second.appliedAt?.getTime() ?? 0) - (first.appliedAt?.getTime() ?? 0);
 
-      if (appliedAtDifference !== 0) {
-        return appliedAtDifference;
-      }
+            if (appliedAtDifference !== 0) {
+                return appliedAtDifference;
+            }
 
-      return second.updatedAt.getTime() - first.updatedAt.getTime();
-    });
+            return second.updatedAt.getTime() - first.updatedAt.getTime();
+        });
 
-  const closedTotal = closedApplications.length;
+    const closedTotal = closedApplications.length;
 
-  return (
-    <Card variant="flat" className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 flex-col gap-3 border-b border-subtle bg-card p-3 lg:flex-row lg:items-center lg:justify-between">
-        <ClosedTabs filter={filter} onFilterChange={setFilter} />
-        <ClosedToolbar query={query} onQueryChange={setQuery} sort={sort} onSortChange={setSort} />
-      </div>
+    return (
+        <Card variant="flat" className="flex min-h-0 flex-1 flex-col">
+            <div className="flex shrink-0 flex-col gap-3 border-b border-subtle bg-card p-3 lg:flex-row lg:items-center lg:justify-between">
+                <ClosedTabs filter={filter} onFilterChange={setFilter} />
+                <ClosedToolbar
+                    query={query}
+                    onQueryChange={setQuery}
+                    sort={sort}
+                    onSortChange={setSort}
+                />
+            </div>
 
-      {filteredApplications.length === 0 ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center p-8">
-          {closedTotal === 0 ? (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>No closed applications yet</EmptyTitle>
-                <EmptyDescription>
-                  Applications in Offer, Rejected, or Withdrawn will show up here.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : (
-            <p className="py-2 text-center text-xxs text-muted-foreground">
-              {isFiltering ? "No matches" : "No closed applications"}
-            </p>
-          )}
-        </div>
-      ) : (
-        <GridList
-          items={filteredApplications}
-          dependencies={[highlightedId]}
-          aria-label="Closed applications"
-          className="flex min-h-0 flex-1 flex-col gap-0 divide-y divide-subtle overflow-y-auto"
-        >
-          {(application) => (
-            <GridListItem
-              id={application.id}
-              data-application-id={application.id}
-              data-status={application.status}
-              textValue={`${application.company}, ${application.position}`}
-              onAction={() =>
-                router.navigate({ to: "/applications/$id", params: { id: application.id } })
-              }
-              className={cn(
-                "relative cursor-pointer px-3 py-3 transition-colors hover:bg-muted/20",
-                application.id === highlightedId && "bg-primary/10",
-              )}
-            >
-              <ClosedRow
-                application={application}
-                highlighted={application.id === highlightedId}
-                onStatusChange={onStatusChange}
-              />
-            </GridListItem>
-          )}
-        </GridList>
-      )}
-    </Card>
-  );
+            {filteredApplications.length === 0 ? (
+                <div className="flex min-h-0 flex-1 items-center justify-center p-8">
+                    {closedTotal === 0 ? (
+                        <Empty>
+                            <EmptyHeader>
+                                <EmptyTitle>No closed applications yet</EmptyTitle>
+                                <EmptyDescription>
+                                    Applications in Offer, Rejected, or Withdrawn will show up here.
+                                </EmptyDescription>
+                            </EmptyHeader>
+                        </Empty>
+                    ) : (
+                        <p className="py-2 text-center text-xxs text-muted-foreground">
+                            {isFiltering ? "No matches" : "No closed applications"}
+                        </p>
+                    )}
+                </div>
+            ) : (
+                <GridList
+                    items={filteredApplications}
+                    dependencies={[highlightedId]}
+                    aria-label="Closed applications"
+                    className="flex min-h-0 flex-1 flex-col gap-0 divide-y divide-subtle overflow-y-auto"
+                >
+                    {(application) => (
+                        <GridListItem
+                            id={application.id}
+                            data-application-id={application.id}
+                            data-status={application.status}
+                            textValue={`${application.company}, ${application.position}`}
+                            onAction={() =>
+                                router.navigate({
+                                    to: "/applications/$id",
+                                    params: { id: application.id },
+                                })
+                            }
+                            className={cn(
+                                "relative cursor-pointer px-3 py-3 transition-colors hover:bg-muted/20",
+                                application.id === highlightedId && "bg-primary/10",
+                            )}
+                        >
+                            <ClosedRow
+                                application={application}
+                                highlighted={application.id === highlightedId}
+                                onStatusChange={onStatusChange}
+                            />
+                        </GridListItem>
+                    )}
+                </GridList>
+            )}
+        </Card>
+    );
 };

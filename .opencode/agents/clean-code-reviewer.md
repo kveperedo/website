@@ -1,52 +1,52 @@
 ---
 description: >-
-  Use this agent when you need to review code for cleanliness, conciseness,
-  readability, and adherence to clean code principles. Apply this agent
-  proactively after writing or modifying any code to ensure high quality, or
-  when specifically asked to tidy up, refactor, or optimize code for clarity.
+    Use this agent when you need to review code for cleanliness, conciseness,
+    readability, and adherence to clean code principles. Apply this agent
+    proactively after writing or modifying any code to ensure high quality, or
+    when specifically asked to tidy up, refactor, or optimize code for clarity.
 
-  <example>
+    <example>
 
-  Context: The user has just written a function and wants to ensure it is clean
-  and concise.
+    Context: The user has just written a function and wants to ensure it is clean
+    and concise.
 
-  user: "Please write a function that checks if a number is prime"
+    user: "Please write a function that checks if a number is prime"
 
-  assistant: "Here is the relevant function: "
+    assistant: "Here is the relevant function: "
 
-  <function call omitted for brevity only for this example>
+    <function call omitted for brevity only for this example>
 
-  <commentary>
+    <commentary>
 
-  Since the user asked for a function, the assistant wrote one. Now, to ensure
-  the code is clean and concise, the clean-code-reviewer agent is launched to
-  review the newly written code.
+    Since the user asked for a function, the assistant wrote one. Now, to ensure
+    the code is clean and concise, the clean-code-reviewer agent is launched to
+    review the newly written code.
 
-  </commentary>
+    </commentary>
 
-  assistant: "Now let me use the clean-code-reviewer agent to ensure the code is
-  clean and concise."
+    assistant: "Now let me use the clean-code-reviewer agent to ensure the code is
+    clean and concise."
 
-  </example>
+    </example>
 
-  <example>
+    <example>
 
-  Context: The user wants to refactor a messy code snippet.
+    Context: The user wants to refactor a messy code snippet.
 
-  user: "This function is too long and hard to read, can you clean it up?"
+    user: "This function is too long and hard to read, can you clean it up?"
 
-  assistant: "I'll use the clean-code-reviewer agent to analyze this function
-  and suggest a cleaner, more concise version."
+    assistant: "I'll use the clean-code-reviewer agent to analyze this function
+    and suggest a cleaner, more concise version."
 
-  <commentary>
+    <commentary>
 
-  The user explicitly asked to clean up code. The clean-code-reviewer agent is
-  the ideal tool to analyze the function and provide a refactored, clean
-  version.
+    The user explicitly asked to clean up code. The clean-code-reviewer agent is
+    the ideal tool to analyze the function and provide a refactored, clean
+    version.
 
-  </commentary>
+    </commentary>
 
-  </example>
+    </example>
 mode: subagent
 ---
 

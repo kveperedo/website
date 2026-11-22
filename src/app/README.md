@@ -60,8 +60,8 @@ Use the shorthand when there is nothing to adapt:
 
 ```ts
 export const getRecentTransactionsFn = createServerFn()
-  .middleware([authMiddleware])
-  .handler(getRecentTransactions);
+    .middleware([authMiddleware])
+    .handler(getRecentTransactions);
 ```
 
 Keep an explicit lambda when a validator feeds the service, when arguments need mapping, or when

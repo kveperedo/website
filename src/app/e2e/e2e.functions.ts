@@ -4,39 +4,39 @@ import { z } from "zod";
 import { authMiddleware } from "../auth/auth.middleware";
 import { createRateLimitMiddleware } from "../infra/rate-limit/rate-limit.middleware";
 import {
-  isE2EAvailable,
-  requireE2EAvailable,
-  resetTestData,
-  seedTestData,
-  seedTrendsTestData,
+    isE2EAvailable,
+    requireE2EAvailable,
+    resetTestData,
+    seedTestData,
+    seedTrendsTestData,
 } from "./e2e.service.server";
 
 const NetCardScenarioSchema = z
-  .enum(["below-pace", "no-history", "on-pace", "over-income"])
-  .optional();
+    .enum(["below-pace", "no-history", "on-pace", "over-income"])
+    .optional();
 
 export const getIsE2EAvailableFn = createServerFn({ method: "GET" })
-  .middleware([authMiddleware])
-  .handler(isE2EAvailable);
+    .middleware([authMiddleware])
+    .handler(isE2EAvailable);
 
 export const resetTestDataFn = createServerFn({ method: "POST" })
-  .middleware([authMiddleware, createRateLimitMiddleware()])
-  .handler(async () => {
-    requireE2EAvailable();
-    await resetTestData();
-  });
+    .middleware([authMiddleware, createRateLimitMiddleware()])
+    .handler(async () => {
+        requireE2EAvailable();
+        await resetTestData();
+    });
 
 export const seedTestDataFn = createServerFn({ method: "POST" })
-  .middleware([authMiddleware, createRateLimitMiddleware()])
-  .validator(NetCardScenarioSchema)
-  .handler(async ({ data }) => {
-    requireE2EAvailable();
-    await seedTestData(data);
-  });
+    .middleware([authMiddleware, createRateLimitMiddleware()])
+    .validator(NetCardScenarioSchema)
+    .handler(async ({ data }) => {
+        requireE2EAvailable();
+        await seedTestData(data);
+    });
 
 export const seedTrendsTestDataFn = createServerFn({ method: "POST" })
-  .middleware([authMiddleware, createRateLimitMiddleware()])
-  .handler(async () => {
-    requireE2EAvailable();
-    await seedTrendsTestData();
-  });
+    .middleware([authMiddleware, createRateLimitMiddleware()])
+    .handler(async () => {
+        requireE2EAvailable();
+        await seedTrendsTestData();
+    });

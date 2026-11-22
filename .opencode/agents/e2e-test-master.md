@@ -1,70 +1,70 @@
 ---
 description: >-
-  Use this agent to decide whether new features need Playwright E2E coverage
-  and to audit staged *.spec.ts files for adherence to the project's E2E test
-  best practices. Invoke proactively after adding or modifying product features
-  (routes, server functions, UI flows) to assess E2E coverage, or whenever test
-  files are staged (`git diff --cached`) to verify they follow the conventions
-  in e2e/helpers, e2e/playwright.config.ts, and existing specs. Examples:
+    Use this agent to decide whether new features need Playwright E2E coverage
+    and to audit staged *.spec.ts files for adherence to the project's E2E test
+    best practices. Invoke proactively after adding or modifying product features
+    (routes, server functions, UI flows) to assess E2E coverage, or whenever test
+    files are staged (`git diff --cached`) to verify they follow the conventions
+    in e2e/helpers, e2e/playwright.config.ts, and existing specs. Examples:
 
 
-  <example>
+    <example>
 
-  Context: The user just added a new protected route and a form on the finances page.
+    Context: The user just added a new protected route and a form on the finances page.
 
-  user: "I added a CSV import button to the transactions page."
+    user: "I added a CSV import button to the transactions page."
 
-  assistant: "Here is the new CSV import button and its server function: "
+    assistant: "Here is the new CSV import button and its server function: "
 
-  <commentary>
+    <commentary>
 
-  A new user-facing feature was added. Use the e2e-test-master agent to decide
-  whether an E2E test is warranted and what it should cover.
+    A new user-facing feature was added. Use the e2e-test-master agent to decide
+    whether an E2E test is warranted and what it should cover.
 
-  </commentary>
+    </commentary>
 
-  assistant: "Let me use the e2e-test-master agent to check if this needs an E2E
-  test."
+    assistant: "Let me use the e2e-test-master agent to check if this needs an E2E
+    test."
 
-  </example>
-
-
-  <example>
-
-  Context: The user is about to commit and has staged E2E specs.
-
-  user: "I wrote tests for the new settings page, ready to commit."
-
-  assistant: "I'll have the e2e-test-master agent review the staged test files
-  before you commit."
-
-  <commentary>
-
-  Test files are staged. Use the e2e-test-master agent to audit them against the
-  project's E2E best practices.
-
-  </commentary>
-
-  assistant: "Let me run the e2e-test-master agent over the staged specs."
-
-  </example>
+    </example>
 
 
-  <example>
+    <example>
 
-  Context: The user wants a coverage decision on a backend-only change.
+    Context: The user is about to commit and has staged E2E specs.
 
-  user: "I refactored the expense server function's query."
+    user: "I wrote tests for the new settings page, ready to commit."
 
-  assistant: "I'll use the e2e-test-master agent to determine whether this needs
-  E2E coverage or is better covered by unit tests."
+    assistant: "I'll have the e2e-test-master agent review the staged test files
+    before you commit."
 
-  </commentary>
+    <commentary>
 
-  assistant: "Let me check with the e2e-test-master agent if E2E is warranted
-  here."
+    Test files are staged. Use the e2e-test-master agent to audit them against the
+    project's E2E best practices.
 
-  </example>
+    </commentary>
+
+    assistant: "Let me run the e2e-test-master agent over the staged specs."
+
+    </example>
+
+
+    <example>
+
+    Context: The user wants a coverage decision on a backend-only change.
+
+    user: "I refactored the expense server function's query."
+
+    assistant: "I'll use the e2e-test-master agent to determine whether this needs
+    E2E coverage or is better covered by unit tests."
+
+    </commentary>
+
+    assistant: "Let me check with the e2e-test-master agent if E2E is warranted
+    here."
+
+    </example>
 mode: subagent
 ---
 

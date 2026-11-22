@@ -16,10 +16,10 @@ import { cn } from "@/lib/utils";
 import { Route } from "../..";
 import { CategoryFilter } from "../../../-common/components/category-filter";
 import {
-  CATEGORY_CHART_CONFIG,
-  CATEGORIES,
-  CATEGORY_CHART_COLORS,
-  CATEGORY_LABELS,
+    CATEGORY_CHART_CONFIG,
+    CATEGORIES,
+    CATEGORY_CHART_COLORS,
+    CATEGORY_LABELS,
 } from "../../../-common/constants";
 import { formatMonthLabel, SHORT_MONTHS } from "../months";
 
@@ -27,177 +27,191 @@ const CHART_HEIGHT = 350;
 const CATEGORY_SELECTION_DEBOUNCE_MS = 300;
 
 function TrendsLegend({ visibleCategories }: { visibleCategories: Array<TransactionCategory> }) {
-  return (
-    <div data-testid="category-trends-legend" className="flex flex-wrap justify-center pt-3">
-      {CATEGORIES.filter((category) => visibleCategories.includes(category.value)).map(
-        (category) => (
-          <div key={category.value} className="flex items-center gap-1.5 p-2 sm:px-4">
-            <span
-              className="inline-block h-2 w-2 shrink-0 rounded-none"
-              style={{ backgroundColor: CATEGORY_CHART_COLORS[category.value] }}
-            />
-            <span className="text-xs text-muted-foreground">{CATEGORY_LABELS[category.value]}</span>
-          </div>
-        ),
-      )}
-    </div>
-  );
+    return (
+        <div data-testid="category-trends-legend" className="flex flex-wrap justify-center pt-3">
+            {CATEGORIES.filter((category) => visibleCategories.includes(category.value)).map(
+                (category) => (
+                    <div key={category.value} className="flex items-center gap-1.5 p-2 sm:px-4">
+                        <span
+                            className="inline-block h-2 w-2 shrink-0 rounded-none"
+                            style={{ backgroundColor: CATEGORY_CHART_COLORS[category.value] }}
+                        />
+                        <span className="text-xs text-muted-foreground">
+                            {CATEGORY_LABELS[category.value]}
+                        </span>
+                    </div>
+                ),
+            )}
+        </div>
+    );
 }
 
 export const CategoryTrendsCard = () => {
-  const {
-    financeDashboard: { categoryTrends },
-    categoryTrendsVisibleCategories,
-  } = Route.useLoaderData();
-  const setCategoryTrendsVisibleCategories = useServerFn(setCategoryTrendsVisibleCategoriesFn);
-  const [visibleCategories, setVisibleCategories] = useState<Array<TransactionCategory>>(
-    () => categoryTrendsVisibleCategories ?? CATEGORIES.map((category) => category.value),
-  );
-  const isEmpty = categoryTrends.length === 0;
-
-  const chartData = isEmpty ? [] : categoryTrends;
-  const persistSelection = useEffectEvent((categories: Array<TransactionCategory>) => {
-    void setCategoryTrendsVisibleCategories({ data: categories });
-  });
-  const debouncedPersistSelection = useDebouncedCallback(
-    (categories: Array<TransactionCategory>) => persistSelection(categories),
-    CATEGORY_SELECTION_DEBOUNCE_MS,
-  );
-
-  useEffect(() => () => debouncedPersistSelection.flush(), [debouncedPersistSelection]);
-
-  const handleSelectionChange = (categories: Array<TransactionCategory>) => {
-    setVisibleCategories(categories);
-    debouncedPersistSelection(categories);
-  };
-
-  const renderTrendsContent = () => {
-    if (isEmpty) {
-      return (
-        <div className="px-6 pt-2 pb-6 md:px-8">
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>Not enough data for trends.</EmptyTitle>
-              <EmptyDescription>
-                Add transactions across multiple months to see spending trends.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        </div>
-      );
-    }
-    if (visibleCategories.length === 0) {
-      return (
-        <div className="px-6 py-12 md:px-8">
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>No categories selected.</EmptyTitle>
-              <EmptyDescription>Select a category from Filter to show its trend.</EmptyDescription>
-            </EmptyHeader>
-            <Button
-              variant="outline"
-              size="sm"
-              onPress={() => handleSelectionChange(CATEGORIES.map((category) => category.value))}
-            >
-              Select all categories
-            </Button>
-          </Empty>
-        </div>
-      );
-    }
-    return (
-      <div className="px-4 pb-4">
-        <ChartContainer
-          config={CATEGORY_CHART_CONFIG}
-          className="w-full"
-          initialDimension={{ width: 320, height: CHART_HEIGHT }}
-        >
-          <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tick={{ fontSize: 11 }}
-              tickFormatter={(value) => {
-                const month = Number(String(value).split("-")[1]);
-                return SHORT_MONTHS[month - 1];
-              }}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => formatCurrency(Number(value), { compact: true })}
-              tick={{ fontSize: 11 }}
-              width={48}
-            />
-            <ChartTooltip
-              wrapperStyle={{ zIndex: 50 }}
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(label) => formatMonthLabel(String(label))}
-                  formatter={(value, name) => {
-                    const config =
-                      CATEGORY_CHART_CONFIG[name as keyof typeof CATEGORY_CHART_CONFIG];
-                    return [
-                      <span key="value" className="flex items-center gap-1.5">
-                        {config?.color && (
-                          <span
-                            className="inline-block h-2 w-2 shrink-0 rounded-xs"
-                            style={{ backgroundColor: config.color }}
-                          />
-                        )}
-                        <span className="text-muted-foreground">
-                          {config?.label ?? String(name)}
-                        </span>
-                        <span className="ml-auto font-mono font-medium text-foreground">
-                          {formatCurrency(Number(value))}
-                        </span>
-                      </span>,
-                    ];
-                  }}
-                />
-              }
-            />
-            {CATEGORIES.map((category) => {
-              const isVisible = visibleCategories.includes(category.value);
-              return isVisible ? (
-                <Line
-                  key={category.value}
-                  type="monotone"
-                  dataKey={category.value}
-                  stroke={CATEGORY_CHART_COLORS[category.value]}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-              ) : null;
-            })}
-          </LineChart>
-        </ChartContainer>
-        <TrendsLegend visibleCategories={visibleCategories} />
-      </div>
+    const {
+        financeDashboard: { categoryTrends },
+        categoryTrendsVisibleCategories,
+    } = Route.useLoaderData();
+    const setCategoryTrendsVisibleCategories = useServerFn(setCategoryTrendsVisibleCategoriesFn);
+    const [visibleCategories, setVisibleCategories] = useState<Array<TransactionCategory>>(
+        () => categoryTrendsVisibleCategories ?? CATEGORIES.map((category) => category.value),
     );
-  };
+    const isEmpty = categoryTrends.length === 0;
 
-  return (
-    <Card
-      data-testid="category-trends-card"
-      variant="flat"
-      className={cn("flex-1 lg:border-0", isEmpty && "pt-6")}
-    >
-      {!isEmpty && (
-        <CardHeader variant="flat" className="justify-between">
-          <CardTitle variant="flat">Category trends</CardTitle>
-          <CategoryFilter
-            selectedCategories={visibleCategories}
-            onSelectionChange={handleSelectionChange}
-            label="Filter"
-          />
-        </CardHeader>
-      )}
-      <CardContent className="pt-3 pb-0">{renderTrendsContent()}</CardContent>
-    </Card>
-  );
+    const chartData = isEmpty ? [] : categoryTrends;
+    const persistSelection = useEffectEvent((categories: Array<TransactionCategory>) => {
+        void setCategoryTrendsVisibleCategories({ data: categories });
+    });
+    const debouncedPersistSelection = useDebouncedCallback(
+        (categories: Array<TransactionCategory>) => persistSelection(categories),
+        CATEGORY_SELECTION_DEBOUNCE_MS,
+    );
+
+    useEffect(() => () => debouncedPersistSelection.flush(), [debouncedPersistSelection]);
+
+    const handleSelectionChange = (categories: Array<TransactionCategory>) => {
+        setVisibleCategories(categories);
+        debouncedPersistSelection(categories);
+    };
+
+    const renderTrendsContent = () => {
+        if (isEmpty) {
+            return (
+                <div className="px-6 pt-2 pb-6 md:px-8">
+                    <Empty>
+                        <EmptyHeader>
+                            <EmptyTitle>Not enough data for trends.</EmptyTitle>
+                            <EmptyDescription>
+                                Add transactions across multiple months to see spending trends.
+                            </EmptyDescription>
+                        </EmptyHeader>
+                    </Empty>
+                </div>
+            );
+        }
+        if (visibleCategories.length === 0) {
+            return (
+                <div className="px-6 py-12 md:px-8">
+                    <Empty>
+                        <EmptyHeader>
+                            <EmptyTitle>No categories selected.</EmptyTitle>
+                            <EmptyDescription>
+                                Select a category from Filter to show its trend.
+                            </EmptyDescription>
+                        </EmptyHeader>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onPress={() =>
+                                handleSelectionChange(CATEGORIES.map((category) => category.value))
+                            }
+                        >
+                            Select all categories
+                        </Button>
+                    </Empty>
+                </div>
+            );
+        }
+        return (
+            <div className="px-4 pb-4">
+                <ChartContainer
+                    config={CATEGORY_CHART_CONFIG}
+                    className="w-full"
+                    initialDimension={{ width: 320, height: CHART_HEIGHT }}
+                >
+                    <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                        <CartesianGrid
+                            vertical={false}
+                            strokeDasharray="3 3"
+                            stroke="var(--border)"
+                        />
+                        <XAxis
+                            dataKey="month"
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            tick={{ fontSize: 11 }}
+                            tickFormatter={(value) => {
+                                const month = Number(String(value).split("-")[1]);
+                                return SHORT_MONTHS[month - 1];
+                            }}
+                        />
+                        <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) =>
+                                formatCurrency(Number(value), { compact: true })
+                            }
+                            tick={{ fontSize: 11 }}
+                            width={48}
+                        />
+                        <ChartTooltip
+                            wrapperStyle={{ zIndex: 50 }}
+                            content={
+                                <ChartTooltipContent
+                                    labelFormatter={(label) => formatMonthLabel(String(label))}
+                                    formatter={(value, name) => {
+                                        const config =
+                                            CATEGORY_CHART_CONFIG[
+                                                name as keyof typeof CATEGORY_CHART_CONFIG
+                                            ];
+                                        return [
+                                            <span key="value" className="flex items-center gap-1.5">
+                                                {config?.color && (
+                                                    <span
+                                                        className="inline-block h-2 w-2 shrink-0 rounded-xs"
+                                                        style={{ backgroundColor: config.color }}
+                                                    />
+                                                )}
+                                                <span className="text-muted-foreground">
+                                                    {config?.label ?? String(name)}
+                                                </span>
+                                                <span className="ml-auto font-mono font-medium text-foreground">
+                                                    {formatCurrency(Number(value))}
+                                                </span>
+                                            </span>,
+                                        ];
+                                    }}
+                                />
+                            }
+                        />
+                        {CATEGORIES.map((category) => {
+                            const isVisible = visibleCategories.includes(category.value);
+                            return isVisible ? (
+                                <Line
+                                    key={category.value}
+                                    type="monotone"
+                                    dataKey={category.value}
+                                    stroke={CATEGORY_CHART_COLORS[category.value]}
+                                    strokeWidth={2}
+                                    dot={false}
+                                    activeDot={{ r: 4 }}
+                                />
+                            ) : null;
+                        })}
+                    </LineChart>
+                </ChartContainer>
+                <TrendsLegend visibleCategories={visibleCategories} />
+            </div>
+        );
+    };
+
+    return (
+        <Card
+            data-testid="category-trends-card"
+            variant="flat"
+            className={cn("flex-1 lg:border-0", isEmpty && "pt-6")}
+        >
+            {!isEmpty && (
+                <CardHeader variant="flat" className="justify-between">
+                    <CardTitle variant="flat">Category trends</CardTitle>
+                    <CategoryFilter
+                        selectedCategories={visibleCategories}
+                        onSelectionChange={handleSelectionChange}
+                        label="Filter"
+                    />
+                </CardHeader>
+            )}
+            <CardContent className="pt-3 pb-0">{renderTrendsContent()}</CardContent>
+        </Card>
+    );
 };

@@ -6,34 +6,34 @@ import { getCurrentUser, login, logout, requireSession } from "./auth.service.se
 import { getAppSession } from "./auth.session.server";
 
 const { cookies, written, env } = vi.hoisted(() => ({
-  cookies: {} as Record<string, string>,
-  written: [] as Array<{ name: string; value: string; options: Record<string, unknown> }>,
-  env: {} as Record<string, string>,
+    cookies: {} as Record<string, string>,
+    written: [] as Array<{ name: string; value: string; options: Record<string, unknown> }>,
+    env: {} as Record<string, string>,
 }));
 
 vi.mock("@tanstack/react-start/server", () => ({
-  getCookie: (name: string) => cookies[name],
-  setCookie: (name: string, value: string, options: Record<string, unknown>) => {
-    written.push({ name, value, options });
-    cookies[name] = value;
-  },
+    getCookie: (name: string) => cookies[name],
+    setCookie: (name: string, value: string, options: Record<string, unknown>) => {
+        written.push({ name, value, options });
+        cookies[name] = value;
+    },
 }));
 
 vi.mock("@/lib/env", () => ({
-  requireEnv: (name: string) => {
-    const value = env[name];
+    requireEnv: (name: string) => {
+        const value = env[name];
 
-    if (!value) {
-      throw new Error(`Missing required environment variable: ${name}`);
-    }
+        if (!value) {
+            throw new Error(`Missing required environment variable: ${name}`);
+        }
 
-    return value;
-  },
+        return value;
+    },
 }));
 
 // The real helper imports `cloudflare:workers`, which Vitest cannot load.
 vi.mock("../infra/cache/cache-control", () => ({
-  cacheControl: async (value: string) => ({ "Cache-Control": value }),
+    cacheControl: async (value: string) => ({ "Cache-Control": value }),
 }));
 
 const SESSION_COOKIE = "app-session-v1";
@@ -41,144 +41,144 @@ const SECRET = "s".repeat(32);
 const PASSWORD = "correct-horse";
 
 const captureRedirect = async (run: () => Promise<unknown>) => {
-  try {
-    await run();
-  } catch (error) {
-    if (isRedirect(error)) {
-      return error;
+    try {
+        await run();
+    } catch (error) {
+        if (isRedirect(error)) {
+            return error;
+        }
+
+        throw error;
     }
 
-    throw error;
-  }
-
-  throw new Error("Expected a redirect, but the call resolved");
+    throw new Error("Expected a redirect, but the call resolved");
 };
 
 const logIn = async () => {
-  const redirect = await captureRedirect(() => login(PASSWORD));
-
-  expect(redirect.options.href).toBe("/");
-};
-
-describe("login", () => {
-  it("rejects a wrong password without writing a session cookie", async () => {
-    await expect(login("wrong-password")).rejects.toThrow("Invalid password");
-
-    expect(written).toEqual([]);
-    expect(cookies[SESSION_COOKIE]).toBeUndefined();
-    await expect(getCurrentUser()).resolves.toBe(false);
-  });
-
-  it("seals a session that a later request can read", async () => {
-    await logIn();
-
-    expect(written).toHaveLength(1);
-    expect(written[0]?.name).toBe(SESSION_COOKIE);
-    await expect(getCurrentUser()).resolves.toBe(true);
-  });
-
-  it("returns to the attempted location after login", async () => {
-    const redirect = await captureRedirect(() =>
-      login(PASSWORD, "/finances/transactions?view=all#recent"),
-    );
-
-    expect(redirect.options.href).toBe("/finances/transactions?view=all#recent");
-  });
-
-  it("falls back to the homepage without a destination", async () => {
     const redirect = await captureRedirect(() => login(PASSWORD));
 
     expect(redirect.options.href).toBe("/");
-  });
+};
 
-  it.each([
-    "https://example.com",
-    "//example.com",
-    "/\\example.com",
-    "/..//evil.com",
-    "/finances/../login",
-    "/login",
-    "/login?from=/finances",
-    "/\t/evil.com",
-  ])("falls back to the homepage for unsafe target %j", async (from) => {
-    const redirect = await captureRedirect(() => login(PASSWORD, from));
+describe("login", () => {
+    it("rejects a wrong password without writing a session cookie", async () => {
+        await expect(login("wrong-password")).rejects.toThrow("Invalid password");
 
-    expect(redirect.options.href).toBe("/");
-  });
+        expect(written).toEqual([]);
+        expect(cookies[SESSION_COOKIE]).toBeUndefined();
+        await expect(getCurrentUser()).resolves.toBe(false);
+    });
 
-  it("normalizes control characters instead of throwing", async () => {
-    const redirect = await captureRedirect(() => login(PASSWORD, "/foo\nbar"));
+    it("seals a session that a later request can read", async () => {
+        await logIn();
 
-    expect(redirect.options.href).toBe("/foobar");
-  });
+        expect(written).toHaveLength(1);
+        expect(written[0]?.name).toBe(SESSION_COOKIE);
+        await expect(getCurrentUser()).resolves.toBe(true);
+    });
+
+    it("returns to the attempted location after login", async () => {
+        const redirect = await captureRedirect(() =>
+            login(PASSWORD, "/finances/transactions?view=all#recent"),
+        );
+
+        expect(redirect.options.href).toBe("/finances/transactions?view=all#recent");
+    });
+
+    it("falls back to the homepage without a destination", async () => {
+        const redirect = await captureRedirect(() => login(PASSWORD));
+
+        expect(redirect.options.href).toBe("/");
+    });
+
+    it.each([
+        "https://example.com",
+        "//example.com",
+        "/\\example.com",
+        "/..//evil.com",
+        "/finances/../login",
+        "/login",
+        "/login?from=/finances",
+        "/\t/evil.com",
+    ])("falls back to the homepage for unsafe target %j", async (from) => {
+        const redirect = await captureRedirect(() => login(PASSWORD, from));
+
+        expect(redirect.options.href).toBe("/");
+    });
+
+    it("normalizes control characters instead of throwing", async () => {
+        const redirect = await captureRedirect(() => login(PASSWORD, "/foo\nbar"));
+
+        expect(redirect.options.href).toBe("/foobar");
+    });
 });
 
 describe("logout", () => {
-  it("expires the session cookie and redirects to login", async () => {
-    await logIn();
-    written.length = 0;
+    it("expires the session cookie and redirects to login", async () => {
+        await logIn();
+        written.length = 0;
 
-    const redirect = await captureRedirect(logout);
+        const redirect = await captureRedirect(logout);
 
-    expect(redirect.options.to).toBe("/login");
-    expect(written).toHaveLength(1);
-    expect(written[0]?.name).toBe(SESSION_COOKIE);
-    expect(written[0]?.value).toBe("");
-    expect(written[0]?.options).toMatchObject({ maxAge: 0 });
-    await expect(getCurrentUser()).resolves.toBe(false);
-  });
+        expect(redirect.options.to).toBe("/login");
+        expect(written).toHaveLength(1);
+        expect(written[0]?.name).toBe(SESSION_COOKIE);
+        expect(written[0]?.value).toBe("");
+        expect(written[0]?.options).toMatchObject({ maxAge: 0 });
+        await expect(getCurrentUser()).resolves.toBe(false);
+    });
 });
 
 describe("requireSession", () => {
-  it("redirects to login without a session, uncached", async () => {
-    const redirect = await captureRedirect(requireSession);
+    it("redirects to login without a session, uncached", async () => {
+        const redirect = await captureRedirect(requireSession);
 
-    expect(redirect.options.to).toBe("/login");
-    expect(redirect.headers.get("Cache-Control")).toBe("no-store");
-  });
+        expect(redirect.options.to).toBe("/login");
+        expect(redirect.headers.get("Cache-Control")).toBe("no-store");
+    });
 
-  it("redirects to login for a cookie it cannot unseal", async () => {
-    cookies[SESSION_COOKIE] = "not-a-real-seal";
+    it("redirects to login for a cookie it cannot unseal", async () => {
+        cookies[SESSION_COOKIE] = "not-a-real-seal";
 
-    const redirect = await captureRedirect(requireSession);
+        const redirect = await captureRedirect(requireSession);
 
-    expect(redirect.options.to).toBe("/login");
-  });
+        expect(redirect.options.to).toBe("/login");
+    });
 
-  it("resolves for a logged-in session", async () => {
-    await logIn();
+    it("resolves for a logged-in session", async () => {
+        await logIn();
 
-    await expect(requireSession()).resolves.toBeUndefined();
-  });
+        await expect(requireSession()).resolves.toBeUndefined();
+    });
 });
 
 describe("getCurrentUser", () => {
-  it("is false without a session cookie", async () => {
-    await expect(getCurrentUser()).resolves.toBe(false);
-  });
+    it("is false without a session cookie", async () => {
+        await expect(getCurrentUser()).resolves.toBe(false);
+    });
 
-  it("is false for a cookie sealed with a rotated secret", async () => {
-    await logIn();
-    env.SESSION_SECRET = "o".repeat(32);
+    it("is false for a cookie sealed with a rotated secret", async () => {
+        await logIn();
+        env.SESSION_SECRET = "o".repeat(32);
 
-    await expect(getCurrentUser()).resolves.toBe(false);
-  });
+        await expect(getCurrentUser()).resolves.toBe(false);
+    });
 
-  it("is true for a valid session cookie", async () => {
-    const session = await getAppSession();
-    session.isLoggedIn = true;
-    await session.save();
+    it("is true for a valid session cookie", async () => {
+        const session = await getAppSession();
+        session.isLoggedIn = true;
+        await session.save();
 
-    await expect(getCurrentUser()).resolves.toBe(true);
-  });
+        await expect(getCurrentUser()).resolves.toBe(true);
+    });
 });
 
 beforeEach(() => {
-  for (const key of Object.keys(cookies)) {
-    delete cookies[key];
-  }
+    for (const key of Object.keys(cookies)) {
+        delete cookies[key];
+    }
 
-  written.length = 0;
-  env.SESSION_SECRET = SECRET;
-  env.ADMIN_PASSWORD_HASH = bcrypt.hashSync(PASSWORD, 4);
+    written.length = 0;
+    env.SESSION_SECRET = SECRET;
+    env.ADMIN_PASSWORD_HASH = bcrypt.hashSync(PASSWORD, 4);
 });

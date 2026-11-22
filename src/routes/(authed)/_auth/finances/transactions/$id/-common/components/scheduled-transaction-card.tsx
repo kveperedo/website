@@ -7,52 +7,52 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Route } from "../..";
 
 export const ScheduledTransactionCard = () => {
-  const { transaction } = Route.useLoaderData();
-  // We know that there is a template here
-  const template = transaction.template!;
+    const { transaction } = Route.useLoaderData();
+    // We know that there is a template here
+    const template = transaction.template!;
 
-  const getRecurrence = () => {
-    if (template.dayOfMonth > 28) {
-      return `Every ${format(new Date(2000, 0, template.dayOfMonth), "do")} (last day in shorter months)`;
-    }
-    return `Every ${format(new Date(2000, 0, template.dayOfMonth), "do")}`;
-  };
-  const recurrence = getRecurrence();
-  const getEndCondition = () => {
-    if (template.endDate) {
-      return `Until ${format(parseISO(template.endDate), "MMM d, yyyy")}`;
-    }
-    if (template.maxOccurrences) {
-      return `${template._count.transactions}/${template.maxOccurrences} occurrences`;
-    }
-    return "No end";
-  };
-  const endCondition = getEndCondition();
+    const getRecurrence = () => {
+        if (template.dayOfMonth > 28) {
+            return `Every ${format(new Date(2000, 0, template.dayOfMonth), "do")} (last day in shorter months)`;
+        }
+        return `Every ${format(new Date(2000, 0, template.dayOfMonth), "do")}`;
+    };
+    const recurrence = getRecurrence();
+    const getEndCondition = () => {
+        if (template.endDate) {
+            return `Until ${format(parseISO(template.endDate), "MMM d, yyyy")}`;
+        }
+        if (template.maxOccurrences) {
+            return `${template._count.transactions}/${template.maxOccurrences} occurrences`;
+        }
+        return "No end";
+    };
+    const endCondition = getEndCondition();
 
-  const STATUS_BADGE_MAP = {
-    active: { variant: "secondary" as const, label: "Scheduled" },
-    paused: { variant: "outline" as const, label: "Paused" },
-    archived: { variant: "outline" as const, label: "Archived" },
-  } satisfies Record<typeof template.status, { variant: "secondary" | "outline"; label: string }>;
+    const STATUS_BADGE_MAP = {
+        active: { variant: "secondary" as const, label: "Scheduled" },
+        paused: { variant: "outline" as const, label: "Paused" },
+        archived: { variant: "outline" as const, label: "Archived" },
+    } satisfies Record<typeof template.status, { variant: "secondary" | "outline"; label: string }>;
 
-  const { variant, label } = STATUS_BADGE_MAP[template.status];
+    const { variant, label } = STATUS_BADGE_MAP[template.status];
 
-  return (
-    <Card variant="flat" className="h-full lg:border-0">
-      <CardHeader variant="flat">
-        <div className="flex w-full items-center justify-between gap-2">
-          <CardTitle variant="flat" className="flex items-center gap-2">
-            <CalendarClock size={16} />
-            Recurring schedule
-          </CardTitle>
-          <Badge variant={variant}>{label}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="p-3">
-        <CardDescription>
-          {recurrence} | {endCondition}
-        </CardDescription>
-      </CardContent>
-    </Card>
-  );
+    return (
+        <Card variant="flat" className="h-full lg:border-0">
+            <CardHeader variant="flat">
+                <div className="flex w-full items-center justify-between gap-2">
+                    <CardTitle variant="flat" className="flex items-center gap-2">
+                        <CalendarClock size={16} />
+                        Recurring schedule
+                    </CardTitle>
+                    <Badge variant={variant}>{label}</Badge>
+                </div>
+            </CardHeader>
+            <CardContent className="p-3">
+                <CardDescription>
+                    {recurrence} | {endCondition}
+                </CardDescription>
+            </CardContent>
+        </Card>
+    );
 };

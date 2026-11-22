@@ -7,10 +7,10 @@ type FormatAmountOptions = CurrencyFormatOptions & { hidden?: boolean };
  * font and the mask keeps the character count identical, so toggling preserves width.
  */
 export function formatAmount(
-  amount: number,
-  { hidden = false, ...options }: FormatAmountOptions = {},
+    amount: number,
+    { hidden = false, ...options }: FormatAmountOptions = {},
 ) {
-  const formatted = formatCurrency(amount, options);
+    const formatted = formatCurrency(amount, options);
 
-  return hidden ? formatted.replace(/\d/g, "•") : formatted;
+    return hidden ? formatted.replace(/\d/g, "•") : formatted;
 }
