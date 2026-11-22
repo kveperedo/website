@@ -13,35 +13,35 @@ import { ProjectsSection } from "./-common/sections/projects";
 import { SummarySection } from "./-common/sections/summary";
 
 export const Route = createFileRoute("/(public)/")({
-  headers: () => cacheControl(PUBLIC_CACHE_CONTROL),
-  head: () => ({ meta: META }),
-  loader: async () => {
-    const currentUser = await getCurrentUserFn();
+    headers: () => cacheControl(PUBLIC_CACHE_CONTROL),
+    head: () => ({ meta: META }),
+    loader: async () => {
+        const currentUser = await getCurrentUserFn();
 
-    return { isUserLoggedIn: currentUser };
-  },
-  component: Index,
+        return { isUserLoggedIn: currentUser };
+    },
+    component: Index,
 });
 
 function Index() {
-  return (
-    <main className="relative">
-      <FadeIn />
-      <div className="relative container mx-auto">
-        <IntroductionSection />
-        <div className="h-10" />
-        <SummarySection />
-        <div className="h-10" />
-        <InfoSection />
-        <div className="h-10" />
-        <ProjectsSection />
-        <div className="h-10" />
+    return (
+        <main className="relative">
+            <FadeIn />
+            <div className="relative container mx-auto">
+                <IntroductionSection />
+                <div className="h-10" />
+                <SummarySection />
+                <div className="h-10" />
+                <InfoSection />
+                <div className="h-10" />
+                <ProjectsSection />
+                <div className="h-10" />
 
-        <footer className="my-16 flex flex-col items-center gap-8">
-          <ScrollButton direction="up" href={`#${SECTION_IDS.INTRO}`} />
-          <LinkButtons />
-        </footer>
-      </div>
-    </main>
-  );
+                <footer className="my-16 flex flex-col items-center gap-8">
+                    <ScrollButton direction="up" href={`#${SECTION_IDS.INTRO}`} />
+                    <LinkButtons />
+                </footer>
+            </div>
+        </main>
+    );
 }

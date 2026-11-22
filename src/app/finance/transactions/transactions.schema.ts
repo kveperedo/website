@@ -9,43 +9,46 @@ export const MAX_TRANSACTION_AMOUNT = 10_000_000;
 export const MAX_DESCRIPTION_LENGTH = 280;
 
 export const transactionDescriptionSchema = TransactionInputSchema.shape.description
-  .trim()
-  .min(1, "Description is required")
-  .max(MAX_DESCRIPTION_LENGTH, `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer`);
+    .trim()
+    .min(1, "Description is required")
+    .max(
+        MAX_DESCRIPTION_LENGTH,
+        `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer`,
+    );
 
 export const positiveTransactionAmountSchema = TransactionInputSchema.shape.amount
-  .positive("Amount must be greater than 0")
-  .max(MAX_TRANSACTION_AMOUNT, "Amount is too large");
+    .positive("Amount must be greater than 0")
+    .max(MAX_TRANSACTION_AMOUNT, "Amount is too large");
 
 export const ParsedTransactionSchema = z.object({
-  description: transactionDescriptionSchema,
-  /** Null when the entry carried no recognisable amount; the review form asks for one. */
-  amount: positiveTransactionAmountSchema.nullable(),
-  type: TransactionTypeSchema,
-  category: TransactionCategorySchema.nullable(),
-  transactedAt: z.iso.date(),
+    description: transactionDescriptionSchema,
+    /** Null when the entry carried no recognisable amount; the review form asks for one. */
+    amount: positiveTransactionAmountSchema.nullable(),
+    type: TransactionTypeSchema,
+    category: TransactionCategorySchema.nullable(),
+    transactedAt: z.iso.date(),
 });
 
 export type ParsedTransaction = z.infer<typeof ParsedTransactionSchema>;
 
 export const CreateTransactionsInputSchema = z.array(
-  TransactionInputSchema.omit({
-    template: true,
-    templateId: true,
-  })
-    .extend({
-      schedule: ScheduledTransactionInputSchema.optional(),
+    TransactionInputSchema.omit({
+        template: true,
+        templateId: true,
     })
-    .superRefine((transaction, ctx) => {
-      if (
-        transaction.schedule?.endDate &&
-        transaction.schedule.endDate < transaction.transactedAt.toISOString().slice(0, 10)
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "End date cannot be before the transaction date",
-          path: ["schedule", "endDate"],
-        });
-      }
-    }),
+        .extend({
+            schedule: ScheduledTransactionInputSchema.optional(),
+        })
+        .superRefine((transaction, ctx) => {
+            if (
+                transaction.schedule?.endDate &&
+                transaction.schedule.endDate < transaction.transactedAt.toISOString().slice(0, 10)
+            ) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "End date cannot be before the transaction date",
+                    path: ["schedule", "endDate"],
+                });
+            }
+        }),
 );

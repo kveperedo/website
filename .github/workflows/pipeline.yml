@@ -1,164 +1,164 @@
 name: Deploy Pipeline
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - main
-  push:
-    branches:
-      - main
+    pull_request:
+        types: [opened, synchronize, reopened, closed]
+        branches:
+            - main
+    push:
+        branches:
+            - main
 
 concurrency:
-  # Group PR runs by number: a merged PR's closed run uses the base branch
-  # as its ref, which collided with and canceled the push-to-main run.
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    # Group PR runs by number: a merged PR's closed run uses the base branch
+    # as its ref, which collided with and canceled the push-to-main run.
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  checks:
-    name: Checks
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event_name != 'pull_request' || github.event.action != 'closed'
-    environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-      - name: Generate Prisma client
-        run: pnpm run db:generate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - name: Run checks
-        run: pnpm run checks
+    checks:
+        name: Checks
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        if: github.event_name != 'pull_request' || github.event.action != 'closed'
+        environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup
+            - name: Generate Prisma client
+              run: pnpm run db:generate
+              env:
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+            - name: Run checks
+              run: pnpm run checks
 
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: checks
-    outputs:
-      url: ${{ steps.preview.outputs.url }}
-    environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup
+    deploy:
+        name: Deploy
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        needs: checks
+        outputs:
+            url: ${{ steps.preview.outputs.url }}
+        environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
+        permissions:
+            pull-requests: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - uses: ./.github/actions/setup
 
-      # Conditional migrations: db:deploy runs only when prisma/** or prisma.config.ts change.
-      # This avoids redundant deploys on unrelated changes. If a migration fails, it
-      # won't retry until the next prisma change — re-run the job or push a prisma
-      # touch commit as needed.
-      - name: Detect prisma changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            prisma:
-              - 'prisma/**'
-              - 'prisma.config.ts'
+            # Conditional migrations: db:deploy runs only when prisma/** or prisma.config.ts change.
+            # This avoids redundant deploys on unrelated changes. If a migration fails, it
+            # won't retry until the next prisma change — re-run the job or push a prisma
+            # touch commit as needed.
+            - name: Detect prisma changes
+              id: filter
+              uses: dorny/paths-filter@v3
+              with:
+                  filters: |
+                      prisma:
+                        - 'prisma/**'
+                        - 'prisma.config.ts'
 
-      - name: Generate Prisma client
-        run: pnpm run db:generate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+            - name: Generate Prisma client
+              run: pnpm run db:generate
+              env:
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Deploy database migrations
-        if: steps.filter.outputs.prisma == 'true'
-        run: pnpm run db:deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+            - name: Deploy database migrations
+              if: steps.filter.outputs.prisma == 'true'
+              run: pnpm run db:deploy
+              env:
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Deploy to production
-        if: github.event_name == 'push'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm run deploy
+            - name: Deploy to production
+              if: github.event_name == 'push'
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+              run: pnpm run deploy
 
-      - name: Deploy to preview
-        id: preview
+            - name: Deploy to preview
+              id: preview
+              if: github.event_name == 'pull_request'
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                  PREVIEW_NAME: pr-${{ github.event.number }}
+              run: |
+                  pnpm exec cf previews deploy "$PREVIEW_NAME"
+
+                  echo "url=https://${PREVIEW_NAME}-website.kevinperedo.workers.dev" >> $GITHUB_OUTPUT
+
+            - name: Comment preview URL
+              if: github.event_name == 'pull_request'
+              uses: marocchino/sticky-pull-request-comment@v2
+              with:
+                  recreate: true
+                  message: "**Preview:** ${{ steps.preview.outputs.url }}"
+
+    e2e:
+        name: E2E
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        needs: deploy
         if: github.event_name == 'pull_request'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          PREVIEW_NAME: pr-${{ github.event.number }}
-        run: |
-          pnpm exec cf previews deploy "$PREVIEW_NAME"
+        environment: preview
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # needed to diff the PR against its base for route-changed selection
+            - uses: ./.github/actions/setup
 
-          echo "url=https://${PREVIEW_NAME}-website.kevinperedo.workers.dev" >> $GITHUB_OUTPUT
+            - name: Cache Playwright browsers
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/ms-playwright
+                  key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+                  restore-keys: |
+                      playwright-${{ runner.os }}-
 
-      - name: Comment preview URL
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          recreate: true
-          message: "**Preview:** ${{ steps.preview.outputs.url }}"
+            - name: Install Playwright
+              run: pnpm exec playwright install --with-deps chromium chromium-headless-shell
 
-  e2e:
-    name: E2E
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: deploy
-    if: github.event_name == 'pull_request'
-    environment: preview
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # needed to diff the PR against its base for route-changed selection
-      - uses: ./.github/actions/setup
+            - name: Run E2E tests
+              run: pnpm run test:e2e:route-changed
+              env:
+                  BASE_URL: ${{ needs.deploy.outputs.url }}
+                  E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+                  E2E_BASE_SHA: ${{ github.event.pull_request.base.sha }}
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
+            - name: Upload Playwright report
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: playwright-report
+                  path: e2e/playwright-report/
 
-      - name: Install Playwright
-        run: pnpm exec playwright install --with-deps chromium chromium-headless-shell
-
-      - name: Run E2E tests
-        run: pnpm run test:e2e:route-changed
-        env:
-          BASE_URL: ${{ needs.deploy.outputs.url }}
-          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
-          E2E_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: e2e/playwright-report/
-
-  # Disabled: cf has no `previews delete` command yet, so `cf workers delete
-  # pr-<n>-website` does not actually remove the preview. Tracking:
-  # https://github.com/cloudflare/cf/issues/40
-  # Re-enable once `cf previews delete` lands. Until then previews must be
-  # removed manually (Cloudflare dashboard) when a PR is closed.
-  #
-  # cleanup-preview:
-  #   name: Cleanup Preview
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 5
-  #   if: github.event_name == 'pull_request' && github.event.action == 'closed'
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         ref: ${{ github.event.repository.default_branch }}
-  #     - uses: ./.github/actions/setup
-  #     - name: Delete preview
-  #       continue-on-error: true
-  #       env:
-  #         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  #         CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-  #         PREVIEW_NAME: pr-${{ github.event.number }}
-  #       run: pnpm exec cf workers delete "${PREVIEW_NAME}-website" --force
+    # Disabled: cf has no `previews delete` command yet, so `cf workers delete
+    # pr-<n>-website` does not actually remove the preview. Tracking:
+    # https://github.com/cloudflare/cf/issues/40
+    # Re-enable once `cf previews delete` lands. Until then previews must be
+    # removed manually (Cloudflare dashboard) when a PR is closed.
+    #
+    # cleanup-preview:
+    #   name: Cleanup Preview
+    #   runs-on: ubuntu-latest
+    #   timeout-minutes: 5
+    #   if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    #   steps:
+    #     - uses: actions/checkout@v4
+    #       with:
+    #         ref: ${{ github.event.repository.default_branch }}
+    #     - uses: ./.github/actions/setup
+    #     - name: Delete preview
+    #       continue-on-error: true
+    #       env:
+    #         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    #         CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    #         PREVIEW_NAME: pr-${{ github.event.number }}
+    #       run: pnpm exec cf workers delete "${PREVIEW_NAME}-website" --force

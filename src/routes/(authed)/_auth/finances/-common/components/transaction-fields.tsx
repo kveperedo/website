@@ -14,196 +14,202 @@ import { CATEGORIES, CATEGORY_COLORS } from "../constants";
 import { CategoryToggleGroupItem } from "./category-toggle";
 
 function DescriptionField<TFieldValues extends FieldValues>({
-  control,
-  name,
-  isDisabled,
+    control,
+    name,
+    isDisabled,
 }: {
-  control: Control<TFieldValues>;
-  name: FieldPath<TFieldValues>;
-  isDisabled?: boolean;
+    control: Control<TFieldValues>;
+    name: FieldPath<TFieldValues>;
+    isDisabled?: boolean;
 }) {
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field, fieldState }) => (
-        <Field>
-          <FieldLabel className="text-sm tracking-wide text-foreground">Description</FieldLabel>
-          <Input data-testid="description-input" {...field} disabled={isDisabled} />
-          {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
-        </Field>
-      )}
-    />
-  );
+    return (
+        <Controller
+            control={control}
+            name={name}
+            render={({ field, fieldState }) => (
+                <Field>
+                    <FieldLabel className="text-sm tracking-wide text-foreground">
+                        Description
+                    </FieldLabel>
+                    <Input data-testid="description-input" {...field} disabled={isDisabled} />
+                    {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
+                </Field>
+            )}
+        />
+    );
 }
 
 function AmountField<TFieldValues extends FieldValues>({
-  control,
-  name,
-  isDisabled,
+    control,
+    name,
+    isDisabled,
 }: {
-  control: Control<TFieldValues>;
-  name: FieldPath<TFieldValues>;
-  isDisabled?: boolean;
+    control: Control<TFieldValues>;
+    name: FieldPath<TFieldValues>;
+    isDisabled?: boolean;
 }) {
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field, fieldState }) => (
-        <Field>
-          <FieldLabel htmlFor={name} className="text-sm tracking-wide text-foreground">
-            Amount
-          </FieldLabel>
-          <Input
-            id={name}
-            type="number"
-            inputMode="decimal"
-            disabled={isDisabled}
-            value={field.value || ""}
-            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-            onBlur={field.onBlur}
-            ref={field.ref}
-          />
-          {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
-        </Field>
-      )}
-    />
-  );
+    return (
+        <Controller
+            control={control}
+            name={name}
+            render={({ field, fieldState }) => (
+                <Field>
+                    <FieldLabel htmlFor={name} className="text-sm tracking-wide text-foreground">
+                        Amount
+                    </FieldLabel>
+                    <Input
+                        id={name}
+                        type="number"
+                        inputMode="decimal"
+                        disabled={isDisabled}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                    />
+                    {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
+                </Field>
+            )}
+        />
+    );
 }
 
 function DateField<TFieldValues extends FieldValues>({
-  control,
-  name,
-  isDisabled,
+    control,
+    name,
+    isDisabled,
 }: {
-  control: Control<TFieldValues>;
-  name: FieldPath<TFieldValues>;
-  isDisabled?: boolean;
+    control: Control<TFieldValues>;
+    name: FieldPath<TFieldValues>;
+    isDisabled?: boolean;
 }) {
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field, fieldState }) => (
-        <Field>
-          <FieldLabel className="text-sm tracking-wide text-foreground">Date</FieldLabel>
-          <DatePicker
-            aria-label="Date"
-            isDisabled={isDisabled}
-            value={field.value ? new Date(field.value) : undefined}
-            onChange={(date) => {
-              if (!date) {
-                field.onChange("");
-                return;
-              }
-              field.onChange(
-                new Date(
-                  Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
-                ).toISOString(),
-              );
-            }}
-          />
-          {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
-        </Field>
-      )}
-    />
-  );
+    return (
+        <Controller
+            control={control}
+            name={name}
+            render={({ field, fieldState }) => (
+                <Field>
+                    <FieldLabel className="text-sm tracking-wide text-foreground">Date</FieldLabel>
+                    <DatePicker
+                        aria-label="Date"
+                        isDisabled={isDisabled}
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) => {
+                            if (!date) {
+                                field.onChange("");
+                                return;
+                            }
+                            field.onChange(
+                                new Date(
+                                    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+                                ).toISOString(),
+                            );
+                        }}
+                    />
+                    {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
+                </Field>
+            )}
+        />
+    );
 }
 
 function TypeField<TFieldValues extends FieldValues>({
-  control,
-  name,
-  isDisabled,
+    control,
+    name,
+    isDisabled,
 }: {
-  control: Control<TFieldValues>;
-  name: FieldPath<TFieldValues>;
-  isDisabled?: boolean;
+    control: Control<TFieldValues>;
+    name: FieldPath<TFieldValues>;
+    isDisabled?: boolean;
 }) {
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field: typeField, fieldState }) => (
-        <Field>
-          <FieldLabel className="text-sm tracking-wide text-foreground">Type</FieldLabel>
-          <RadioGroup
-            value={typeField.value}
-            onChange={typeField.onChange}
-            className="flex h-8 items-center gap-4"
-            isDisabled={isDisabled}
-          >
-            <div className="flex items-center gap-2">
-              <RadioGroupItem
-                value="expense"
-                id={`${name}-expense`}
-                data-testid="expense-radio-item"
-              ></RadioGroupItem>
-              <FieldLabel
-                htmlFor={`${name}-expense`}
-                className="text-sm tracking-wide text-foreground"
-              >
-                Expense
-              </FieldLabel>
-            </div>
-            <div className="flex items-center gap-2">
-              <RadioGroupItem
-                value="income"
-                id={`${name}-income`}
-                data-testid="income-radio-item"
-              />
-              <FieldLabel
-                htmlFor={`${name}-income`}
-                className="text-sm tracking-wide text-foreground"
-              >
-                Income
-              </FieldLabel>
-            </div>
-          </RadioGroup>
-          {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
-        </Field>
-      )}
-    />
-  );
+    return (
+        <Controller
+            control={control}
+            name={name}
+            render={({ field: typeField, fieldState }) => (
+                <Field>
+                    <FieldLabel className="text-sm tracking-wide text-foreground">Type</FieldLabel>
+                    <RadioGroup
+                        value={typeField.value}
+                        onChange={typeField.onChange}
+                        className="flex h-8 items-center gap-4"
+                        isDisabled={isDisabled}
+                    >
+                        <div className="flex items-center gap-2">
+                            <RadioGroupItem
+                                value="expense"
+                                id={`${name}-expense`}
+                                data-testid="expense-radio-item"
+                            ></RadioGroupItem>
+                            <FieldLabel
+                                htmlFor={`${name}-expense`}
+                                className="text-sm tracking-wide text-foreground"
+                            >
+                                Expense
+                            </FieldLabel>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <RadioGroupItem
+                                value="income"
+                                id={`${name}-income`}
+                                data-testid="income-radio-item"
+                            />
+                            <FieldLabel
+                                htmlFor={`${name}-income`}
+                                className="text-sm tracking-wide text-foreground"
+                            >
+                                Income
+                            </FieldLabel>
+                        </div>
+                    </RadioGroup>
+                    {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
+                </Field>
+            )}
+        />
+    );
 }
 
 function CategoryField<TFieldValues extends FieldValues>({
-  control,
-  name,
-  isDisabled,
+    control,
+    name,
+    isDisabled,
 }: {
-  control: Control<TFieldValues>;
-  name: FieldPath<TFieldValues>;
-  isDisabled?: boolean;
+    control: Control<TFieldValues>;
+    name: FieldPath<TFieldValues>;
+    isDisabled?: boolean;
 }) {
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field: catField, fieldState }) => (
-        <Field>
-          <FieldLabel className="text-sm tracking-wide text-foreground">Category</FieldLabel>
-          <ToggleGroup
-            selectedKeys={catField.value ? [catField.value] : []}
-            onSelectionChange={(v) => catField.onChange(([...v][0] || null) as TransactionCategory)}
-            isDisabled={isDisabled}
-            variant="outline"
-            className="flex flex-wrap gap-2"
-          >
-            {CATEGORIES.map(({ value, label }) => {
-              const colors = CATEGORY_COLORS[value];
-              return (
-                <CategoryToggleGroupItem key={value} id={value} colors={colors}>
-                  {label}
-                </CategoryToggleGroupItem>
-              );
-            })}
-          </ToggleGroup>
-          {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
-        </Field>
-      )}
-    />
-  );
+    return (
+        <Controller
+            control={control}
+            name={name}
+            render={({ field: catField, fieldState }) => (
+                <Field>
+                    <FieldLabel className="text-sm tracking-wide text-foreground">
+                        Category
+                    </FieldLabel>
+                    <ToggleGroup
+                        selectedKeys={catField.value ? [catField.value] : []}
+                        onSelectionChange={(v) =>
+                            catField.onChange(([...v][0] || null) as TransactionCategory)
+                        }
+                        isDisabled={isDisabled}
+                        variant="outline"
+                        className="flex flex-wrap gap-2"
+                    >
+                        {CATEGORIES.map(({ value, label }) => {
+                            const colors = CATEGORY_COLORS[value];
+                            return (
+                                <CategoryToggleGroupItem key={value} id={value} colors={colors}>
+                                    {label}
+                                </CategoryToggleGroupItem>
+                            );
+                        })}
+                    </ToggleGroup>
+                    {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
+                </Field>
+            )}
+        />
+    );
 }
 
 export { DescriptionField, AmountField, DateField, TypeField, CategoryField };

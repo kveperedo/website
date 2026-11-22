@@ -15,81 +15,89 @@ import { Spinner } from "@/components/ui/spinner";
 import { PUBLIC_CACHE_CONTROL } from "./-common/constants";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
-  { title: "Login | Kevin Von Erich Peredo" },
+    { title: "Login | Kevin Von Erich Peredo" },
 ];
 
 export const Route = createFileRoute("/(public)/login")({
-  headers: () => cacheControl(PUBLIC_CACHE_CONTROL),
-  head: () => ({ meta: META }),
-  validateSearch: LoginSearchSchema,
-  component: RouteComponent,
+    headers: () => cacheControl(PUBLIC_CACHE_CONTROL),
+    head: () => ({ meta: META }),
+    validateSearch: LoginSearchSchema,
+    component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { from } = Route.useSearch();
-  const login = useServerFn(loginFn);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+    const { from } = Route.useSearch();
+    const login = useServerFn(loginFn);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-  return (
-    <main className="relative min-h-screen overflow-hidden">
-      <section className="relative container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
-        <div className="flex w-full max-w-md flex-col gap-6">
-          <BackButton to="/" />
-          <p className="text-sm text-muted-foreground">
-            Enter the admin password to manage the site.
-          </p>
-          <Card className="flex flex-col gap-5 p-6">
-            <form
-              onSubmit={async (event) => {
-                event.preventDefault();
+    return (
+        <main className="relative min-h-screen overflow-hidden">
+            <section className="relative container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
+                <div className="flex w-full max-w-md flex-col gap-6">
+                    <BackButton to="/" />
+                    <p className="text-sm text-muted-foreground">
+                        Enter the admin password to manage the site.
+                    </p>
+                    <Card className="flex flex-col gap-5 p-6">
+                        <form
+                            onSubmit={async (event) => {
+                                event.preventDefault();
 
-                const formData = new FormData(event.currentTarget);
-                const password = formData.get("password")?.toString() ?? "";
-                if (!password.trim()) {
-                  setError("Please enter a password.");
-                  return;
-                }
+                                const formData = new FormData(event.currentTarget);
+                                const password = formData.get("password")?.toString() ?? "";
+                                if (!password.trim()) {
+                                    setError("Please enter a password.");
+                                    return;
+                                }
 
-                setIsLoading(true);
+                                setIsLoading(true);
 
-                try {
-                  await login({ data: { password, from } });
-                } catch (err) {
-                  console.error(err);
-                  setError("Invalid password. Please try again.");
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
-            >
-              <input hidden name="username" defaultValue="username" autoComplete="username" />
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="password" className="text-sm tracking-wide text-foreground">
-                    Password
-                  </FieldLabel>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    placeholder="Enter password"
-                    autoFocus
-                    onChange={() => setError(null)}
-                  />
-                  <FieldError>{error}</FieldError>
-                </Field>
-              </FieldGroup>
+                                try {
+                                    await login({ data: { password, from } });
+                                } catch (err) {
+                                    console.error(err);
+                                    setError("Invalid password. Please try again.");
+                                } finally {
+                                    setIsLoading(false);
+                                }
+                            }}
+                        >
+                            <input
+                                hidden
+                                name="username"
+                                defaultValue="username"
+                                autoComplete="username"
+                            />
+                            <FieldGroup>
+                                <Field>
+                                    <FieldLabel
+                                        htmlFor="password"
+                                        className="text-sm tracking-wide text-foreground"
+                                    >
+                                        Password
+                                    </FieldLabel>
+                                    <Input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        autoComplete="current-password"
+                                        placeholder="Enter password"
+                                        autoFocus
+                                        onChange={() => setError(null)}
+                                    />
+                                    <FieldError>{error}</FieldError>
+                                </Field>
+                            </FieldGroup>
 
-              <Button type="submit" isDisabled={isLoading} className="mt-7 w-full">
-                {isLoading && <Spinner data-icon="inline-start" />}
-                Continue
-              </Button>
-            </form>
-          </Card>
-        </div>
-      </section>
-    </main>
-  );
+                            <Button type="submit" isDisabled={isLoading} className="mt-7 w-full">
+                                {isLoading && <Spinner data-icon="inline-start" />}
+                                Continue
+                            </Button>
+                        </form>
+                    </Card>
+                </div>
+            </section>
+        </main>
+    );
 }

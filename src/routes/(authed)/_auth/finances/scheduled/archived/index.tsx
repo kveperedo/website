@@ -11,64 +11,70 @@ import { ScheduledTemplateListItem } from "../-common/components/scheduled-templ
 import { FinanceContainer } from "../../-common/components/finance-container";
 
 export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/archived/")({
-  loader: async () => {
-    const templates = await getArchivedScheduledTransactionTemplatesFn();
-    return { templates };
-  },
-  head: () => ({
-    meta: [{ title: "Archived Schedules | Kevin Von Erich Peredo" }],
-  }),
-  component: RouteComponent,
+    loader: async () => {
+        const templates = await getArchivedScheduledTransactionTemplatesFn();
+        return { templates };
+    },
+    head: () => ({
+        meta: [{ title: "Archived Schedules | Kevin Von Erich Peredo" }],
+    }),
+    component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { templates } = Route.useLoaderData();
-  const router = useRouter();
-  const isEmpty = templates.length === 0;
+    const { templates } = Route.useLoaderData();
+    const router = useRouter();
+    const isEmpty = templates.length === 0;
 
-  const handleRowAction = (id: string) => {
-    router.navigate({
-      to: "/finances/scheduled/$id",
-      params: { id },
-    });
-  };
+    const handleRowAction = (id: string) => {
+        router.navigate({
+            to: "/finances/scheduled/$id",
+            params: { id },
+        });
+    };
 
-  return (
-    <FinanceContainer.Root
-      header={
-        <div className="flex items-center gap-4">
-          <TanstackLinkButton to="/finances/scheduled" variant="ghost" size="icon">
-            <ArrowLeftIcon className="size-3.5" />
-          </TanstackLinkButton>
-          <h2 className="text-lg font-medium text-foreground">Archived Schedules</h2>
-        </div>
-      }
-      footer={<FinanceContainer.Footer />}
-    >
-      <div className="container mx-auto flex flex-1 flex-col gap-2 px-4 py-4 sm:px-0">
-        <Card className="flex min-w-0 flex-1 flex-col p-2">
-          <CardContent className="flex flex-col gap-2 p-2">
-            <CardTitle>Archived</CardTitle>
-            {isEmpty ? (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyTitle>No archived schedules.</EmptyTitle>
-                  <EmptyDescription>
-                    Archived schedules stay here for reference. They will not generate future
-                    transactions.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : (
-              <GridList items={templates} aria-label="Archived scheduled transactions">
-                {(template) => (
-                  <ScheduledTemplateListItem template={template} onAction={handleRowAction} />
-                )}
-              </GridList>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </FinanceContainer.Root>
-  );
+    return (
+        <FinanceContainer.Root
+            header={
+                <div className="flex items-center gap-4">
+                    <TanstackLinkButton to="/finances/scheduled" variant="ghost" size="icon">
+                        <ArrowLeftIcon className="size-3.5" />
+                    </TanstackLinkButton>
+                    <h2 className="text-lg font-medium text-foreground">Archived Schedules</h2>
+                </div>
+            }
+            footer={<FinanceContainer.Footer />}
+        >
+            <div className="container mx-auto flex flex-1 flex-col gap-2 px-4 py-4 sm:px-0">
+                <Card className="flex min-w-0 flex-1 flex-col p-2">
+                    <CardContent className="flex flex-col gap-2 p-2">
+                        <CardTitle>Archived</CardTitle>
+                        {isEmpty ? (
+                            <Empty>
+                                <EmptyHeader>
+                                    <EmptyTitle>No archived schedules.</EmptyTitle>
+                                    <EmptyDescription>
+                                        Archived schedules stay here for reference. They will not
+                                        generate future transactions.
+                                    </EmptyDescription>
+                                </EmptyHeader>
+                            </Empty>
+                        ) : (
+                            <GridList
+                                items={templates}
+                                aria-label="Archived scheduled transactions"
+                            >
+                                {(template) => (
+                                    <ScheduledTemplateListItem
+                                        template={template}
+                                        onAction={handleRowAction}
+                                    />
+                                )}
+                            </GridList>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        </FinanceContainer.Root>
+    );
 }

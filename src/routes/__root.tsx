@@ -8,65 +8,65 @@ import { RouteProgress } from "../components/route-progress";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        title: "Kevin Von Erich Peredo",
-      },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      {
-        rel: "icon",
-        type: "image/svg+xml",
-        href: "/favicon.svg",
-      },
-    ],
-  }),
-  shellComponent: RootDocument,
+    head: () => ({
+        meta: [
+            {
+                charSet: "utf-8",
+            },
+            {
+                name: "viewport",
+                content: "width=device-width, initial-scale=1",
+            },
+            {
+                title: "Kevin Von Erich Peredo",
+            },
+        ],
+        links: [
+            {
+                rel: "stylesheet",
+                href: appCss,
+            },
+            {
+                rel: "icon",
+                type: "image/svg+xml",
+                href: "/favicon.svg",
+            },
+        ],
+    }),
+    shellComponent: RootDocument,
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    document.documentElement.dataset.hydrated = "true";
-  }, []);
+    useEffect(() => {
+        document.documentElement.dataset.hydrated = "true";
+    }, []);
 
-  return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className="dark scroll-smooth bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground"
-    >
-      <head>
-        <HeadContent />
-      </head>
-      <body className="relative wrap-anywhere antialiased">
-        <RouteProgress />
-        <Background />
-        {children}
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
-        <Scripts />
-      </body>
-    </html>
-  );
+    return (
+        <html
+            lang="en"
+            suppressHydrationWarning
+            className="dark scroll-smooth bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground"
+        >
+            <head>
+                <HeadContent />
+            </head>
+            <body className="relative wrap-anywhere antialiased">
+                <RouteProgress />
+                <Background />
+                {children}
+                <TanStackDevtools
+                    config={{
+                        position: "bottom-right",
+                    }}
+                    plugins={[
+                        {
+                            name: "Tanstack Router",
+                            render: <TanStackRouterDevtoolsPanel />,
+                        },
+                    ]}
+                />
+                <Scripts />
+            </body>
+        </html>
+    );
 }

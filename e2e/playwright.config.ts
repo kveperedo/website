@@ -5,117 +5,117 @@ import path from "node:path";
 loadEnv({ path: "./.env" });
 
 export default defineConfig({
-  testDir: ".",
-  testMatch: /tests\/.*\.spec\.ts/,
-  outputDir: "./test-results",
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  maxFailures: process.env.CI ? 1 : undefined,
-  retries: 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: [["html", { outputFolder: "playwright-report" }], ["list"]],
-  use: {
-    baseURL: process.env.BASE_URL ?? "http://localhost:3000",
-    timezoneId: "Asia/Manila",
-    trace: { mode: "retain-on-failure", snapshots: false, screenshots: true },
-    screenshot: "only-on-failure",
-  },
-  projects: [
-    { name: "auth.setup", testMatch: /auth\.setup\.ts/ },
-    {
-      name: "applications",
-      testMatch: /applications\.spec\.ts$/,
-      dependencies: ["auth.setup"],
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
+    testDir: ".",
+    testMatch: /tests\/.*\.spec\.ts/,
+    outputDir: "./test-results",
+    fullyParallel: true,
+    forbidOnly: !!process.env.CI,
+    maxFailures: process.env.CI ? 1 : undefined,
+    retries: 0,
+    workers: process.env.CI ? 1 : undefined,
+    reporter: [["html", { outputFolder: "playwright-report" }], ["list"]],
+    use: {
+        baseURL: process.env.BASE_URL ?? "http://localhost:3000",
+        timezoneId: "Asia/Manila",
+        trace: { mode: "retain-on-failure", snapshots: false, screenshots: true },
+        screenshot: "only-on-failure",
     },
-    {
-      name: "finance.empty-state",
-      testMatch: /finances\.empty-state\.spec\.ts$/,
-      dependencies: ["auth.setup"],
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
-    },
-    {
-      name: "finance.seed",
-      testMatch: /seed\.spec\.ts$/,
-      dependencies: ["finance.empty-state"],
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
-    },
-    {
-      name: "public",
-      testMatch: [/home\.spec\.ts$/, /login\.spec\.ts$/],
-      use: { ...devices["Desktop Chrome"] },
-    },
-    {
-      name: "finance.read",
-      testMatch: /finances\.read\.spec\.ts$/,
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
-      dependencies: ["finance.seed"],
-    },
-    {
-      name: "finance.read-scenarios",
-      testMatch: /finances\.read-scenarios\.spec\.ts$/,
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
-      dependencies: ["finance.read"],
-    },
-    {
-      name: "finance.mutations",
-      testMatch: /finances\.mutations\.spec\.ts$/,
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
-      dependencies: ["finance.scheduled-projection"],
-    },
-    {
-      name: "finance.trends",
-      testMatch: /finances\.trends\.spec\.ts$/,
-      dependencies: ["finance.read-scenarios"],
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
-    },
-    {
-      name: "finance.scheduled-create",
-      testMatch: /finances\.scheduled-create\.spec\.ts$/,
-      dependencies: ["finance.scheduled-projection"],
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
-    },
-    {
-      name: "finance.scheduled-projection",
-      testMatch: /finances\.scheduled-projection\.spec\.ts$/,
-      dependencies: ["finance.trends"],
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
-    },
-    {
-      name: "finance.scheduled-archive",
-      testMatch: /finances\.scheduled-archive\.spec\.ts$/,
-      dependencies: ["finance.mutations", "finance.scheduled-create"],
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: path.join(import.meta.dirname, ".auth", "user.json"),
-      },
-    },
-  ],
+    projects: [
+        { name: "auth.setup", testMatch: /auth\.setup\.ts/ },
+        {
+            name: "applications",
+            testMatch: /applications\.spec\.ts$/,
+            dependencies: ["auth.setup"],
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+        },
+        {
+            name: "finance.empty-state",
+            testMatch: /finances\.empty-state\.spec\.ts$/,
+            dependencies: ["auth.setup"],
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+        },
+        {
+            name: "finance.seed",
+            testMatch: /seed\.spec\.ts$/,
+            dependencies: ["finance.empty-state"],
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+        },
+        {
+            name: "public",
+            testMatch: [/home\.spec\.ts$/, /login\.spec\.ts$/],
+            use: { ...devices["Desktop Chrome"] },
+        },
+        {
+            name: "finance.read",
+            testMatch: /finances\.read\.spec\.ts$/,
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+            dependencies: ["finance.seed"],
+        },
+        {
+            name: "finance.read-scenarios",
+            testMatch: /finances\.read-scenarios\.spec\.ts$/,
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+            dependencies: ["finance.read"],
+        },
+        {
+            name: "finance.mutations",
+            testMatch: /finances\.mutations\.spec\.ts$/,
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+            dependencies: ["finance.scheduled-projection"],
+        },
+        {
+            name: "finance.trends",
+            testMatch: /finances\.trends\.spec\.ts$/,
+            dependencies: ["finance.read-scenarios"],
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+        },
+        {
+            name: "finance.scheduled-create",
+            testMatch: /finances\.scheduled-create\.spec\.ts$/,
+            dependencies: ["finance.scheduled-projection"],
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+        },
+        {
+            name: "finance.scheduled-projection",
+            testMatch: /finances\.scheduled-projection\.spec\.ts$/,
+            dependencies: ["finance.trends"],
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+        },
+        {
+            name: "finance.scheduled-archive",
+            testMatch: /finances\.scheduled-archive\.spec\.ts$/,
+            dependencies: ["finance.mutations", "finance.scheduled-create"],
+            use: {
+                ...devices["Desktop Chrome"],
+                storageState: path.join(import.meta.dirname, ".auth", "user.json"),
+            },
+        },
+    ],
 });

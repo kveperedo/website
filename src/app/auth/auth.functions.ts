@@ -7,10 +7,10 @@ import { getCurrentUser, login, logout } from "./auth.service.server";
 export const getCurrentUserFn = createServerFn({ method: "GET" }).handler(getCurrentUser);
 
 export const loginFn = createServerFn({ method: "POST" })
-  .middleware([createRateLimitMiddleware({ limit: 10 })])
-  .validator(LoginInputSchema)
-  .handler(async ({ data }) => login(data.password, data.from));
+    .middleware([createRateLimitMiddleware({ limit: 10 })])
+    .validator(LoginInputSchema)
+    .handler(async ({ data }) => login(data.password, data.from));
 
 export const logoutFn = createServerFn({ method: "POST" })
-  .middleware([createRateLimitMiddleware()])
-  .handler(logout);
+    .middleware([createRateLimitMiddleware()])
+    .handler(logout);

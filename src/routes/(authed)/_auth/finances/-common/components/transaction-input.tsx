@@ -7,8 +7,8 @@ import { useState } from "react";
 import { classifyTransactionsFn } from "@/app/finance/transactions/transactions.functions";
 import { parseTransactionTexts } from "@/app/finance/transactions/transactions.parse";
 import {
-  MAX_DESCRIPTION_LENGTH,
-  type ParsedTransaction,
+    MAX_DESCRIPTION_LENGTH,
+    type ParsedTransaction,
 } from "@/app/finance/transactions/transactions.schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,159 +20,167 @@ import { todayDateOnly } from "@/lib/date-only";
 import { clearQueuedEntries, useQueuedEntries, writeQueuedEntries } from "../transaction-queue";
 
 type TransactionInputProps = {
-  autoFocus?: boolean;
-  value: string;
-  onValueChange: (value: string) => void;
-  onParsed: (transactions: Array<ParsedTransaction>) => void;
-  onEmptyBackspace?: () => void;
+    autoFocus?: boolean;
+    value: string;
+    onValueChange: (value: string) => void;
+    onParsed: (transactions: Array<ParsedTransaction>) => void;
+    onEmptyBackspace?: () => void;
 };
 
 const splitEntries = (text: string): Array<string> =>
-  text
-    .split("\n")
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
+    text
+        .split("\n")
+        .map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0);
 
 function TransactionInput({
-  autoFocus,
-  onEmptyBackspace,
-  onParsed,
-  onValueChange,
-  value,
+    autoFocus,
+    onEmptyBackspace,
+    onParsed,
+    onValueChange,
+    value,
 }: TransactionInputProps) {
-  const classifyTransactions = useServerFn(classifyTransactionsFn);
+    const classifyTransactions = useServerFn(classifyTransactionsFn);
 
-  const [isClassifying, setIsClassifying] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const entries = useQueuedEntries();
+    const [isClassifying, setIsClassifying] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const entries = useQueuedEntries();
 
-  const commitEntry = () => {
-    const entry = value.trim();
-    if (entry.length === 0) {
-      return;
-    }
-    writeQueuedEntries([...entries, entry]);
-    onValueChange("");
-  };
+    const commitEntry = () => {
+        const entry = value.trim();
+        if (entry.length === 0) {
+            return;
+        }
+        writeQueuedEntries([...entries, entry]);
+        onValueChange("");
+    };
 
-  const removeEntry = (index: number) => {
-    writeQueuedEntries(entries.filter((_, entryIndex) => entryIndex !== index));
-  };
+    const removeEntry = (index: number) => {
+        writeQueuedEntries(entries.filter((_, entryIndex) => entryIndex !== index));
+    };
 
-  const handleParse = async () => {
-    const draft = value.trim();
-    const items = draft.length > 0 ? [...entries, draft] : entries;
-    if (items.length === 0) {
-      return;
-    }
-    setError(null);
+    const handleParse = async () => {
+        const draft = value.trim();
+        const items = draft.length > 0 ? [...entries, draft] : entries;
+        if (items.length === 0) {
+            return;
+        }
+        setError(null);
 
-    // Date, amount, and description are settled locally and instantly; only the type and
-    // category need a round trip.
-    const parsed = parseTransactionTexts(items, todayDateOnly());
+        // Date, amount, and description are settled locally and instantly; only the type and
+        // category need a round trip.
+        const parsed = parseTransactionTexts(items, todayDateOnly());
 
-    setIsClassifying(true);
-    try {
-      const classifications = await classifyTransactions({ data: { items: parsed } });
-      setIsClassifying(false);
-      clearQueuedEntries();
-      onValueChange("");
-      onParsed(parsed.map((transaction, index) => ({ ...transaction, ...classifications[index] })));
-    } catch {
-      setError("Failed to classify transactions. Please try again.");
-      setIsClassifying(false);
-    }
-  };
+        setIsClassifying(true);
+        try {
+            const classifications = await classifyTransactions({ data: { items: parsed } });
+            setIsClassifying(false);
+            clearQueuedEntries();
+            onValueChange("");
+            onParsed(
+                parsed.map((transaction, index) => ({ ...transaction, ...classifications[index] })),
+            );
+        } catch {
+            setError("Failed to classify transactions. Please try again.");
+            setIsClassifying(false);
+        }
+    };
 
-  const canSave = entries.length > 0 || value.trim().length > 0;
+    const canSave = entries.length > 0 || value.trim().length > 0;
 
-  return (
-    <div className="flex w-full flex-col gap-4">
-      {error && <FieldError>{error}</FieldError>}
-      <div className="flex flex-col gap-2">
-        <p id="transaction-queue-hint" aria-live="polite" className="text-xs text-muted-foreground">
-          {entries.length > 0
-            ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} queued — press + to save`
-            : "Press Enter to queue entries, + to save"}
-        </p>
-        {entries.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {entries.map((entry, index) => (
-              <Badge
-                key={`${index}-${entry}`}
-                variant="secondary"
-                className="h-auto max-w-full py-1 normal-case"
-              >
-                <span className="min-w-0 flex-1 break-words whitespace-normal">{entry}</span>
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label={`Remove entry ${index + 1}`}
-                  onPress={() => removeEntry(index)}
-                  className="shrink-0"
+    return (
+        <div className="flex w-full flex-col gap-4">
+            {error && <FieldError>{error}</FieldError>}
+            <div className="flex flex-col gap-2">
+                <p
+                    id="transaction-queue-hint"
+                    aria-live="polite"
+                    className="text-xs text-muted-foreground"
                 >
-                  <XIcon className="size-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
-      <div className="relative">
-        <Input
-          autoFocus={autoFocus}
-          aria-label="New transaction entry"
-          aria-describedby="transaction-queue-hint"
-          className="h-auto py-3.5 pr-12"
-          value={value}
-          onChange={(e) => onValueChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
+                    {entries.length > 0
+                        ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} queued — press + to save`
+                        : "Press Enter to queue entries, + to save"}
+                </p>
+                {entries.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                        {entries.map((entry, index) => (
+                            <Badge
+                                key={`${index}-${entry}`}
+                                variant="secondary"
+                                className="h-auto max-w-full py-1 normal-case"
+                            >
+                                <span className="min-w-0 flex-1 break-words whitespace-normal">
+                                    {entry}
+                                </span>
+                                <Button
+                                    variant="ghost"
+                                    size="icon-xs"
+                                    aria-label={`Remove entry ${index + 1}`}
+                                    onPress={() => removeEntry(index)}
+                                    className="shrink-0"
+                                >
+                                    <XIcon className="size-3" />
+                                </Button>
+                            </Badge>
+                        ))}
+                    </div>
+                )}
+            </div>
+            <div className="relative">
+                <Input
+                    autoFocus={autoFocus}
+                    aria-label="New transaction entry"
+                    aria-describedby="transaction-queue-hint"
+                    className="h-auto py-3.5 pr-12"
+                    value={value}
+                    onChange={(e) => onValueChange(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
 
-              if (value.trim().length === 0 && entries.length > 0) {
-                void handleParse();
-              } else {
-                commitEntry();
-              }
-            } else if (e.key === "Backspace" && value === "" && !e.repeat) {
-              // Ignore auto-repeat so holding Backspace to clear the draft can't
-              // also wipe the queue and close the composer.
-              if (entries.length > 0) {
-                removeEntry(entries.length - 1);
-              } else {
-                onEmptyBackspace?.();
-              }
-            }
-          }}
-          onPaste={(e) => {
-            const text = e.clipboardData.getData("text");
-            if (text.includes("\n")) {
-              e.preventDefault();
-              const next = splitEntries(text);
-              if (next.length > 0) {
-                writeQueuedEntries([...entries, ...next]);
-              }
-            }
-          }}
-          placeholder="Add transaction..."
-          maxLength={MAX_DESCRIPTION_LENGTH}
-          disabled={isClassifying}
-        />
-        <Button
-          variant="default"
-          size="icon-sm"
-          aria-label="Save transactions"
-          data-testid="parse-transaction"
-          className="absolute top-1/2 right-3 size-8 -translate-y-1/2"
-          onPress={handleParse}
-          isDisabled={!canSave || isClassifying}
-        >
-          {isClassifying ? <Spinner /> : <PlusIcon />}
-        </Button>
-      </div>
-    </div>
-  );
+                            if (value.trim().length === 0 && entries.length > 0) {
+                                void handleParse();
+                            } else {
+                                commitEntry();
+                            }
+                        } else if (e.key === "Backspace" && value === "" && !e.repeat) {
+                            // Ignore auto-repeat so holding Backspace to clear the draft can't
+                            // also wipe the queue and close the composer.
+                            if (entries.length > 0) {
+                                removeEntry(entries.length - 1);
+                            } else {
+                                onEmptyBackspace?.();
+                            }
+                        }
+                    }}
+                    onPaste={(e) => {
+                        const text = e.clipboardData.getData("text");
+                        if (text.includes("\n")) {
+                            e.preventDefault();
+                            const next = splitEntries(text);
+                            if (next.length > 0) {
+                                writeQueuedEntries([...entries, ...next]);
+                            }
+                        }
+                    }}
+                    placeholder="Add transaction..."
+                    maxLength={MAX_DESCRIPTION_LENGTH}
+                    disabled={isClassifying}
+                />
+                <Button
+                    variant="default"
+                    size="icon-sm"
+                    aria-label="Save transactions"
+                    data-testid="parse-transaction"
+                    className="absolute top-1/2 right-3 size-8 -translate-y-1/2"
+                    onPress={handleParse}
+                    isDisabled={!canSave || isClassifying}
+                >
+                    {isClassifying ? <Spinner /> : <PlusIcon />}
+                </Button>
+            </div>
+        </div>
+    );
 }
 
 export { TransactionInput };
