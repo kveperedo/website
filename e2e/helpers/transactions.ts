@@ -158,7 +158,7 @@ export async function archiveScheduledTransactionTemplate(page: Page, descriptio
     }
 
     // Already archived — nothing to do (preserves idempotency)
-    await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+    await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
     template = archivedTemplateRow(page, description);
     if ((await template.count()) > 0) {
         return;
@@ -185,7 +185,7 @@ export async function archiveScheduledTemplateFromDetail(page: Page, id: string)
 }
 
 export async function getArchivedTemplateId(page: Page, description: string): Promise<string> {
-    await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+    await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
     const item = archivedTemplateRow(page, description);
     await expect(item).toHaveCount(1);
     const id = await item.getAttribute("data-template-id");
@@ -193,14 +193,6 @@ export async function getArchivedTemplateId(page: Page, description: string): Pr
         throw new Error(`Could not find the id for archived template: ${description}`);
     }
     return id;
-}
-
-export async function getArchivedCount(page: Page): Promise<number> {
-    await gotoAndWaitForHydration(page, "/finances/scheduled");
-    const archivedLink = page.getByRole("link", { name: /Archived/ });
-    const text = await archivedLink.textContent();
-    const match = text?.match(/\((\d+)\)/);
-    return match ? parseInt(match[1], 10) : 0;
 }
 
 export async function openNewScheduledPage(page: Page) {

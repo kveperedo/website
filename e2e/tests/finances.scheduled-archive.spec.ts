@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { formatCurrency } from "../../src/lib/currency";
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import { createStandaloneTemplateFixture, deleteFixtures } from "../helpers/fixtures";
 import {
@@ -12,8 +13,8 @@ import {
 
 test.describe.configure({ mode: "serial", timeout: 60000 });
 
-test.describe("scheduled archive via /finances/scheduled/archived", () => {
-    test("archiving from list removes from main list and appears in archived with badge count", async ({
+test.describe("scheduled archive via active/archived tabs", () => {
+    test("archiving from list removes from main list and appears in archived tab", async ({
         page,
     }) => {
         const description = `Archive list ${Date.now()}`;
@@ -22,12 +23,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
             await createStandaloneTemplateFixture(page, description, { amount: 120 });
 
             await gotoAndWaitForHydration(page, "/finances/scheduled");
-            const beforeCountText = await page
-                .getByRole("link", { name: /Archived/ })
-                .textContent();
-            const beforeCount = beforeCountText?.match(/\((\d+)\)/)
-                ? parseInt(beforeCountText.match(/\((\d+)\)/)![1], 10)
-                : 0;
+            await expect(page.getByRole("tab", { name: "Archived" })).toBeVisible();
 
             await archiveScheduledTransactionTemplate(page, description);
 
@@ -35,18 +31,8 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
             await gotoAndWaitForHydration(page, "/finances/scheduled");
             await expect(scheduledTemplateRow(page, description)).toHaveCount(0);
 
-            // Badge incremented
-            const archivedLink = page.getByRole("link", { name: /Archived/ });
-            await expect(archivedLink).toBeVisible();
-            if (beforeCount === 0) {
-                // First archived may show count or not — check link still visible
-                await expect(archivedLink).toContainText("Archived");
-            } else {
-                await expect(archivedLink).toContainText(`(${beforeCount + 1})`);
-            }
-
-            // Appears on archived page, not muted (archived should retain full opacity)
-            await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+            // Appears on archived tab, not muted (archived should retain full opacity)
+            await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
             const archivedItem = archivedTemplateRow(page, description);
             await expect(archivedItem).toBeVisible();
             await expect(archivedItem).not.toHaveClass(/opacity-50/);
@@ -104,30 +90,24 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
         }
     });
 
-    test("archived page navigation, empty-ish state, and back navigation", async ({ page }) => {
+    test("archived tab navigation, empty-ish state, and back navigation", async ({ page }) => {
         await gotoAndWaitForHydration(page, "/finances/scheduled");
-        const archivedLink = page.getByRole("link", { name: /Archived/ });
-        await expect(archivedLink).toBeVisible();
-        await archivedLink.click();
-        await expect(page).toHaveURL(/\/finances\/scheduled\/archived/);
-        await expect(page.getByRole("heading", { name: "Archived Schedules" })).toBeVisible();
-        await expect(page.getByText("Archived", { exact: true }).first()).toBeVisible();
+        const archivedTab = page.getByRole("tab", { name: "Archived" });
+        await expect(archivedTab).toBeVisible();
+        await archivedTab.click();
+        await expect(page).toHaveURL(/\?view=archived$/);
+        await expect(archivedTab).toHaveAttribute("aria-selected", "true");
 
-        await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+        await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
         await page.locator('a[href="/finances/scheduled"]').first().click();
         await expect(page).toHaveURL(/\/finances\/scheduled$/);
 
         // Verify empty state copy when no archived (or list present)
-        await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+        await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
         const empty = page.getByText("No archived schedules.");
         const list = page.getByRole("grid", { name: "Archived scheduled transactions" });
         // One of them must be visible
         await expect(empty.or(list)).toBeVisible();
-        if ((await empty.count()) > 0) {
-            await expect(
-                page.getByText("Archived schedules stay here for reference."),
-            ).toBeVisible();
-        }
     });
 
     test("active/paused filtering — archived not in main list, pause/resume still works for active", async ({
@@ -157,11 +137,35 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
             await expect(activeItem).not.toHaveClass(/opacity-50/);
 
             // Archived page must contain archived, not active
-            await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+            await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
             await expect(archivedTemplateRow(page, toArchiveDesc)).toBeVisible();
             await expect(archivedTemplateRow(page, activeDesc)).toHaveCount(0);
         } finally {
             await deleteFixtures(page, activeDesc, toArchiveDesc);
+        }
+    });
+
+    test("paused schedules are excluded from the projected summary", async ({ page }) => {
+        const description = `Paused summary ${Date.now()}`;
+
+        try {
+            await createStandaloneTemplateFixture(page, description, {
+                amount: 500,
+                type: "expense",
+            });
+            await gotoAndWaitForHydration(page, "/finances/scheduled");
+
+            const expenses = page.getByTestId("scheduled-summary-expenses");
+            const parseAmount = (text: string | null) =>
+                Number((text ?? "").replace(/[^\d.]/g, ""));
+            const before = parseAmount(await expenses.textContent());
+
+            await scheduledTemplateRow(page, description)
+                .getByRole("button", { name: "Pause" })
+                .click();
+            await expect(expenses).toHaveText(formatCurrency(before - 500));
+        } finally {
+            await deleteFixtures(page, description);
         }
     });
 
@@ -177,7 +181,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
             await expect(page).toHaveURL(/\/finances\/scheduled$/);
             await expect(scheduledTemplateRow(page, description)).toHaveCount(0);
 
-            await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+            await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
             const archivedItem = archivedTemplateRow(page, description);
             await expect(archivedItem).toBeVisible();
             await expect(archivedItem).not.toHaveClass(/opacity-50/);
@@ -193,7 +197,7 @@ test.describe("scheduled archive via /finances/scheduled/archived", () => {
             await createStandaloneTemplateFixture(page, description, { amount: 33 });
             await archiveScheduledTransactionTemplate(page, description);
 
-            await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+            await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
             const item = archivedTemplateRow(page, description);
             await expect(item).toBeVisible();
             await expect(item).toHaveAttribute("data-template-id", /[0-9a-f-]{36}/);

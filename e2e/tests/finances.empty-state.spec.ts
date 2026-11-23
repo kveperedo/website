@@ -49,7 +49,6 @@ test.describe("empty states", () => {
     test("search with no matches shows an empty state", async ({ page }) => {
         await gotoAndWaitForHydration(page, "/finances/transactions");
 
-        await page.getByRole("button", { name: "Search transactions" }).click();
         const search = page.getByLabel(/Search .* transactions/);
         await search.fill("zzqx_no_such_transaction_xyz");
 

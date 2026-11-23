@@ -354,7 +354,7 @@ test.describe("transaction mutations", () => {
             await gotoAndWaitForHydration(page, "/finances/scheduled");
             await expect(scheduledTemplateRow(page, description)).toHaveCount(0);
             // Visible on archived page
-            await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+            await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
             await expect(scheduledTemplateRow(page, description)).toBeVisible();
             // Verify via helper
             const archivedId = await getArchivedTemplateId(page, description);
@@ -454,7 +454,7 @@ test.describe("scheduled template editing", () => {
 
             await expect(scheduledTemplateRow(page, description)).toHaveCount(0);
             // Verify archived
-            await gotoAndWaitForHydration(page, "/finances/scheduled/archived");
+            await gotoAndWaitForHydration(page, "/finances/scheduled?view=archived");
             await expect(scheduledTemplateRow(page, description)).toBeVisible();
         } finally {
             await deleteFixtures(page, description);
@@ -490,7 +490,9 @@ test.describe("scheduled template editing", () => {
             });
 
             await openScheduledTemplateForEdit(page, templateId);
-            await expect(page.getByText("Scheduled", { exact: true })).toBeVisible();
+            await expect(
+                page.getByRole("main").getByText("Scheduled", { exact: true }),
+            ).toBeVisible();
             await expect(page.getByText("1/3 occurrences")).toBeVisible();
         } finally {
             await deleteFixtures(page, description);
@@ -509,7 +511,7 @@ test.describe("scheduled template editing", () => {
             await expect(template.getByRole("button", { name: "Resume" })).toBeVisible();
 
             await openScheduledTemplateForEdit(page, templateId);
-            await expect(page.getByText("Paused", { exact: true })).toBeVisible();
+            await expect(page.getByRole("main").getByText("Paused", { exact: true })).toBeVisible();
         } finally {
             await deleteFixtures(page, description);
         }

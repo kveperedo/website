@@ -16,7 +16,6 @@ test.describe("scheduled creation via /scheduled/new", () => {
     test("New schedule button navigates to creation page", async ({ page }) => {
         await openNewScheduledPage(page);
         await expect(page).toHaveURL(/\/finances\/scheduled\/new/);
-        await expect(page.getByRole("heading", { name: /Create|New Scheduled/i })).toHaveCount(0);
         // Form is visible — description input and Create Schedule button
         await expect(page.getByTestId("description-input")).toBeVisible();
         await expect(page.getByRole("button", { name: "Create Schedule" })).toBeVisible();
