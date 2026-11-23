@@ -28,7 +28,7 @@ export const DayOfMonthField = <TFieldValues extends FieldValues>({
                     <Field>
                         <FieldLabel
                             htmlFor={name}
-                            className="text-xs tracking-wide text-foreground"
+                            className="text-sm tracking-wide text-foreground"
                         >
                             Day of month
                         </FieldLabel>
@@ -70,11 +70,12 @@ export const EndTypeField = <TFieldValues extends FieldValues>({
                 <Field>
                     <FieldLabel
                         id={`${name}-label`}
-                        className="text-xs tracking-wide text-foreground"
+                        className="text-sm tracking-wide text-foreground"
                     >
                         End condition
                     </FieldLabel>
                     <RadioGroup
+                        className="sm:flex sm:h-8 sm:items-center sm:gap-x-4"
                         aria-labelledby={`${name}-label`}
                         value={field.value}
                         onChange={field.onChange}
@@ -101,7 +102,7 @@ export const StartDateField = <TFieldValues extends FieldValues>({
             name={name}
             render={({ field, fieldState }) => (
                 <Field>
-                    <FieldLabel className="text-xs tracking-wide text-foreground">
+                    <FieldLabel className="text-sm tracking-wide text-foreground">
                         Start date
                     </FieldLabel>
                     <DatePicker
@@ -130,7 +131,7 @@ export const EndDateField = <TFieldValues extends FieldValues>({
             name={name}
             render={({ field, fieldState }) => (
                 <Field>
-                    <FieldLabel className="text-xs tracking-wide text-foreground">
+                    <FieldLabel className="text-sm tracking-wide text-foreground">
                         End date
                     </FieldLabel>
                     <DatePicker
@@ -159,7 +160,7 @@ export const MaxOccurrencesField = <TFieldValues extends FieldValues>({
             name={name}
             render={({ field, fieldState }) => (
                 <Field>
-                    <FieldLabel htmlFor={name} className="text-xs tracking-wide text-foreground">
+                    <FieldLabel htmlFor={name} className="text-sm tracking-wide text-foreground">
                         Number of occurrences
                     </FieldLabel>
                     <Input
