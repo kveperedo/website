@@ -72,7 +72,7 @@ export const TransactionOverview = ({
                             onSelect(selectedIndex);
                         }
                     }}
-                    className="max-h-72 min-h-0 flex-1 overflow-y-auto outline-none"
+                    className="min-h-0 flex-1 overflow-y-auto outline-none"
                 >
                     {fields.map((field, index) => (
                         <TransactionOverviewItem key={field.id} itemId={field.id} index={index} />

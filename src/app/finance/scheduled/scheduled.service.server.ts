@@ -26,7 +26,6 @@ import {
     findTransactionForScheduling,
 } from "../transactions/transactions.repository.server";
 import {
-    countArchivedTemplates,
     createTemplate,
     findActiveTemplatesStartedBefore,
     findArchivedTemplates,
@@ -114,10 +113,6 @@ export const getArchivedScheduledTransactionTemplates = async () => {
     const templates = await findArchivedTemplates();
 
     return templates.map(mapScheduledTemplate);
-};
-
-export const getArchivedScheduledTransactionTemplatesCount = async () => {
-    return await countArchivedTemplates();
 };
 
 export const getUpcomingScheduledTransactionTemplates = async () => {

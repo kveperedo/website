@@ -30,7 +30,7 @@ export const AppContainer = ({ header, footer, classNames, children }: AppContai
             {header && (
                 <header
                     className={cn(
-                        "sticky top-0 z-30 border-b border-border bg-background/85 p-4 backdrop-blur",
+                        "sticky top-0 z-30 flex h-16 items-center border-b border-border bg-background/85 px-4 backdrop-blur",
                         classNames?.header,
                     )}
                 >

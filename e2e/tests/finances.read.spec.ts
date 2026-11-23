@@ -5,8 +5,7 @@ import { formatCurrency } from "../../src/lib/currency";
 import { gotoAndWaitForHydration } from "../helpers/auth";
 import { openTransactionComposer } from "../helpers/transactions";
 
-async function openTransactionSearch(page: Page) {
-    await page.getByRole("button", { name: "Search transactions" }).click();
+function getTransactionSearch(page: Page) {
     return page.getByLabel(/Search .* transactions/);
 }
 
@@ -109,14 +108,13 @@ test.describe("transactions", () => {
         await expect(page.getByRole("main")).toBeVisible();
     });
 
-    test("transactions page has a title and expandable search for the current month", async ({
+    test("transactions page has a title and search field for the current month", async ({
         page,
     }) => {
         await gotoAndWaitForHydration(page, "/finances/transactions");
 
         const monthLabel = format(new Date(), "MMMM yyyy");
         await expect(page).toHaveTitle(new RegExp(`${monthLabel} Transactions`));
-        await page.getByRole("button", { name: "Search transactions" }).click();
         await expect(page.getByLabel(`Search ${monthLabel} transactions`)).toBeVisible();
     });
 
@@ -146,7 +144,7 @@ test.describe("transactions", () => {
     test("typing a search query updates the URL without Enter", async ({ page }) => {
         await gotoAndWaitForHydration(page, "/finances/transactions");
 
-        const search = await openTransactionSearch(page);
+        const search = getTransactionSearch(page);
         await search.fill("coffee");
 
         await expect(page).toHaveURL(/q=coffee/);
@@ -156,7 +154,7 @@ test.describe("transactions", () => {
         await gotoAndWaitForHydration(page, "/finances/transactions");
         await page.clock.install();
 
-        const search = await openTransactionSearch(page);
+        const search = getTransactionSearch(page);
         await search.fill("Client");
         await expect(page).not.toHaveURL(/q=Client(?:$|&)/);
         await search.press("Enter");
@@ -169,12 +167,11 @@ test.describe("transactions", () => {
         await gotoAndWaitForHydration(page, "/finances/transactions");
         await page.clock.install();
 
-        const search = await openTransactionSearch(page);
+        const search = getTransactionSearch(page);
         await search.fill("coffee");
         await search.press("Escape");
 
-        await expect(search).toHaveCount(0);
-        await expect(page.getByRole("button", { name: "Search transactions" })).toBeFocused();
+        await expect(search).toHaveValue("");
         await page.clock.fastForward(500);
         await expect(page).not.toHaveURL(/q=coffee/);
 
@@ -192,46 +189,44 @@ test.describe("transactions", () => {
     test("type and category filters update the results and URL", async ({ page }) => {
         await gotoAndWaitForHydration(page, "/finances/transactions");
 
-        await page.getByRole("radio", { name: "Expenses", exact: true }).click();
+        await page.getByRole("tab", { name: "Expenses", exact: true }).click();
         await expect(page).toHaveURL(/type=expense/);
 
-        await page.getByRole("button", { name: "Categories", exact: true }).click();
-        await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
-        await expect(page).toHaveURL(/categories=.*food_drinks/);
+        await page.getByRole("button", { name: "Food & Drinks" }).click();
+        await expect(page).toHaveURL(/categories=/);
+        await expect(page).not.toHaveURL(/food_drinks/);
         await expect(page).toHaveURL(/type=expense/);
-        await expect(page.getByRole("row", { name: /Client dinner/ })).toBeVisible();
-        await expect(page.getByRole("row", { name: /Groceries run/ })).toHaveCount(0);
+        await expect(page.getByRole("row", { name: /Client dinner/ })).toHaveCount(0);
+        await expect(page.getByRole("row", { name: /Groceries run/ })).toBeVisible();
         await expect(page.getByRole("row", { name: /Salary/ })).toHaveCount(0);
     });
 
     test("Cancel returns to the filtered transaction list", async ({ page }) => {
         await gotoAndWaitForHydration(page, "/finances/transactions");
 
-        await page.getByRole("radio", { name: "Expenses", exact: true }).click();
+        await page.getByRole("tab", { name: "Expenses", exact: true }).click();
         await expect(page).toHaveURL(/type=expense/);
-        const search = await openTransactionSearch(page);
+        const search = getTransactionSearch(page);
         await search.fill("Client");
         await expect(page).toHaveURL(/q=Client/);
         await expect(page.getByRole("row", { name: /Client dinner/ })).toBeVisible();
         await expect(page.getByRole("row", { name: /Groceries run/ })).toHaveCount(0);
 
-        await page.getByRole("button", { name: "Categories", exact: true }).click();
-        await page.getByRole("menuitemcheckbox", { name: "Food & Drinks" }).click();
-        await expect(page).toHaveURL(/categories=.*food_drinks/);
-        await expect(page.getByRole("menuitemcheckbox", { name: "Food & Drinks" })).toHaveAttribute(
-            "aria-checked",
-            "true",
+        await page.getByRole("button", { name: "Groceries" }).click();
+        await expect(page).toHaveURL(/categories=/);
+        await expect(page).not.toHaveURL(/groceries_household/);
+        await expect(page.getByRole("button", { name: "Groceries" })).toHaveAttribute(
+            "aria-pressed",
+            "false",
         );
         await expect(page.getByRole("row", { name: /Client dinner/ })).toBeVisible();
-
-        await page.keyboard.press("Escape");
 
         const listUrl = page.url();
         await page.getByRole("row", { name: /Client dinner/ }).click();
         await expect(page).toHaveURL(/\/finances\/transactions\/.+/);
         await expect(page).toHaveURL(/q=Client/);
         await expect(page).toHaveURL(/type=expense/);
-        await expect(page).toHaveURL(/categories=.*food_drinks/);
+        await expect(page).toHaveURL(/categories=/);
 
         await page.getByRole("button", { name: "Cancel" }).click();
         await expect(page).toHaveURL(listUrl);
@@ -271,19 +266,19 @@ test.describe("transactions", () => {
     test("clear search button removes the query from the URL and input", async ({ page }) => {
         await gotoAndWaitForHydration(page, "/finances/transactions");
 
-        const search = await openTransactionSearch(page);
+        const search = getTransactionSearch(page);
         await search.fill("coffee");
         await expect(page).toHaveURL(/q=coffee/);
 
         await page.getByRole("button", { name: "Clear search" }).click();
-        await expect(search).toHaveCount(0);
+        await expect(search).toHaveValue("");
         await expect(page).not.toHaveURL(/q=coffee/);
     });
 
     test("search with no matches shows an empty state", async ({ page }) => {
         await gotoAndWaitForHydration(page, "/finances/transactions");
 
-        const search = await openTransactionSearch(page);
+        const search = getTransactionSearch(page);
         await search.fill("zzqx_no_such_transaction_xyz");
 
         await expect(page.getByText(/No transactions match/i)).toBeVisible();
@@ -308,6 +303,23 @@ test.describe("transactions", () => {
 
 test.describe("mobile finance layout", () => {
     test.use({ viewport: { width: 390, height: 320 } });
+
+    test("search button expands the input and closes after clearing", async ({ page }) => {
+        await gotoAndWaitForHydration(page, "/finances/transactions");
+        const searchButton = page.getByRole("button", { name: "Search transactions" });
+        await expect(searchButton).toBeVisible();
+        await expect(page.getByLabel(/Search .* transactions/)).toHaveCount(0);
+
+        await searchButton.click();
+        const search = page.getByLabel(/Search .* transactions/);
+        await expect(search).toBeVisible();
+        await search.fill("coffee");
+        await expect(page).toHaveURL(/q=coffee/);
+
+        await page.getByRole("button", { name: "Clear search" }).click();
+        await expect(page.getByLabel(/Search .* transactions/)).toHaveCount(0);
+        await expect(searchButton).toBeFocused();
+    });
 
     test("footer keeps the composer and navigation reachable after scrolling", async ({ page }) => {
         await gotoAndWaitForHydration(page, "/finances/transactions");

@@ -1,28 +1,29 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { addMonths, subMonths } from "date-fns";
-import { ChevronLeft, ChevronRight, SearchIcon, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useDebouncedCallback } from "use-debounce";
+import { SearchIcon } from "lucide-react";
+import { useRef, useState } from "react";
 import { z } from "zod";
-
-import type { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 
 import { getMonthlySummaryByMonthFn } from "@/app/finance/analytics/analytics.functions";
 import { getCurrentYearMonth } from "@/app/finance/shared/local-date";
 import { getTransactionsByMonthFn } from "@/app/finance/transactions/transactions.functions";
-import { Button, TanstackLinkButton } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { AppHeader } from "@/components/app-header";
+import { BreadcrumbItem, BreadcrumbPage, TanstackBreadcrumbLink } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { Input } from "@/components/ui/input";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { TransactionCategorySchema } from "@/generated/zod/schemas/enums/TransactionCategory.schema";
 import { TransactionTypeSchema } from "@/generated/zod/schemas/enums/TransactionType.schema";
 import { formatLocal } from "@/lib/date-only";
-import { CategoryFilter } from "@/routes/(authed)/_auth/finances/-common/components/category-filter";
+import { useBreakpoint } from "@/lib/use-media-query";
+import { CategoryToggles } from "@/routes/(authed)/_auth/finances/-common/components/category-toggles";
 import { SummaryCard } from "@/routes/(authed)/_auth/finances/-common/components/summary-card";
 import { TransactionList } from "@/routes/(authed)/_auth/finances/-common/components/transaction-list";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
+import { MonthNavigation } from "./-common/components/month-navigation";
+import { TransactionFilters } from "./-common/components/transaction-filters";
+import { TransactionSearch } from "./-common/components/transaction-search";
+import { useTransactionFilterNavigation } from "./-common/use-transaction-filter-navigation";
 
 const searchSchema = z.object({
     year: z.coerce.number().int().min(2020).max(2100).optional(),
@@ -31,8 +32,6 @@ const searchSchema = z.object({
     type: TransactionTypeSchema.optional(),
     categories: z.array(TransactionCategorySchema).optional(),
 });
-
-const SEARCH_DEBOUNCE_MS = 250;
 
 export const Route = createFileRoute("/(authed)/_auth/finances/transactions/(index)/")({
     validateSearch: searchSchema,
@@ -70,248 +69,20 @@ export const Route = createFileRoute("/(authed)/_auth/finances/transactions/(ind
     component: RouteComponent,
 });
 
-function MonthNavigation() {
-    const { year, month } = Route.useLoaderData();
-    const search = Route.useSearch();
-    const current = new Date(year, month - 1);
-    const previousDate = subMonths(current, 1);
-    const nextDate = addMonths(current, 1);
-    const transactionSearch = {
-        year,
-        month,
-        q: search.q || undefined,
-        type: search.type,
-        categories: search.categories?.length ? search.categories : undefined,
-    };
-
-    return (
-        <>
-            <TanstackLinkButton
-                to="/finances/transactions"
-                search={{
-                    ...transactionSearch,
-                    year: previousDate.getFullYear(),
-                    month: previousDate.getMonth() + 1,
-                }}
-                variant="secondary"
-                size="icon"
-                aria-label={`Previous month, ${formatLocal(previousDate, "MMMM yyyy")}`}
-            >
-                <ChevronLeft />
-            </TanstackLinkButton>
-            <TanstackLinkButton
-                to="/finances/transactions"
-                search={{
-                    ...transactionSearch,
-                    year: nextDate.getFullYear(),
-                    month: nextDate.getMonth() + 1,
-                }}
-                variant="secondary"
-                size="icon"
-                aria-label={`Next month, ${formatLocal(nextDate, "MMMM yyyy")}`}
-            >
-                <ChevronRight />
-            </TanstackLinkButton>
-        </>
-    );
-}
-
-function TransactionHeader() {
-    const { monthLabel, year, month } = Route.useLoaderData();
-    const search = Route.useSearch();
-    const router = useRouter();
-    const [inputValue, setInputValue] = useState(search.q ?? "");
-    const [isOpen, setIsOpen] = useState(Boolean(search.q));
-    const buttonRef = useRef<HTMLButtonElement>(null);
-    const submittedQueryRef = useRef(search.q);
-
-    const debouncedNavigate = useDebouncedCallback((q?: string) => {
-        submittedQueryRef.current = q;
-        router.navigate({
-            to: "/finances/transactions",
-            search: (current) => ({
-                ...current,
-                year: current.year ?? year,
-                month: current.month ?? month,
-                q,
-            }),
-            replace: true,
-        });
-    }, SEARCH_DEBOUNCE_MS);
-
-    useEffect(() => {
-        if (search.q !== submittedQueryRef.current) {
-            submittedQueryRef.current = search.q;
-            setInputValue(search.q ?? "");
-            setIsOpen(Boolean(search.q));
-        }
-    }, [search.q]);
-
-    useEffect(() => () => debouncedNavigate.cancel(), [debouncedNavigate]);
-
-    const focusButton = () => requestAnimationFrame(() => buttonRef.current?.focus());
-
-    return (
-        <>
-            <div className="flex items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-lg font-medium text-foreground">Transactions</h2>
-                    <p className="text-xs text-muted-foreground">{monthLabel}</p>
-                </div>
-                <div className="flex items-center gap-0.5">
-                    {!isOpen && (
-                        <Button
-                            ref={buttonRef}
-                            variant="ghost"
-                            size="icon"
-                            className="mr-2"
-                            onPress={() => {
-                                setIsOpen(true);
-                            }}
-                            aria-label="Search transactions"
-                        >
-                            <SearchIcon />
-                        </Button>
-                    )}
-                    <MonthNavigation />
-                </div>
-            </div>
-            {isOpen && (
-                <div
-                    className="relative"
-                    onBlur={(event) => {
-                        if (!inputValue && !event.currentTarget.contains(event.relatedTarget)) {
-                            setIsOpen(false);
-                        }
-                    }}
-                >
-                    <Input
-                        autoFocus
-                        id="transaction-search"
-                        className="pr-12"
-                        value={inputValue}
-                        onChange={(event) => {
-                            const q = event.target.value;
-                            setInputValue(q);
-                            debouncedNavigate(q.trim() || undefined);
-                        }}
-                        onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                                debouncedNavigate.flush();
-                            }
-                            if (event.key === "Escape") {
-                                event.preventDefault();
-                                debouncedNavigate.cancel();
-                                setInputValue(search.q ?? "");
-                                if (!search.q) {
-                                    setIsOpen(false);
-                                    focusButton();
-                                }
-                            }
-                        }}
-                        placeholder={`Search ${monthLabel} transactions`}
-                        aria-label={`Search ${monthLabel} transactions`}
-                    />
-                    <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onPress={() => {
-                            setInputValue("");
-                            setIsOpen(false);
-                            debouncedNavigate.cancel();
-                            submittedQueryRef.current = undefined;
-                            router.navigate({
-                                to: "/finances/transactions",
-                                search: (current) => ({
-                                    ...current,
-                                    year: current.year ?? year,
-                                    month: current.month ?? month,
-                                    q: undefined,
-                                }),
-                                replace: true,
-                            });
-                            focusButton();
-                        }}
-                        className="absolute inset-y-0 right-1 my-auto text-muted-foreground"
-                        aria-label="Clear search"
-                    >
-                        <X className="size-4" />
-                    </Button>
-                </div>
-            )}
-        </>
-    );
-}
-
-function TransactionFilters() {
-    const { year, month } = Route.useLoaderData();
-    const search = Route.useSearch();
-    const router = useRouter();
-    const selectedCategories = search.categories ?? [];
-
-    const navigate = (
-        next: {
-            type?: TransactionType;
-            categories?: Array<TransactionCategory>;
-        } = {},
-    ) => {
-        router.navigate({
-            to: "/finances/transactions",
-            search: (current) => {
-                const type = "type" in next ? next.type : current.type;
-                const categories =
-                    ("categories" in next ? next.categories : current.categories) ?? [];
-
-                return {
-                    ...current,
-                    year: current.year ?? year,
-                    month: current.month ?? month,
-                    type,
-                    categories: categories.length ? categories : undefined,
-                };
-            },
-        });
-    };
-
-    return (
-        <div className="flex flex-wrap items-center gap-2">
-            <ToggleGroup
-                selectionMode="single"
-                selectedKeys={[search.type ?? "all"]}
-                onSelectionChange={(keys) => {
-                    const type = ([...keys][0] as TransactionType | "all") ?? "all";
-                    navigate({
-                        type: type === "all" ? undefined : type,
-                        categories: type === "income" ? [] : selectedCategories,
-                    });
-                }}
-                variant="outline"
-                size="sm"
-                spacing={0}
-                aria-label="Transaction type"
-            >
-                <ToggleGroupItem id="all">All</ToggleGroupItem>
-                <ToggleGroupItem id="expense">Expenses</ToggleGroupItem>
-                <ToggleGroupItem id="income">Income</ToggleGroupItem>
-            </ToggleGroup>
-            {search.type !== "income" && (
-                <div className="ml-auto">
-                    <CategoryFilter
-                        selectedCategories={selectedCategories}
-                        onSelectionChange={(categories) => navigate({ categories })}
-                        showSelectAll={false}
-                    />
-                </div>
-            )}
-        </div>
-    );
-}
-
 function RouteComponent() {
+    const isMobile = !useBreakpoint("sm");
     const { transactions, summary, monthLabel, year, month } = Route.useLoaderData();
     const search = Route.useSearch();
     const router = useRouter();
     const selectedCategories = search.categories ?? [];
+    const navigateTransactionFilters = useTransactionFilterNavigation();
+    const [isSearchOpen, setIsSearchOpen] = useState(Boolean(search.q));
+    const searchButtonRef = useRef<HTMLButtonElement>(null);
+
+    const closeSearch = () => {
+        setIsSearchOpen(false);
+        requestAnimationFrame(() => searchButtonRef.current?.focus());
+    };
 
     const handleClearFilters = () => {
         router.navigate({
@@ -334,7 +105,7 @@ function RouteComponent() {
     const renderTransactionsContent = () => {
         if (hasNoResults) {
             return (
-                <Card className="py-6">
+                <div className="py-8">
                     <Empty>
                         <EmptyHeader>
                             <EmptyTitle>No transactions match your filters.</EmptyTitle>
@@ -346,12 +117,12 @@ function RouteComponent() {
                             Clear filters
                         </Button>
                     </Empty>
-                </Card>
+                </div>
             );
         }
         if (hasNoTransactions) {
             return (
-                <Card className="py-6">
+                <div className="py-8">
                     <Empty>
                         <EmptyHeader>
                             <EmptyTitle>No transactions in {monthLabel}.</EmptyTitle>
@@ -360,41 +131,125 @@ function RouteComponent() {
                             </EmptyDescription>
                         </EmptyHeader>
                     </Empty>
-                </Card>
+                </div>
             );
         }
         return (
-            <Card className="gap-0 py-0">
-                <CardContent className="p-0">
-                    <TransactionList
-                        transactions={transactions}
-                        label={`Transactions for ${monthLabel}`}
-                        transactionSearch={transactionSearch}
-                    />
-                </CardContent>
-            </Card>
+            <TransactionList
+                transactions={transactions}
+                label={`Transactions for ${monthLabel}`}
+                transactionSearch={transactionSearch}
+            />
         );
     };
 
     return (
         <FinanceContainer.Root
+            classNames={{
+                root: "flex flex-col [@media(min-height:480px)]:h-dvh [@media(min-height:480px)]:overflow-hidden",
+                main: "min-h-0 flex-1",
+            }}
             header={
-                <div className="flex flex-col gap-3">
-                    <TransactionHeader />
-                    <TransactionFilters />
-                </div>
+                <AppHeader>
+                    <BreadcrumbItem>
+                        <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <TanstackBreadcrumbLink to="/finances">Finances</TanstackBreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>Transactions</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </AppHeader>
             }
             footer={<FinanceContainer.Footer />}
         >
-            <div className="container mx-auto flex flex-1 flex-col gap-4 px-4 py-4 sm:px-0">
-                <SummaryCard
-                    expenses={summary.expenses}
-                    income={summary.income}
-                    label={monthLabel}
-                    expensesDimmed={search.type === "income"}
-                    incomeDimmed={search.type === "expense"}
-                />
-                {renderTransactionsContent()}
+            <div className="container mx-auto flex min-h-0 flex-1 flex-col gap-4 p-4 sm:flex-row lg:px-0">
+                <h1 className="sr-only">Transactions</h1>
+                <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                    <Card
+                        variant="flat"
+                        className="flex min-h-0 flex-1 flex-col gap-4 border-0 bg-transparent lg:gap-px lg:border lg:bg-border"
+                    >
+                        <Card
+                            variant="flat"
+                            className="flex shrink-0 flex-col gap-0 py-0 lg:border-0"
+                        >
+                            <div className="flex items-center justify-between gap-2 p-3">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    <MonthNavigation />
+                                    <CardTitle variant="flat" className="min-w-0 truncate">
+                                        {monthLabel}
+                                    </CardTitle>
+                                </div>
+                                {isMobile && !isSearchOpen && (
+                                    <Button
+                                        ref={searchButtonRef}
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="-mr-1"
+                                        onPress={() => setIsSearchOpen(true)}
+                                        aria-label="Search transactions"
+                                    >
+                                        <SearchIcon />
+                                    </Button>
+                                )}
+                            </div>
+                            {isMobile && isSearchOpen && (
+                                <div className="border-t border-subtle p-3">
+                                    <TransactionSearch
+                                        autoFocus
+                                        onOpenChange={setIsSearchOpen}
+                                        onClose={closeSearch}
+                                    />
+                                </div>
+                            )}
+                            <div className="border-t border-subtle p-3">
+                                <TransactionFilters />
+                            </div>
+                        </Card>
+                        <div className="flex min-h-0 flex-1 flex-col lg:contents">
+                            <Card
+                                variant="flat"
+                                className="flex min-h-0 min-w-0 flex-1 flex-col py-0 lg:border-0"
+                            >
+                                <CardHeader variant="flat" className="shrink-0">
+                                    <CardTitle variant="flat">Transactions</CardTitle>
+                                </CardHeader>
+                                <CardContent className="min-h-0 flex-1 overflow-y-auto p-0">
+                                    {renderTransactionsContent()}
+                                </CardContent>
+                            </Card>
+                            <SummaryCard
+                                expenses={summary.expenses}
+                                income={summary.income}
+                                label={monthLabel}
+                                expensesDimmed={search.type === "income"}
+                                incomeDimmed={search.type === "expense"}
+                                className="min-w-0 shrink-0 lg:border-0"
+                            />
+                        </div>
+                    </Card>
+                </div>
+                {!isMobile && (
+                    <aside className="w-64 shrink-0 lg:w-72 2xl:w-80">
+                        <Card
+                            variant="flat"
+                            className="flex max-h-full flex-col gap-4 overflow-y-auto p-4"
+                        >
+                            <p className="shrink-0 text-xs font-medium text-muted-foreground">
+                                Filters
+                            </p>
+                            <TransactionSearch />
+                            <CategoryToggles
+                                selectedCategories={selectedCategories}
+                                onSelectionChange={(categories) =>
+                                    navigateTransactionFilters({ categories })
+                                }
+                            />
+                        </Card>
+                    </aside>
+                )}
             </div>
         </FinanceContainer.Root>
     );

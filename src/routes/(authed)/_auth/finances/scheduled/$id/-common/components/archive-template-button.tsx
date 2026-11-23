@@ -45,9 +45,14 @@ export const ArchiveTemplateButton = () => {
 
     return (
         <AlertDialogTrigger>
-            <Button variant="outline" isDisabled={isArchiving}>
+            <Button
+                variant="destructive"
+                size="sm"
+                aria-label="Archive Schedule"
+                isDisabled={isArchiving}
+            >
                 <ArchiveIcon data-icon="inline-start" />
-                Archive Schedule
+                Archive
             </Button>
             <AlertDialog>
                 <AlertDialogHeader>

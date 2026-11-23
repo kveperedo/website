@@ -2,7 +2,7 @@ import { format, parseISO } from "date-fns";
 
 import type { ScheduledTransactionStatus } from "@/generated/prisma/enums";
 
-import { GridListItem } from "@/components/ui/grid-list";
+import { GridListCell, GridListItem } from "@/components/ui/grid-list";
 import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import {
@@ -59,45 +59,52 @@ export const ScheduledTemplateListItem = ({
             textValue={`${template.description}, ${amount}, ${endCondition}`}
             onAction={onAction ? () => onAction(template.id) : undefined}
             className={cn(
-                "flex min-w-0 items-stretch hover:bg-muted/50 focus-visible:bg-muted/50",
-                onAction && "cursor-pointer",
+                "grid cursor-pointer grid-cols-[1fr_auto] px-2 py-2 transition-colors hover:bg-muted/20 focus-visible:bg-muted/20",
+                !onAction && "cursor-default",
                 isMuted && "opacity-50",
             )}
         >
-            <div className="flex size-9 shrink-0 items-center justify-center bg-muted px-2 font-mono text-xs text-foreground">
-                <span aria-hidden="true">{day}</span>
-                <span className="sr-only">Scheduled monthly on day {template.dayOfMonth}</span>
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 pl-1.5 text-xs">
-                <span className="truncate text-foreground">{template.description}</span>
-                <span className="flex min-w-0 items-center gap-1 text-xxs">
-                    <span
-                        className={cn(
-                            "shrink-0 font-mono font-medium",
-                            template.type === "income"
-                                ? TRANSACTION_TYPE_COLORS.income
-                                : TRANSACTION_TYPE_COLORS.expense,
-                        )}
-                    >
-                        {amount}
+            <GridListCell className="pr-3 text-foreground">
+                <div className="flex min-h-8 items-center gap-3">
+                    <span className="w-5 shrink-0 text-right font-mono text-xs text-muted-foreground">
+                        <span aria-hidden="true">{day}</span>
+                        <span className="sr-only">
+                            Scheduled monthly on day {template.dayOfMonth}
+                        </span>
                     </span>
-                    {template.category && template.category in CATEGORY_LABELS && (
-                        <>
-                            <span className="shrink-0 text-muted-foreground">·</span>
-                            <span className="truncate text-muted-foreground">
-                                {CATEGORY_LABELS[template.category as keyof typeof CATEGORY_LABELS]}
-                            </span>
-                        </>
-                    )}
-                    <span className="shrink-0 text-muted-foreground">·</span>
-                    <span className="shrink-0 text-muted-foreground">{endCondition}</span>
-                </span>
-            </div>
-            {actions && (
-                <div className="ml-auto flex shrink-0 items-center gap-1 self-center pl-1.5">
-                    {actions}
+                    <div className="flex min-w-0 flex-col justify-center">
+                        <span className="truncate leading-5">{template.description}</span>
+                        <span className="flex min-w-0 items-center gap-1 text-xxs/3 text-muted-foreground">
+                            {template.category && template.category in CATEGORY_LABELS && (
+                                <>
+                                    <span className="truncate">
+                                        {
+                                            CATEGORY_LABELS[
+                                                template.category as keyof typeof CATEGORY_LABELS
+                                            ]
+                                        }
+                                    </span>
+                                    <span aria-hidden>·</span>
+                                </>
+                            )}
+                            <span className="shrink-0">{endCondition}</span>
+                        </span>
+                    </div>
                 </div>
-            )}
+            </GridListCell>
+            <GridListCell className="flex items-center gap-2 self-center">
+                <span
+                    className={cn(
+                        "font-mono text-xs font-medium whitespace-nowrap",
+                        template.type === "income"
+                            ? TRANSACTION_TYPE_COLORS.income
+                            : TRANSACTION_TYPE_COLORS.expense,
+                    )}
+                >
+                    {amount}
+                </span>
+                {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}
+            </GridListCell>
         </GridListItem>
     );
 };

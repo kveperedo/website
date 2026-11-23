@@ -1,28 +1,36 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ArchiveIcon, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useState } from "react";
+import { z } from "zod";
 
 import {
     archiveScheduledTransactionTemplateFn,
-    getArchivedScheduledTransactionTemplatesCountFn,
+    getArchivedScheduledTransactionTemplatesFn,
     getScheduledTransactionTemplatesFn,
     toggleScheduledTransactionTemplateFn,
 } from "@/app/finance/scheduled/scheduled.functions";
+import { AppHeader } from "@/components/app-header";
+import { BreadcrumbItem, BreadcrumbPage, TanstackBreadcrumbLink } from "@/components/ui/breadcrumb";
 import { TanstackLinkButton } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { FinanceContainer } from "../../-common/components/finance-container";
 import { SummaryCard } from "../../-common/components/summary-card";
 import { ScheduledTransactionList } from "./-common/components/scheduled-transaction-list";
 
 export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/(index)/")({
+    validateSearch: z.object({
+        view: z.enum(["active", "archived"]).optional(),
+    }),
     loader: async () => {
-        const [templates, archivedCount] = await Promise.all([
+        const [templates, archivedTemplates] = await Promise.all([
             getScheduledTransactionTemplatesFn(),
-            getArchivedScheduledTransactionTemplatesCountFn(),
+            getArchivedScheduledTransactionTemplatesFn(),
         ]);
-        const active = templates.filter((template) => template.status === "active");
-        const { expenses, income } = active.reduce(
+        const activeTemplates = templates.filter((template) => template.status === "active");
+        const { expenses, income } = activeTemplates.reduce(
             (acc, template) => {
                 if (template.type === "expense") {
                     acc.expenses += template.amount;
@@ -33,7 +41,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/(index)
             },
             { expenses: 0, income: 0 },
         );
-        return { templates, archivedCount, summary: { expenses, income } };
+        return { templates, archivedTemplates, summary: { expenses, income } };
     },
     head: () => ({
         meta: [{ title: "Scheduled Transactions | Kevin Von Erich Peredo" }],
@@ -42,13 +50,16 @@ export const Route = createFileRoute("/(authed)/_auth/finances/scheduled/(index)
 });
 
 function RouteComponent() {
-    const { summary, archivedCount } = Route.useLoaderData();
+    const { summary } = Route.useLoaderData();
+    const { view } = Route.useSearch();
     const router = useRouter();
     const archiveScheduledTransactionTemplate = useServerFn(archiveScheduledTransactionTemplateFn);
     const toggleScheduledTransactionTemplate = useServerFn(toggleScheduledTransactionTemplateFn);
 
     const [isArchiving, setIsArchiving] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<string | null>(null);
+
+    const current: "active" | "archived" = view === "archived" ? "archived" : "active";
 
     const handleToggleActive = async (id: string) => {
         setIsLoading(id);
@@ -72,41 +83,84 @@ function RouteComponent() {
 
     return (
         <FinanceContainer.Root
+            classNames={{
+                root: "flex flex-col lg:h-dvh lg:overflow-hidden",
+                main: "min-h-0 flex-1",
+            }}
             header={
-                <div className="flex items-center justify-between gap-4">
-                    <h2 className="text-lg font-medium text-foreground">Scheduled Transactions</h2>
-                    <div className="flex items-center gap-2">
-                        <TanstackLinkButton
-                            to="/finances/scheduled/archived"
-                            variant="outline"
-                            size="sm"
-                            preload="intent"
-                        >
-                            <ArchiveIcon className="size-3.5" />
-                            Archived{archivedCount > 0 ? ` (${archivedCount})` : ""}
-                        </TanstackLinkButton>
+                <AppHeader
+                    trailingElement={
                         <TanstackLinkButton to="/finances/scheduled/new" size="sm" preload="intent">
                             <PlusIcon className="size-3.5" />
                             New schedule
                         </TanstackLinkButton>
-                    </div>
-                </div>
+                    }
+                >
+                    <BreadcrumbItem>
+                        <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <TanstackBreadcrumbLink to="/finances">Finances</TanstackBreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>Scheduled</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </AppHeader>
             }
             footer={<FinanceContainer.Footer />}
         >
-            <div className="container mx-auto flex flex-1 flex-col gap-2 px-4 py-4 sm:px-0">
-                <SummaryCard
-                    expenses={summary.expenses}
-                    income={summary.income}
-                    label="projected monthly"
-                    testIdPrefix="scheduled-summary"
-                />
-                <ScheduledTransactionList
-                    isLoading={isLoading}
-                    isArchiving={isArchiving}
-                    onToggle={handleToggleActive}
-                    onArchive={handleArchive}
-                />
+            <div className="container mx-auto flex min-h-0 flex-1 flex-col gap-4 p-4 lg:px-0">
+                <h1 className="sr-only">Scheduled transactions</h1>
+                <Card
+                    variant="flat"
+                    className="flex min-h-0 flex-1 flex-col gap-4 border-0 bg-transparent lg:gap-px lg:border lg:bg-border"
+                >
+                    <Card variant="flat" className="flex shrink-0 flex-col gap-0 py-0 lg:border-0">
+                        <div className="p-3">
+                            <Tabs
+                                selectedKey={current}
+                                onSelectionChange={(key) => {
+                                    if (key === "archived") {
+                                        router.navigate({
+                                            to: "/finances/scheduled",
+                                            search: { view: "archived" },
+                                        });
+                                    } else {
+                                        router.navigate({ to: "/finances/scheduled" });
+                                    }
+                                }}
+                                className="gap-0"
+                            >
+                                <TabsList
+                                    variant="line"
+                                    aria-label="Scheduled transaction views"
+                                    className="flex-wrap"
+                                >
+                                    <TabsTrigger id="active">Active</TabsTrigger>
+                                    <TabsTrigger id="archived">Archived</TabsTrigger>
+                                </TabsList>
+                                <TabsContent id="active" className="sr-only" />
+                                <TabsContent id="archived" className="sr-only" />
+                            </Tabs>
+                        </div>
+                    </Card>
+                    <div className="flex min-h-0 flex-1 flex-col lg:contents">
+                        <ScheduledTransactionList
+                            view={current}
+                            isLoading={isLoading}
+                            isArchiving={isArchiving}
+                            onToggle={handleToggleActive}
+                            onArchive={handleArchive}
+                        />
+                        <SummaryCard
+                            expenses={summary.expenses}
+                            income={summary.income}
+                            label="projected monthly"
+                            testIdPrefix="scheduled-summary"
+                            className="min-w-0 shrink-0 lg:border-0"
+                        />
+                    </div>
+                </Card>
             </div>
         </FinanceContainer.Root>
     );
