@@ -6,7 +6,10 @@ import type { ScheduledFormEditData } from "@/app/finance/scheduled/scheduled.sc
 import type { TransactionCategory } from "@/generated/prisma/enums";
 
 import { createStandaloneScheduledTemplateFn } from "@/app/finance/scheduled/scheduled.functions";
+import { AppHeader } from "@/components/app-header";
+import { BreadcrumbItem, BreadcrumbPage, TanstackBreadcrumbLink } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { todayDateOnly } from "@/lib/date-only";
 
@@ -70,35 +73,61 @@ function RouteComponent() {
 
     return (
         <FinanceContainer.Root
-            footer={
-                <div className="container mx-auto flex h-16 items-center justify-end gap-4 px-4">
-                    <Button
-                        variant="secondary"
-                        className="flex-1 sm:flex-none"
-                        onPress={handleBack}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        className="flex-1 sm:flex-none"
-                        type="submit"
-                        form={FORM_ID}
-                        isDisabled={isSaving}
-                    >
-                        {isSaving && <Spinner data-icon="inline-start" />}
-                        Create Schedule
-                    </Button>
-                </div>
+            classNames={{
+                root: "flex flex-col lg:h-dvh lg:overflow-hidden",
+                main: "min-h-0 flex-1",
+            }}
+            header={
+                <AppHeader>
+                    <BreadcrumbItem>
+                        <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <TanstackBreadcrumbLink to="/finances">Finances</TanstackBreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <TanstackBreadcrumbLink to="/finances/scheduled">
+                            Scheduled
+                        </TanstackBreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>New Schedule</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </AppHeader>
             }
         >
-            <div className="container mx-auto flex h-full flex-1 flex-col items-center justify-center p-4 sm:py-8">
-                <div className="flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto sm:flex-row sm:items-start">
-                    <div className="flex flex-1 flex-col">
+            <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col overflow-y-auto p-4 sm:px-0">
+                <h1 className="sr-only">New scheduled transaction</h1>
+                <div className="m-auto w-full">
+                    <Card
+                        variant="flat"
+                        className="flex w-full flex-col border-0 bg-transparent lg:border lg:bg-border"
+                    >
                         <ScheduledTransactionForm
                             defaultValues={DEFAULT_VALUES}
                             onSubmit={handleSubmit}
+                            actions={
+                                <>
+                                    <Button
+                                        variant="secondary"
+                                        className="flex-1 sm:flex-none"
+                                        onPress={handleBack}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        className="flex-1 sm:flex-none"
+                                        type="submit"
+                                        form={FORM_ID}
+                                        isDisabled={isSaving}
+                                    >
+                                        {isSaving && <Spinner data-icon="inline-start" />}
+                                        Create Schedule
+                                    </Button>
+                                </>
+                            }
                         />
-                    </div>
+                    </Card>
                 </div>
             </div>
         </FinanceContainer.Root>

@@ -2,7 +2,7 @@ import { format, parseISO } from "date-fns";
 import { CalendarClock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Route } from "../..";
 
@@ -28,17 +28,17 @@ export const TemplateSummaryCard = () => {
     const { variant, label } = STATUS_BADGE_MAP[template.status];
 
     return (
-        <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="flex items-center gap-2">
-                        <CalendarClock size={16} />
-                        Recurring schedule
-                    </CardTitle>
-                    <Badge variant={variant}>{label}</Badge>
-                </div>
-                <CardDescription>{getEndCondition()}</CardDescription>
+        <Card variant="flat" className="flex h-full flex-col gap-0 lg:border-0">
+            <CardHeader variant="flat" className="justify-between gap-2">
+                <CardTitle variant="flat" className="flex items-center gap-1.5">
+                    <CalendarClock className="size-3.5" />
+                    Recurring schedule
+                </CardTitle>
+                <Badge variant={variant}>{label}</Badge>
             </CardHeader>
+            <CardContent className="p-3 font-mono text-xs text-muted-foreground">
+                {getEndCondition()}
+            </CardContent>
         </Card>
     );
 };

@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 
@@ -7,7 +9,7 @@ import {
     ScheduledFormEditSchema,
     type ScheduledFormEditData,
 } from "@/app/finance/scheduled/scheduled.schema";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import {
     DayOfMonthField,
@@ -29,12 +31,16 @@ type ScheduledTransactionFormProps = {
     defaultValues: ScheduledFormEditData;
     onSubmit: (data: ScheduledFormEditData) => Promise<void>;
     isDisabled?: boolean;
+    headerAction?: ReactNode;
+    actions?: ReactNode;
 };
 
 export function ScheduledTransactionForm({
     defaultValues,
     onSubmit,
     isDisabled,
+    headerAction,
+    actions,
 }: ScheduledTransactionFormProps) {
     const { control, handleSubmit, reset } = useForm<ScheduledFormEditData>({
         resolver: zodResolver(ScheduledFormEditSchema),
@@ -57,39 +63,94 @@ export function ScheduledTransactionForm({
         <form
             id={FORM_ID}
             onSubmit={handleSubmit(handleSave)}
-            className="flex h-full w-full flex-col gap-6 self-stretch"
+            className="flex w-full min-w-0 flex-1 flex-col"
         >
-            <Card className="flex flex-1 flex-col gap-5 p-5">
-                <FieldGroup>
-                    <DescriptionField
-                        control={control}
-                        name="description"
-                        isDisabled={isDisabled}
-                    />
-                    <AmountField control={control} name="amount" isDisabled={isDisabled} />
-                </FieldGroup>
-
-                <TypeField control={control} name="type" isDisabled={isDisabled} />
-
-                {watchType === "expense" && (
-                    <CategoryField control={control} name="category" isDisabled={isDisabled} />
-                )}
-
-                <FieldGroup className="border-t border-border pt-5">
-                    <StartDateField control={control} name="startDate" isDisabled={isDisabled} />
-                    <DayOfMonthField control={control} name="dayOfMonth" isDisabled={isDisabled} />
-                    <EndTypeField control={control} name="endType" isDisabled={isDisabled} />
-                    {watchEndType === "date" && (
-                        <EndDateField control={control} name="endDate" isDisabled={isDisabled} />
-                    )}
-                    {watchEndType === "count" && (
-                        <MaxOccurrencesField
-                            control={control}
-                            name="maxOccurrences"
-                            isDisabled={isDisabled}
-                        />
-                    )}
-                </FieldGroup>
+            <Card variant="flat" className="flex min-w-0 flex-1 flex-col lg:border-0">
+                <CardHeader variant="flat" className="justify-between gap-2">
+                    <CardTitle variant="flat">Schedule details</CardTitle>
+                    {headerAction}
+                </CardHeader>
+                <CardContent className="p-3">
+                    <FieldGroup className="gap-4">
+                        <div className="flex flex-col gap-4 sm:flex-row">
+                            <div className="min-w-0 sm:flex-[6]">
+                                <DescriptionField
+                                    control={control}
+                                    name="description"
+                                    isDisabled={isDisabled}
+                                />
+                            </div>
+                            <div className="min-w-0 sm:flex-[4]">
+                                <AmountField
+                                    control={control}
+                                    name="amount"
+                                    isDisabled={isDisabled}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-4 sm:flex-row">
+                            <div className="min-w-0 sm:flex-[5]">
+                                <TypeField control={control} name="type" isDisabled={isDisabled} />
+                            </div>
+                            {watchType === "expense" && (
+                                <div className="min-w-0 sm:flex-[5]">
+                                    <CategoryField
+                                        control={control}
+                                        name="category"
+                                        isDisabled={isDisabled}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        <div className="border-t border-subtle pt-4">
+                            <FieldGroup className="gap-4">
+                                <div className="flex flex-col gap-4 sm:flex-row">
+                                    <div className="min-w-0 sm:flex-[5]">
+                                        <StartDateField
+                                            control={control}
+                                            name="startDate"
+                                            isDisabled={isDisabled}
+                                        />
+                                    </div>
+                                    <div className="min-w-0 sm:flex-[5]">
+                                        <DayOfMonthField
+                                            control={control}
+                                            name="dayOfMonth"
+                                            isDisabled={isDisabled}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-4 sm:flex-row">
+                                    <div className="min-w-0 sm:flex-[5]">
+                                        <EndTypeField
+                                            control={control}
+                                            name="endType"
+                                            isDisabled={isDisabled}
+                                        />
+                                    </div>
+                                    {(watchEndType === "date" || watchEndType === "count") && (
+                                        <div className="min-w-0 sm:flex-[5]">
+                                            {watchEndType === "date" ? (
+                                                <EndDateField
+                                                    control={control}
+                                                    name="endDate"
+                                                    isDisabled={isDisabled}
+                                                />
+                                            ) : (
+                                                <MaxOccurrencesField
+                                                    control={control}
+                                                    name="maxOccurrences"
+                                                    isDisabled={isDisabled}
+                                                />
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </FieldGroup>
+                        </div>
+                    </FieldGroup>
+                </CardContent>
+                {actions && <CardFooter className="justify-end gap-2 p-3">{actions}</CardFooter>}
             </Card>
         </form>
     );

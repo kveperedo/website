@@ -13,7 +13,6 @@ import {
     archiveScheduledTransactionTemplate,
     createStandaloneScheduledTransactionTemplate,
     getArchivedScheduledTransactionTemplates,
-    getArchivedScheduledTransactionTemplatesCount,
     getScheduledExpensesForCurrentMonth,
     getScheduledTransactionTemplateById,
     getScheduledTransactionTemplates,
@@ -55,10 +54,6 @@ export const archiveScheduledTransactionTemplateFn = createServerFn({ method: "P
 export const getArchivedScheduledTransactionTemplatesFn = createServerFn()
     .middleware([authMiddleware])
     .handler(getArchivedScheduledTransactionTemplates);
-
-export const getArchivedScheduledTransactionTemplatesCountFn = createServerFn()
-    .middleware([authMiddleware])
-    .handler(getArchivedScheduledTransactionTemplatesCount);
 
 export const getScheduledTransactionTemplateByIdFn = createServerFn()
     .middleware([authMiddleware])

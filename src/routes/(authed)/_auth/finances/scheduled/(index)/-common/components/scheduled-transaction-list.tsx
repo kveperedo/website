@@ -1,26 +1,15 @@
 import { useRouter } from "@tanstack/react-router";
-import { ArchiveIcon, PauseIcon, PlayIcon } from "lucide-react";
 
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { GridList } from "@/components/ui/grid-list";
 
 import { Route } from "../..";
 import { ScheduledTemplateListItem } from "../../../-common/components/scheduled-template-list-item";
+import { ScheduledTemplateActions } from "./scheduled-template-actions";
 
 type ScheduledTransactionListProps = {
-    label?: string;
+    view: "active" | "archived";
     isLoading: string | null;
     isArchiving: string | null;
     onToggle: (id: string) => void;
@@ -28,15 +17,17 @@ type ScheduledTransactionListProps = {
 };
 
 export const ScheduledTransactionList = ({
-    label = "Scheduled transactions",
+    view,
     isLoading,
     isArchiving,
     onToggle,
     onArchive,
 }: ScheduledTransactionListProps) => {
-    const { templates } = Route.useLoaderData();
+    const { templates, archivedTemplates } = Route.useLoaderData();
     const router = useRouter();
-    const isEmpty = templates.length === 0;
+    const isArchivedView = view === "archived";
+    const items = isArchivedView ? archivedTemplates : templates;
+    const label = isArchivedView ? "Archived scheduled transactions" : "Scheduled transactions";
 
     const handleRowAction = (id: string) => {
         router.navigate({
@@ -46,70 +37,41 @@ export const ScheduledTransactionList = ({
     };
 
     return (
-        <Card className="flex min-w-0 flex-1 flex-col p-2">
-            <CardContent className="flex flex-col gap-2 p-2">
-                <CardTitle className="text-muted-foreground">Scheduled transactions</CardTitle>
-                {isEmpty ? (
-                    <Empty>
-                        <EmptyHeader>
-                            <EmptyTitle>No scheduled transactions.</EmptyTitle>
-                        </EmptyHeader>
-                    </Empty>
+        <Card variant="flat" className="flex min-h-0 min-w-0 flex-1 flex-col py-0 lg:border-0">
+            <CardContent className="min-h-0 flex-1 overflow-y-auto p-0">
+                {items.length === 0 ? (
+                    <div className="py-8">
+                        <Empty>
+                            <EmptyHeader>
+                                <EmptyTitle>
+                                    {isArchivedView
+                                        ? "No archived schedules."
+                                        : "No scheduled transactions."}
+                                </EmptyTitle>
+                            </EmptyHeader>
+                        </Empty>
+                    </div>
                 ) : (
-                    <GridList items={templates} aria-label={label}>
+                    <GridList
+                        items={items}
+                        aria-label={label}
+                        className="w-full gap-0 divide-y divide-subtle"
+                    >
                         {(template) => (
                             <ScheduledTemplateListItem
                                 template={template}
                                 onAction={handleRowAction}
                                 actions={
-                                    <>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon-sm"
-                                            isDisabled={isLoading === template.id}
-                                            onPress={() => onToggle(template.id)}
-                                            aria-label={
-                                                template.status === "active" ? "Pause" : "Resume"
-                                            }
-                                        >
-                                            {template.status === "active" ? (
-                                                <PauseIcon className="size-3.5" />
-                                            ) : (
-                                                <PlayIcon className="size-3.5" />
-                                            )}
-                                        </Button>
-                                        <AlertDialogTrigger>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon-sm"
-                                                isDisabled={isArchiving === template.id}
-                                                aria-label="Archive template"
-                                            >
-                                                <ArchiveIcon className="size-3.5" />
-                                            </Button>
-                                            <AlertDialog>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>
-                                                        Archive this scheduled transaction?
-                                                    </AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Past transactions will be kept. No future
-                                                        instances will be generated. Find it in
-                                                        Archived.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction
-                                                        isDisabled={isArchiving === template.id}
-                                                        onPress={() => onArchive(template.id)}
-                                                    >
-                                                        Archive
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialog>
-                                        </AlertDialogTrigger>
-                                    </>
+                                    !isArchivedView && (
+                                        <ScheduledTemplateActions
+                                            id={template.id}
+                                            status={template.status}
+                                            isLoading={isLoading === template.id}
+                                            isArchiving={isArchiving === template.id}
+                                            onToggle={onToggle}
+                                            onArchive={onArchive}
+                                        />
+                                    )
                                 }
                             />
                         )}

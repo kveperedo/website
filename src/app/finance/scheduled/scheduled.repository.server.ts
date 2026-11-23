@@ -23,12 +23,6 @@ export const findArchivedTemplates = async () => {
     });
 };
 
-export const countArchivedTemplates = async () => {
-    return await getDb().scheduledTransactionTemplate.count({
-        where: { status: "archived" },
-    });
-};
-
 export const findUpcomingTemplates = async ({
     monthStart,
     rangeEnd,
