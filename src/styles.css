@@ -21,20 +21,6 @@
     }
 }
 
-@keyframes grow {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.2);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
 @keyframes route-loading {
     from {
         transform: translateX(-100%);
@@ -45,22 +31,6 @@
     }
 }
 
-@utility animation-delay-2000 {
-    animation-delay: 2s;
-}
-
-@utility animation-delay-4000 {
-    animation-delay: 4s;
-}
-
-@utility animation-delay-6000 {
-    animation-delay: 6s;
-}
-
-@utility animation-delay-8000 {
-    animation-delay: 8s;
-}
-
 @utility bg-scanlines {
     background-image: repeating-linear-gradient(
         0deg,
@@ -69,6 +39,22 @@
         transparent 1px,
         transparent 3px
     );
+}
+
+@utility bg-blueprint-grid {
+    background-image:
+        linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+        linear-gradient(to right, rgb(255 255 255 / 0.028) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(255 255 255 / 0.028) 1px, transparent 1px);
+    background-size:
+        var(--grid-major) var(--grid-major),
+        var(--grid-major) var(--grid-major),
+        var(--grid-minor) var(--grid-minor),
+        var(--grid-minor) var(--grid-minor);
+    background-position: 0 0;
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 25%, transparent 85%);
+    mask-image: radial-gradient(ellipse at center, #000 25%, transparent 85%);
 }
 
 @utility bg-progress-sweep {
@@ -82,6 +68,9 @@
 }
 
 :root {
+    --grid-major: 128px;
+    --grid-minor: 32px;
+
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -205,7 +194,6 @@ body,
     --radius-4xl: calc(var(--radius) * 2.6);
 
     --animate-gradient: gradient 15s ease infinite;
-    --animate-grow: grow 7s infinite;
     --animate-route-loading: route-loading 1.25s linear infinite;
 }
 
