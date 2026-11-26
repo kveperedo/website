@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createTransaction } from "../transactions/transactions.repository.server";
 import {
+    acknowledgeScheduledTransactionNotices,
     createScheduledTransactionTemplate,
     generateScheduledTransactions,
+    getScheduledTransactionNotices,
     getUpcomingScheduledTransactionTemplates,
     toggleScheduledTransactionTemplate,
 } from "./scheduled.service.server";
@@ -70,6 +72,9 @@ const mockGeneration = (
             count: vi.fn().mockResolvedValue(0),
             findFirst,
         },
+        scheduledTransactionNotice: {
+            create: vi.fn().mockResolvedValue({}),
+        },
     };
     vi.mocked(getDb).mockReturnValue({
         scheduledTransactionTemplate: {
@@ -77,6 +82,8 @@ const mockGeneration = (
         },
         $transaction: vi.fn((callback) => callback(tx)),
     } as never);
+
+    return tx;
 };
 
 describe("getUpcomingScheduledTransactionTemplates", () => {
@@ -156,6 +163,32 @@ describe("generateScheduledTransactions", () => {
         );
     });
 
+    it("creates an acknowledgment notice for the generated transaction", async () => {
+        const tx = mockGeneration([template("due", 1)]);
+        vi.mocked(createTransaction).mockResolvedValue({
+            id: "transaction-id",
+            templateId: "due",
+            description: "due",
+        } as never);
+
+        await generateScheduledTransactions(new Date("2026-07-01T00:05:00.000Z"));
+
+        expect(tx.scheduledTransactionNotice.create).toHaveBeenCalledWith({
+            data: { transactionId: "transaction-id" },
+        });
+    });
+
+    it("does not create a notice when the occurrence already exists", async () => {
+        const tx = mockGeneration(
+            [template("due", 1)],
+            vi.fn().mockResolvedValue({ id: "existing-transaction" }),
+        );
+
+        await generateScheduledTransactions(new Date("2026-07-01T00:05:00.000Z"));
+
+        expect(tx.scheduledTransactionNotice.create).not.toHaveBeenCalled();
+    });
+
     it("does not create a duplicate when the occurrence already exists", async () => {
         const findFirst = vi
             .fn()
@@ -227,6 +260,59 @@ describe("generateScheduledTransactions", () => {
         ).rejects.toThrow("Failed to generate 1 scheduled transaction(s).");
 
         expect(createTransaction).toHaveBeenCalledTimes(2);
+    });
+});
+
+describe("scheduled transaction notices", () => {
+    afterEach(() => {
+        vi.clearAllMocks();
+        vi.restoreAllMocks();
+    });
+
+    it("maps pending notices to display rows", async () => {
+        vi.mocked(getDb).mockReturnValue({
+            scheduledTransactionNotice: {
+                findMany: vi.fn().mockResolvedValue([
+                    {
+                        id: "notice-id",
+                        transaction: {
+                            id: "transaction-id",
+                            description: "Rent",
+                            amount: { toNumber: () => 1500 },
+                            type: "expense",
+                            category: "bills_utilities",
+                            transactedAt: new Date("2026-07-01T00:00:00.000Z"),
+                        },
+                    },
+                ]),
+            },
+        } as never);
+
+        await expect(getScheduledTransactionNotices()).resolves.toEqual([
+            {
+                noticeId: "notice-id",
+                transactionId: "transaction-id",
+                description: "Rent",
+                amount: 1500,
+                type: "expense",
+                category: "bills_utilities",
+                transactedAt: new Date("2026-07-01T00:00:00.000Z"),
+            },
+        ]);
+    });
+
+    it("acknowledges the given unacknowledged notices", async () => {
+        const updateMany = vi.fn().mockResolvedValue({ count: 2 });
+        vi.mocked(getDb).mockReturnValue({
+            scheduledTransactionNotice: { updateMany },
+        } as never);
+
+        await acknowledgeScheduledTransactionNotices(["notice-one", "notice-two"]);
+
+        expect(updateMany).toHaveBeenCalledWith({
+            where: { id: { in: ["notice-one", "notice-two"] }, isAcknowledged: false },
+            data: { isAcknowledged: true },
+        });
     });
 });
 

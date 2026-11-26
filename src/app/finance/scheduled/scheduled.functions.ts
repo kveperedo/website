@@ -10,9 +10,11 @@ import {
 import { authMiddleware } from "../../auth/auth.middleware";
 import { createRateLimitMiddleware } from "../../infra/rate-limit/rate-limit.middleware";
 import {
+    acknowledgeScheduledTransactionNotices,
     archiveScheduledTransactionTemplate,
     createStandaloneScheduledTransactionTemplate,
     getArchivedScheduledTransactionTemplates,
+    getScheduledTransactionNotices,
     getScheduledExpensesForCurrentMonth,
     getScheduledTransactionTemplateById,
     getScheduledTransactionTemplates,
@@ -25,6 +27,20 @@ import {
 export const getScheduledTransactionTemplatesFn = createServerFn()
     .middleware([authMiddleware])
     .handler(getScheduledTransactionTemplates);
+
+export const getScheduledTransactionNoticesFn = createServerFn()
+    .middleware([authMiddleware])
+    .handler(getScheduledTransactionNotices);
+
+export const acknowledgeScheduledTransactionNoticesFn = createServerFn({ method: "POST" })
+    .middleware([
+        authMiddleware,
+        createRateLimitMiddleware({ limit: 120, keyPrefix: "scheduled-notices" }),
+    ])
+    .validator(z.array(z.uuid()).min(1))
+    .handler(async ({ data }) => {
+        await acknowledgeScheduledTransactionNotices(data);
+    });
 
 export const getUpcomingScheduledTransactionTemplatesFn = createServerFn()
     .middleware([authMiddleware])

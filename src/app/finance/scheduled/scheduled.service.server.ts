@@ -6,7 +6,7 @@ import type {
     ScheduledTransactionInput,
     UpdateScheduledTransactionInput,
 } from "@/app/finance/scheduled/scheduled.schema";
-import type { TransactionCategory } from "@/generated/prisma/enums";
+import type { TransactionCategory, TransactionType } from "@/generated/prisma/enums";
 import type { TransactionInputType } from "@/generated/zod/schemas/variants/input/Transaction.input";
 
 import { withTransaction, type DbTransactionClient } from "@/app/infra/database/client.server";
@@ -30,11 +30,14 @@ import {
     findActiveTemplatesStartedBefore,
     findArchivedTemplates,
     findExpenseTemplatesInMonth,
+    findScheduledTransactionNotices,
     findTemplateStatusForUpdate,
     findTemplateById,
     findTemplateForUpdate,
     findUpcomingTemplates,
     findActiveAndPausedTemplates,
+    createScheduledTransactionNotice,
+    markScheduledTransactionNoticesAcknowledged,
     updateTemplateStatus,
     updateTemplate,
 } from "./scheduled.repository.server";
@@ -113,6 +116,36 @@ export const getArchivedScheduledTransactionTemplates = async () => {
     const templates = await findArchivedTemplates();
 
     return templates.map(mapScheduledTemplate);
+};
+
+export type ScheduledTransactionNoticeItem = {
+    noticeId: string;
+    transactionId: string;
+    description: string;
+    amount: number;
+    type: TransactionType;
+    category: TransactionCategory | null;
+    transactedAt: Date;
+};
+
+export const getScheduledTransactionNotices = async (): Promise<
+    Array<ScheduledTransactionNoticeItem>
+> => {
+    const notices = await findScheduledTransactionNotices();
+
+    return notices.map((notice) => ({
+        noticeId: notice.id,
+        transactionId: notice.transaction.id,
+        description: notice.transaction.description,
+        amount: notice.transaction.amount.toNumber(),
+        type: notice.transaction.type,
+        category: notice.transaction.category,
+        transactedAt: notice.transaction.transactedAt,
+    }));
+};
+
+export const acknowledgeScheduledTransactionNotices = async (noticeIds: Array<string>) => {
+    await markScheduledTransactionNoticesAcknowledged(noticeIds);
 };
 
 export const getUpcomingScheduledTransactionTemplates = async () => {
@@ -465,7 +498,7 @@ export const generateScheduledTransactions = async (date: Date) => {
                     return;
                 }
 
-                await createTransaction(tx, {
+                const transaction = await createTransaction(tx, {
                     description: template.description,
                     amount: template.amount.toNumber(),
                     type: template.type,
@@ -473,6 +506,8 @@ export const generateScheduledTransactions = async (date: Date) => {
                     transactedAt: scheduledAt,
                     templateId: template.id,
                 });
+
+                await createScheduledTransactionNotice(tx, transaction.id);
 
                 if (template.maxOccurrences !== null && count + 1 >= template.maxOccurrences) {
                     await updateTemplateStatus(tx, template.id, {

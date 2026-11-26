@@ -3,9 +3,10 @@ import { getDaysInMonth } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 
 import { formatCurrency } from "../../src/lib/currency";
-import { gotoAndWaitForHydration } from "../helpers/auth";
+import { gotoAndWaitForHydration, waitForHydration } from "../helpers/auth";
 import { seedDatabase, seedNetCardScenario } from "../helpers/database";
 import {
+    createScheduledNoticeFixture,
     createScheduledTransactionFixture,
     createTransactionFixture,
     deleteFixtures,
@@ -339,5 +340,87 @@ test.describe("expense breakdown label in summary net card", () => {
         await expect(page.getByTestId("expense-breakdown-label")).toHaveCount(0);
         await expect(page.getByTestId("expense-breakdown-current")).toHaveCount(0);
         await expect(page.getByTestId("expense-breakdown-scheduled")).toHaveCount(0);
+    });
+});
+
+test.describe("scheduled transaction notices", () => {
+    test("shows all generated transactions and acknowledges them together", async ({ page }) => {
+        const firstDescription = `Notice first ${Date.now()}`;
+        const secondDescription = `Notice second ${Date.now()}`;
+
+        try {
+            await seedNetCardScenario(page, "on-pace");
+            await createScheduledNoticeFixture(page, firstDescription, { amount: 100 });
+            await createScheduledNoticeFixture(page, secondDescription, { amount: 200 });
+
+            await gotoAndWaitForHydration(page, "/finances");
+
+            const notice = page.getByTestId("scheduled-transaction-notice");
+            await expect(notice).toBeVisible();
+            await expect(notice).toContainText("Recently added transactions");
+            await expect(notice.getByText(firstDescription)).toBeVisible();
+            await expect(notice.getByText(secondDescription)).toBeVisible();
+
+            const acknowledgeButton = page.getByTestId("acknowledge-scheduled-transaction");
+            await expect(acknowledgeButton).toHaveAccessibleName(/Acknowledge/);
+
+            const acknowledgment = page.waitForResponse(
+                (response) => response.request().method() === "POST" && response.ok(),
+            );
+            await acknowledgeButton.click();
+            await acknowledgment;
+
+            await expect(page.getByTestId("scheduled-transaction-notice")).toHaveCount(0);
+
+            await page.reload();
+            await waitForHydration(page);
+            await expect(page.getByTestId("scheduled-transaction-notice")).toHaveCount(0);
+        } finally {
+            await deleteFixtures(page, firstDescription, secondDescription);
+        }
+    });
+
+    test("scrolls the transaction list when more than three are pending", async ({ page }) => {
+        const descriptions = Array.from(
+            { length: 5 },
+            (_, index) => `Scroll notice ${index + 1} ${Date.now()}`,
+        );
+
+        try {
+            await seedNetCardScenario(page, "on-pace");
+            for (const description of descriptions) {
+                await createScheduledNoticeFixture(page, description);
+            }
+
+            await gotoAndWaitForHydration(page, "/finances");
+
+            const content = page
+                .getByTestId("scheduled-transaction-notice")
+                .locator('[data-slot="card-content"]');
+            await expect(content).toBeVisible();
+
+            const { scrollHeight, clientHeight } = await content.evaluate((element) => ({
+                scrollHeight: element.scrollHeight,
+                clientHeight: element.clientHeight,
+            }));
+            expect(clientHeight).toBeLessThanOrEqual(152);
+            expect(scrollHeight).toBeGreaterThan(clientHeight);
+        } finally {
+            await deleteFixtures(page, ...descriptions);
+        }
+    });
+
+    test("does not show a notice for a manually created transaction", async ({ page }) => {
+        const description = `Manual notice ${Date.now()}`;
+
+        try {
+            await seedNetCardScenario(page, "on-pace");
+            await createTransactionFixture(page, description);
+            await gotoAndWaitForHydration(page, "/finances");
+
+            await expect(page.getByTestId("scheduled-transaction-notice")).toHaveCount(0);
+        } finally {
+            await deleteFixtures(page, description);
+        }
     });
 });

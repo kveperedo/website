@@ -118,3 +118,37 @@ export const updateTemplateStatus = async (
 ) => {
     return await db.scheduledTransactionTemplate.update({ where: { id }, data });
 };
+
+export const createScheduledTransactionNotice = async (
+    db: DbTransactionClient,
+    transactionId: string,
+) => {
+    return await db.scheduledTransactionNotice.create({ data: { transactionId } });
+};
+
+export const findScheduledTransactionNotices = async () => {
+    return await getDb().scheduledTransactionNotice.findMany({
+        where: { isAcknowledged: false },
+        orderBy: [{ transaction: { transactedAt: "asc" } }, { transaction: { createdAt: "asc" } }],
+        select: {
+            id: true,
+            transaction: {
+                select: {
+                    id: true,
+                    description: true,
+                    amount: true,
+                    type: true,
+                    category: true,
+                    transactedAt: true,
+                },
+            },
+        },
+    });
+};
+
+export const markScheduledTransactionNoticesAcknowledged = async (noticeIds: Array<string>) => {
+    return await getDb().scheduledTransactionNotice.updateMany({
+        where: { id: { in: noticeIds }, isAcknowledged: false },
+        data: { isAcknowledged: true },
+    });
+};

@@ -23,9 +23,14 @@ type FixtureOptions = {
     amount?: number;
     type?: "expense" | "income";
     category?: TransactionCategory | null;
+    generatedBySchedule?: boolean;
 };
 
-type FixtureIds = { transactionId: string | null; templateId: string | null };
+type FixtureIds = {
+    transactionId: string | null;
+    templateId: string | null;
+    noticeId: string | null;
+};
 
 const FIXTURES_URL = "/api/e2e/fixtures";
 
@@ -64,6 +69,20 @@ export async function createTransactionFixture(
         withTransaction: true,
     });
     return transactionId!;
+}
+
+/** Mirrors the cron: a transaction dated today plus its pending acknowledgment notice. */
+export async function createScheduledNoticeFixture(
+    page: Page,
+    description: string,
+    options: FixtureOptions = {},
+): Promise<{ transactionId: string; noticeId: string }> {
+    const ids = await createFixture(page, description, {
+        ...options,
+        generatedBySchedule: true,
+        withTransaction: true,
+    });
+    return { transactionId: ids.transactionId!, noticeId: ids.noticeId! };
 }
 
 /** Mirrors scheduling from the transaction form: a template plus today's linked transaction. */

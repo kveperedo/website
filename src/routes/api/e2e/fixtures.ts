@@ -23,9 +23,14 @@ const CreateFixtureSchema = z
             })
             .optional(),
         withTransaction: z.boolean().default(true),
+        generatedBySchedule: z.boolean().default(false),
     })
     .refine((input) => input.withTransaction || input.schedule !== undefined, {
         message: "withTransaction: false requires a schedule, or nothing would be created",
+        path: ["withTransaction"],
+    })
+    .refine((input) => !input.generatedBySchedule || input.withTransaction, {
+        message: "generatedBySchedule requires withTransaction",
         path: ["withTransaction"],
     });
 
