@@ -4,6 +4,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { getFinanceDashboardFn } from "@/app/finance/analytics/analytics.functions";
 import { getFinancePreferencesFn } from "@/app/finance/preferences/preferences.functions";
 import {
+    getScheduledTransactionNoticesFn,
     getScheduledExpensesForCurrentMonthFn,
     getUpcomingScheduledTransactionTemplatesFn,
 } from "@/app/finance/scheduled/scheduled.functions";
@@ -17,6 +18,7 @@ import { FinanceContainer } from "../-common/components/finance-container";
 import { CategoryTrendsCard } from "./-common/components/category-trends-card";
 import { MonthlyNetCard } from "./-common/components/monthly-net-card";
 import { RecentTransactionsCard } from "./-common/components/recent-transactions-card";
+import { ScheduledTransactionNotice } from "./-common/components/scheduled-transaction-notice";
 import { SummaryNetCard } from "./-common/components/summary-net-card";
 import { UpcomingTransactionsCard } from "./-common/components/upcoming-transactions-card";
 
@@ -33,12 +35,14 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
             upcomingTransactions,
             financePreferences,
             scheduledProjection,
+            pendingScheduledTransactions,
         ] = await Promise.all([
             getFinanceDashboardFn(),
             getRecentTransactionsFn(),
             getUpcomingScheduledTransactionTemplatesFn(),
             getFinancePreferencesFn(),
             getScheduledExpensesForCurrentMonthFn(),
+            getScheduledTransactionNoticesFn(),
         ]);
         const monthLabel = formatInTimeZone(new Date(), TIME_ZONE, "MMMM yyyy");
         return {
@@ -48,6 +52,7 @@ export const Route = createFileRoute("/(authed)/_auth/finances/(index)/")({
             categoryTrendsVisibleCategories: financePreferences.categoryTrendsVisibleCategories,
             scheduledProjection,
             hideSummaryCardAmounts: financePreferences.hideSummaryCardAmounts,
+            pendingScheduledTransactions,
             monthLabel,
         };
     },
@@ -74,6 +79,7 @@ function RouteComponent() {
             <div className="container mx-auto flex flex-1 flex-col gap-4 p-4 lg:px-0">
                 <h1 className="sr-only">Finances</h1>
                 <h2 className="sr-only">{monthLabel}</h2>
+                <ScheduledTransactionNotice />
                 <Card
                     variant="flat"
                     className="flex flex-col gap-4 border-0 bg-transparent lg:h-96 lg:flex-row lg:gap-px lg:border lg:bg-border"

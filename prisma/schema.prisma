@@ -69,6 +69,7 @@ model Transaction {
   transactedAt            DateTime                      @map("transacted_at") @db.Timestamptz(6)
   templateId              String?                       @map("template_id") @db.Uuid
   template                ScheduledTransactionTemplate? @relation("ScheduledTransaction", fields: [templateId], references: [id], onDelete: SetNull)
+  notice                  ScheduledTransactionNotice?
   createdAt               DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -76,6 +77,16 @@ model Transaction {
   @@index([transactedAt])
   @@index([templateId])
   @@map("transactions")
+}
+
+model ScheduledTransactionNotice {
+  id             String      @id @default(uuid()) @db.Uuid
+  transactionId  String      @unique @map("transaction_id") @db.Uuid
+  transaction    Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  isAcknowledged Boolean     @default(false) @map("is_acknowledged")
+
+  @@index([isAcknowledged])
+  @@map("scheduled_transaction_notices")
 }
 
 model TransactionMemory {

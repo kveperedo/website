@@ -73,6 +73,8 @@ export type E2EFixtureInput = {
     };
     /** When false, only the template is created, as `/finances/scheduled/new` does. */
     withTransaction: boolean;
+    /** Mirrors what the cron writes: a transaction plus its acknowledgment notice. */
+    generatedBySchedule?: boolean;
 };
 
 /**
@@ -116,7 +118,18 @@ export async function createE2EFixture(input: E2EFixtureInput) {
               })
             : null;
 
-        return { transactionId: transaction?.id ?? null, templateId: template?.id ?? null };
+        const notice =
+            input.generatedBySchedule && transaction
+                ? await db.scheduledTransactionNotice.create({
+                      data: { transactionId: transaction.id },
+                  })
+                : null;
+
+        return {
+            transactionId: transaction?.id ?? null,
+            templateId: template?.id ?? null,
+            noticeId: notice?.id ?? null,
+        };
     });
 }
 
