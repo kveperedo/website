@@ -1,5 +1,4 @@
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SetupRootProps = {
     id?: string;
@@ -9,11 +8,11 @@ type SetupRootProps = {
 
 const SetupRoot = ({ id, title, children }: SetupRootProps) => {
     return (
-        <Card id={id} className="w-full p-6 md:p-7">
-            <Badge variant="secondary" className="mb-4 self-start lowercase">
-                {title}
-            </Badge>
-            <div className="space-y-2.5">{children}</div>
+        <Card id={id} variant="flat" className="min-w-0 scroll-mt-20">
+            <CardHeader variant="flat" className="justify-between gap-2">
+                <CardTitle variant="flat">{title}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 p-3">{children}</CardContent>
         </Card>
     );
 };
@@ -42,13 +41,15 @@ type SetupItemProps = {
 const SetupItem = ({ label, children }: SetupItemProps) => {
     return (
         <div className="flex gap-2.5">
-            <span className="mt-[0.45rem] h-1 w-1 shrink-0 rounded-full bg-muted-foreground" />
+            <span className="mt-[0.45rem] size-1 shrink-0 rounded-full bg-muted-foreground" />
             <div className="min-w-0 flex-1">
-                <span className="text-sm leading-relaxed font-medium tracking-wide text-foreground">
+                <span className="text-xs leading-relaxed tracking-wide text-foreground">
                     {label}
                 </span>
                 {children && (
-                    <div className="mt-1.5 space-y-1.5 border-l border-border pl-3">{children}</div>
+                    <div className="mt-1.5 flex flex-col gap-1.5 border-l border-border pl-3">
+                        {children}
+                    </div>
                 )}
             </div>
         </div>

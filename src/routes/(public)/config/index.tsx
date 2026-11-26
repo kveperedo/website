@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { cacheControl } from "@/app/infra/cache/cache-control";
-import { BackButton } from "@/components/back-button";
+import { AppContainer } from "@/components/app-container";
+import { AppHeader } from "@/components/app-header";
+import { BreadcrumbItem, BreadcrumbPage, TanstackBreadcrumbLink } from "@/components/ui/breadcrumb";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { PUBLIC_CACHE_CONTROL } from "../-common/constants";
-import { MacSetup } from "./-common/sections/mac-setup";
+import { SETUP_SECTIONS } from "./-common/constants";
+import { ApplicationsSetup, CliToolsSetup } from "./-common/sections/mac-setup";
 
 const META: Array<React.JSX.IntrinsicElements["meta"]> = [
     { title: "Config | Kevin Von Erich Peredo" },
@@ -37,49 +41,49 @@ export const Route = createFileRoute("/(public)/config/")({
 
 function ConfigRoute() {
     return (
-        <main className="relative min-h-screen">
-            <div className="relative container mx-auto px-8 py-12">
-                <div className="mb-10">
-                    <BackButton to="/" />
+        <AppContainer
+            header={
+                <AppHeader>
+                    <BreadcrumbItem>
+                        <TanstackBreadcrumbLink to="/">Home</TanstackBreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>Config</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </AppHeader>
+            }
+        >
+            <div className="container mx-auto flex flex-col gap-4 p-4 lg:px-0">
+                <h1 className="sr-only">mac setup</h1>
+                <p className="text-xs text-muted-foreground">
+                    My personal reference for setting up a new macOS machine. Hand the prompts to
+                    your agent, or expand the exact commands if you're doing it by hand.
+                </p>
 
-                    <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
-                        My personal reference for setting up a new macOS machine, including apps,
-                        tools, and system preferences I rely on.
-                    </p>
-
-                    <div className="mt-4 flex items-center gap-3">
-                        <a
-                            href="#applications"
-                            className="text-xs text-muted-foreground underline-offset-4 transition-all duration-500 hover:text-foreground hover:underline"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                document
-                                    .querySelector("#applications")
-                                    ?.scrollIntoView({ behavior: "smooth" });
-                            }}
-                        >
-                            Applications
-                        </a>
-                        <span className="text-muted-foreground/40">·</span>
-                        <a
-                            href="#config"
-                            className="text-xs text-muted-foreground underline-offset-4 transition-all duration-500 hover:text-foreground hover:underline"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                document
-                                    .querySelector("#config")
-                                    ?.scrollIntoView({ behavior: "smooth" });
-                            }}
-                        >
-                            Config
-                        </a>
-                    </div>
-                </div>
-
-                <div className="relative">
-                    <MacSetup />
-                </div>
+                <Tabs defaultSelectedKey="cli-tools" className="flex flex-col gap-4">
+                    <TabsList
+                        variant="line"
+                        aria-label="Setup sections"
+                        className="w-full justify-start gap-6 border-b border-subtle"
+                    >
+                        {SETUP_SECTIONS.map((section) => (
+                            <TabsTrigger
+                                key={section.id}
+                                id={section.id}
+                                className="flex-none px-1 text-sm after:bg-primary"
+                            >
+                                {section.title}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                    <TabsContent id="cli-tools" className="flex flex-col gap-4">
+                        <CliToolsSetup />
+                    </TabsContent>
+                    <TabsContent id="applications" className="flex flex-col gap-4">
+                        <ApplicationsSetup />
+                    </TabsContent>
+                </Tabs>
             </div>
-        </main>
+        </AppContainer>
     );
 }

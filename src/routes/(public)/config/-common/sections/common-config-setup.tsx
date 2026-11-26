@@ -1,5 +1,16 @@
 import { CommandBlock } from "../components/command-block";
+import { PromptBlock } from "../components/prompt-block";
 import { Setup } from "../components/setup";
+import { SetupCommands } from "../components/setup-commands";
+
+const FONT_PROMPT =
+    "Install JetBrains Mono Nerd Font from nerdfonts.com so the terminal can render Powerlevel10k glyphs.";
+
+const ZSH_PROMPT =
+    'Set zsh as my default shell, then install Oh My Zsh with the Powerlevel10k theme, zsh-autosuggestions, and zsh-syntax-highlighting. Set ZSH_THEME="powerlevel10k/powerlevel10k" and plugins=(git zsh-autosuggestions zsh-syntax-highlighting) in ~/.zshrc, then reload it.';
+
+const NVM_PROMPT =
+    "Install nvm with its install script, then use it to install the latest Node version and switch to it.";
 
 export const JetbrainsFontSetup = () => {
     return (
@@ -10,48 +21,44 @@ export const JetbrainsFontSetup = () => {
                     <Setup.Link href="https://www.nerdfonts.com/font-downloads" />
                 </>
             }
-        />
+        >
+            <PromptBlock prompt={FONT_PROMPT} />
+        </Setup.Item>
     );
 };
 
 export const ZshSetup = () => {
     return (
         <Setup.Item label="Zsh and Oh My Zsh">
-            <Setup.Item label="Change default shell to zsh">
-                <CommandBlock command="chsh -s $(which zsh)" />
-            </Setup.Item>
-            <Setup.Item label="Install oh-my-zsh">
+            <PromptBlock prompt={ZSH_PROMPT} />
+            <SetupCommands>
                 <CommandBlock
-                    command={`sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"`}
+                    command={`# Change default shell to zsh
+chsh -s $(which zsh)
+
+# Install oh-my-zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# Install the Powerlevel10k theme
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \\
+\${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+
+# Install zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-autosuggestions \\
+\${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+
+# Install zsh-syntax-highlighting
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \\
+\${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+
+# Edit .zshrc
+ZSH_THEME="powerlevel10k/powerlevel10k"
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+
+# Reload Zsh
+source ~/.zshrc`}
                 />
-            </Setup.Item>
-            <Setup.Item label="Install the Powerlevel10k theme">
-                <CommandBlock
-                    command="git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
-${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
-                />
-            </Setup.Item>
-            <Setup.Item label="Install zsh-autosuggestions">
-                <CommandBlock
-                    command="git clone https://github.com/zsh-users/zsh-autosuggestions \
-${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
-                />
-            </Setup.Item>
-            <Setup.Item label="Install zsh-syntax-highlighting">
-                <CommandBlock
-                    command="git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
-${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
-                />
-            </Setup.Item>
-            <Setup.Item label="Edit .zshrc file">
-                <CommandBlock
-                    command={`ZSH_THEME="powerlevel10k/powerlevel10k"
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting)`}
-                />
-            </Setup.Item>
-            <Setup.Item label="Reload Zsh">
-                <CommandBlock command="source ~/.zshrc" />
-            </Setup.Item>
+            </SetupCommands>
         </Setup.Item>
     );
 };
@@ -59,15 +66,17 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting)`}
 export const NVMSetup = () => {
     return (
         <Setup.Item label="NVM">
-            <Setup.Item label="Install NVM">
-                <CommandBlock command="curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash" />
-            </Setup.Item>
-            <Setup.Item label="Install latest node version">
+            <PromptBlock prompt={NVM_PROMPT} />
+            <SetupCommands>
                 <CommandBlock
-                    command={`nvm install node
+                    command={`# Install NVM
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+
+# Install the latest Node version
+nvm install node
 nvm use node`}
                 />
-            </Setup.Item>
+            </SetupCommands>
         </Setup.Item>
     );
 };
