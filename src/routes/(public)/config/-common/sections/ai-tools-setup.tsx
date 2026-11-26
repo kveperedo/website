@@ -1,5 +1,13 @@
 import { CommandBlock } from "../components/command-block";
+import { PromptBlock } from "../components/prompt-block";
 import { Setup } from "../components/setup";
+import { SetupCommands } from "../components/setup-commands";
+
+const WORKTRUNK_PROMPT =
+    "Install worktrunk with Homebrew, install its zsh shell integration, and install the OpenCode activity plugin. Add a wtc alias to ~/.zshrc that creates a worktree from the default branch, and include the commands for creating, switching, listing, and removing worktrees. In ~/.config/worktrunk/config.toml, add a post-start hook that runs `wt step copy-ignored` to copy gitignored files into new worktrees, and exclude node_modules/ from the copy since pnpm rebuilds it from its store.";
+
+const GIT_PROMPT =
+    "Add pusho and pullm aliases to ~/.gitconfig. pusho pushes the current branch to origin and sets its upstream; pullm pulls with rebase from master, or main if master does not exist. Also set up SSH authentication for GitHub.";
 
 export const WorktrunkSetup = () => {
     return (
@@ -11,30 +19,42 @@ export const WorktrunkSetup = () => {
                 </>
             }
         >
-            <Setup.Item label="Install worktrunk">
-                <CommandBlock command="brew install worktrunk" />
-            </Setup.Item>
-            <Setup.Item label="Install shell integration">
-                <CommandBlock command="wt config shell install" />
-                <CommandBlock command='if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi' />
-            </Setup.Item>
-            <Setup.Item label="Install the OpenCode activity plugin">
-                <CommandBlock command="wt config plugins opencode install" />
-            </Setup.Item>
-            <Setup.Item label="Create and switch worktrees">
+            <PromptBlock prompt={WORKTRUNK_PROMPT} />
+            <SetupCommands>
                 <CommandBlock
-                    command={`wt switch --create <branch>
+                    command={`# Install worktrunk
+brew install worktrunk
+
+# Install shell integration
+wt config shell install
+if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+
+# Install the OpenCode activity plugin
+wt config plugins opencode install
+
+# Create and switch worktrees
+wt switch --create <branch>
 wt switch <branch>
 wt list
-wt remove`}
+wt remove
+
+# Add a wtc alias to .zshrc
+alias wtc="wt switch --base=^ -c"
+
+# wtc creates a new worktree from the default branch
+wtc <branch>`}
                 />
-            </Setup.Item>
-            <Setup.Item label="Add a wtc alias to .zshrc">
-                <CommandBlock command='alias wtc="wt switch --base=^ -c"' />
-            </Setup.Item>
-            <Setup.Item label="wtc creates a new worktree from the default branch">
-                <CommandBlock command="wtc <branch>" />
-            </Setup.Item>
+                <CommandBlock
+                    language="~/.config/worktrunk/config.toml"
+                    command={`# Copy gitignored files (caches, .env) into new worktrees
+[post-start]
+copy = "wt step copy-ignored"
+
+# pnpm rebuilds node_modules from its store
+[step.copy-ignored]
+exclude = ["node_modules/"]`}
+                />
+            </SetupCommands>
         </Setup.Item>
     );
 };
@@ -49,12 +69,13 @@ export const OpenCodeSetup = () => {
                 </>
             }
         >
-            <Setup.Item label="Install OpenCode">
-                <CommandBlock command="brew install opencode" />
-            </Setup.Item>
-            <Setup.Item label="Start a session">
-                <CommandBlock command="opencode" />
-            </Setup.Item>
+            <CommandBlock
+                command={`# Install OpenCode
+brew install opencode
+
+# Start a session
+opencode`}
+            />
         </Setup.Item>
     );
 };
@@ -62,20 +83,30 @@ export const OpenCodeSetup = () => {
 export const GitSetup = () => {
     return (
         <Setup.Item label="Git">
-            <Setup.Item label="Add pusho and pullm aliases to ~/.gitconfig">
+            <PromptBlock prompt={GIT_PROMPT} />
+            <SetupCommands>
                 <CommandBlock
-                    language="gitconfig"
-                    command={`[alias]
+                    command={`# Add pusho and pullm aliases to ~/.gitconfig
+[alias]
     pullm = "!f() { branch=master; git show-ref --verify --quiet refs/remotes/origin/master || branch=main; git pull --rebase origin \\"$branch\\"; }; f"
-    pusho = push -u origin HEAD`}
+    pusho = push -u origin HEAD
+
+# pusho pushes the current branch to origin and sets its upstream
+git pusho
+
+# pullm pulls with rebase from master, or main if master does not exist
+git pullm`}
                 />
-            </Setup.Item>
-            <Setup.Item label="pusho pushes the current branch to origin and sets its upstream">
-                <CommandBlock command="git pusho" />
-            </Setup.Item>
-            <Setup.Item label="pullm pulls with rebase from master, or main if master does not exist">
-                <CommandBlock command="git pullm" />
-            </Setup.Item>
+            </SetupCommands>
+            <Setup.Item
+                label={
+                    <>
+                        Setup SSH for Github
+                        <Setup.Dash />
+                        <Setup.Link href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh" />
+                    </>
+                }
+            />
         </Setup.Item>
     );
 };
