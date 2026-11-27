@@ -169,12 +169,9 @@ function RouteComponent() {
                 <div className="flex min-h-0 min-w-0 flex-1 flex-col">
                     <Card
                         variant="flat"
-                        className="flex min-h-0 flex-1 flex-col gap-4 border-0 bg-transparent lg:gap-px lg:border lg:bg-border"
+                        className="flex min-h-0 flex-1 flex-col gap-px border bg-border"
                     >
-                        <Card
-                            variant="flat"
-                            className="flex shrink-0 flex-col gap-0 py-0 lg:border-0"
-                        >
+                        <Card variant="flat" className="flex shrink-0 flex-col gap-0 border-0 py-0">
                             <div className="flex items-center justify-between gap-2 p-3">
                                 <div className="flex min-w-0 items-center gap-2">
                                     <MonthNavigation />
@@ -208,10 +205,10 @@ function RouteComponent() {
                                 <TransactionFilters />
                             </div>
                         </Card>
-                        <div className="flex min-h-0 flex-1 flex-col lg:contents">
+                        <div className="flex min-h-0 flex-1 flex-col gap-px lg:contents">
                             <Card
                                 variant="flat"
-                                className="flex min-h-0 min-w-0 flex-1 flex-col py-0 lg:border-0"
+                                className="flex min-h-0 min-w-0 flex-1 flex-col border-0 py-0"
                             >
                                 <CardHeader variant="flat" className="shrink-0">
                                     <CardTitle variant="flat">Transactions</CardTitle>
@@ -226,7 +223,7 @@ function RouteComponent() {
                                 label={monthLabel}
                                 expensesDimmed={search.type === "income"}
                                 incomeDimmed={search.type === "expense"}
-                                className="min-w-0 shrink-0 lg:border-0"
+                                className="min-w-0 shrink-0 border-0"
                             />
                         </div>
                     </Card>

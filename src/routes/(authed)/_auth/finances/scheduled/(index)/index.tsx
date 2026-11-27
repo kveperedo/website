@@ -113,9 +113,9 @@ function RouteComponent() {
                 <h1 className="sr-only">Scheduled transactions</h1>
                 <Card
                     variant="flat"
-                    className="flex min-h-0 flex-1 flex-col gap-4 border-0 bg-transparent lg:gap-px lg:border lg:bg-border"
+                    className="flex min-h-0 flex-1 flex-col gap-px border bg-border"
                 >
-                    <Card variant="flat" className="flex shrink-0 flex-col gap-0 py-0 lg:border-0">
+                    <Card variant="flat" className="flex shrink-0 flex-col gap-0 border-0 py-0">
                         <div className="p-3">
                             <Tabs
                                 selectedKey={current}
@@ -144,7 +144,7 @@ function RouteComponent() {
                             </Tabs>
                         </div>
                     </Card>
-                    <div className="flex min-h-0 flex-1 flex-col lg:contents">
+                    <div className="flex min-h-0 flex-1 flex-col gap-px lg:contents">
                         <ScheduledTransactionList
                             view={current}
                             isLoading={isLoading}
@@ -157,7 +157,7 @@ function RouteComponent() {
                             income={summary.income}
                             label="projected monthly"
                             testIdPrefix="scheduled-summary"
-                            className="min-w-0 shrink-0 lg:border-0"
+                            className="min-w-0 shrink-0 border-0"
                         />
                     </div>
                 </Card>
