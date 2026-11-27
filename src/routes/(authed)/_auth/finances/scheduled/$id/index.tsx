@@ -50,7 +50,7 @@ function RouteComponent() {
     const isArchived = template.status === "archived";
 
     const handleBack = () => {
-        router.navigate({ to: "/finances/scheduled" });
+        void router.navigate({ to: "/finances/scheduled" });
     };
 
     const handleSubmit = async (data: ScheduledFormEditData) => {

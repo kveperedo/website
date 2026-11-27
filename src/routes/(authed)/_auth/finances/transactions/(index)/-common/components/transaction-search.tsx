@@ -29,7 +29,7 @@ export function TransactionSearch({
 
     const debouncedNavigate = useDebouncedCallback((q?: string) => {
         submittedQueryRef.current = q;
-        router.navigate({
+        void router.navigate({
             to: "/finances/transactions",
             search: (current) => ({
                 ...current,
@@ -92,7 +92,7 @@ export function TransactionSearch({
                         submittedQueryRef.current = undefined;
                         setInputValue("");
                         onClose?.();
-                        router.navigate({
+                        void router.navigate({
                             to: "/finances/transactions",
                             search: (current) => ({
                                 ...current,

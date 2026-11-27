@@ -121,12 +121,12 @@ function RouteComponent() {
                                 selectedKey={current}
                                 onSelectionChange={(key) => {
                                     if (key === "archived") {
-                                        router.navigate({
+                                        void router.navigate({
                                             to: "/finances/scheduled",
                                             search: { view: "archived" },
                                         });
                                     } else {
-                                        router.navigate({ to: "/finances/scheduled" });
+                                        void router.navigate({ to: "/finances/scheduled" });
                                     }
                                 }}
                                 className="gap-0"

@@ -31,7 +31,7 @@ export const ArchiveTemplateButton = () => {
         try {
             await archiveTemplate({ data: template.id });
             await router.invalidate({ sync: true });
-            router.navigate({ to: "/finances/scheduled" });
+            await router.navigate({ to: "/finances/scheduled" });
         } catch {
             // TODO: Add snackbar for error
         } finally {

@@ -14,7 +14,7 @@ export function useTransactionFilterNavigation() {
             categories?: Array<TransactionCategory>;
         } = {},
     ) => {
-        router.navigate({
+        void router.navigate({
             to: "/finances/transactions",
             search: (current) => {
                 const type = "type" in next ? next.type : current.type;

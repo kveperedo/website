@@ -74,7 +74,7 @@ function RouteComponent() {
                 }),
             });
             await router.invalidate({ sync: true });
-            router.navigate({ to: returnTo ?? "/finances" });
+            await router.navigate({ to: returnTo ?? "/finances" });
         } catch {
             // TODO: Add snackbar for error
         } finally {
@@ -83,7 +83,7 @@ function RouteComponent() {
     };
 
     const handleBack = () => {
-        router.navigate({ to: returnTo ?? "/finances" });
+        void router.navigate({ to: returnTo ?? "/finances" });
     };
 
     return (

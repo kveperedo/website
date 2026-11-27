@@ -15,10 +15,14 @@ type CopyBlockProps = {
 export const CopyBlock = ({ label, content, copyLabel, wrap, className }: CopyBlockProps) => {
     const [copied, setCopied] = useState(false);
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(content);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(content);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // TODO: surface clipboard failure (blocked by permissions or insecure context)
+        }
     };
 
     return (

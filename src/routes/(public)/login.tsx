@@ -45,7 +45,9 @@ function RouteComponent() {
                                 event.preventDefault();
 
                                 const formData = new FormData(event.currentTarget);
-                                const password = formData.get("password")?.toString() ?? "";
+                                const passwordEntry = formData.get("password");
+                                const password =
+                                    typeof passwordEntry === "string" ? passwordEntry : "";
                                 if (!password.trim()) {
                                     setError("Please enter a password.");
                                     return;

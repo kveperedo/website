@@ -108,6 +108,25 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+/**
+ * Recharts `dataKey` and `name` accept numbers and accessor functions.
+ * Config keys are literal names, so a function candidate is skipped and the
+ * next one wins — a function `dataKey` falls through to the series `name`.
+ */
+const resolveConfigKey = (...candidates: Array<unknown>): string => {
+    for (const candidate of candidates) {
+        if (typeof candidate === "string") {
+            return candidate;
+        }
+
+        if (typeof candidate === "number") {
+            return String(candidate);
+        }
+    }
+
+    return "value";
+};
+
 function ChartTooltipContent({
     active,
     payload,
@@ -141,7 +160,7 @@ function ChartTooltipContent({
         }
 
         const [item] = payload;
-        const key = `${labelKey ?? item?.dataKey ?? item?.name ?? "value"}`;
+        const key = resolveConfigKey(labelKey, item?.dataKey, item?.name);
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
         const value =
             !labelKey && typeof label === "string"
@@ -181,7 +200,7 @@ function ChartTooltipContent({
                 {payload
                     .filter((item) => item.type !== "none")
                     .map((item, index) => {
-                        const key = `${nameKey ?? item.name ?? item.dataKey ?? "value"}`;
+                        const key = resolveConfigKey(nameKey, item.name, item.dataKey);
                         const itemConfig = getPayloadConfigFromPayload(config, item, key);
                         const indicatorColor = color ?? item.payload?.fill ?? item.color;
 
@@ -281,7 +300,7 @@ function ChartLegendContent({
             {payload
                 .filter((item) => item.type !== "none")
                 .map((item, index) => {
-                    const key = `${nameKey ?? item.dataKey ?? "value"}`;
+                    const key = resolveConfigKey(nameKey, item.dataKey);
                     const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
                     return (

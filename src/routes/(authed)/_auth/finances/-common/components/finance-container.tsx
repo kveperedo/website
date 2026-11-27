@@ -44,7 +44,7 @@ const FinanceContainerFooter = () => {
     const handleParsed = (transactions: Array<ParsedTransaction>) => {
         setInputValue("");
         setIsComposerOpen(false);
-        router.navigate({
+        void router.navigate({
             to: "/finances/transactions/new",
             search: { transactions, returnTo: pathname },
         });
