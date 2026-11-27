@@ -97,7 +97,6 @@ pnpm run db:studio
 ```bash
 pnpm run lint
 pnpm run format:check
-pnpm run typecheck
 pnpm run test
 ```
 

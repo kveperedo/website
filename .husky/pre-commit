@@ -1,1 +1,8 @@
+set -e
+
+# Type-aware lint needs both generated trees; they're gitignored.
+# Generate only when missing so commits don't shell out to `cf` every time.
+[ -f .cloudflare/types/index.d.ts ] || pnpm run cf:generate
+[ -d src/generated/prisma ] || pnpm run db:generate
+
 pnpm run lint && pnpm run format:check

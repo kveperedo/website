@@ -4,6 +4,10 @@
     "categories": {
         "correctness": "error"
     },
+    "options": {
+        "typeAware": true,
+        "typeCheck": true
+    },
     "rules": {
         "curly": ["error", "all"],
         "consistent-type-definitions": ["error", "type"],
@@ -14,5 +18,5 @@
     "env": {
         "builtin": true
     },
-    "ignorePatterns": ["src/routeTree.gen.ts"]
+    "ignorePatterns": ["src/routeTree.gen.ts", "src/generated/**"]
 }
