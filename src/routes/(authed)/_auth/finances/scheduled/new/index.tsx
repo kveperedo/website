@@ -43,7 +43,7 @@ function RouteComponent() {
     const [isSaving, setIsSaving] = useState(false);
 
     const handleBack = () => {
-        router.navigate({ to: "/finances/scheduled" });
+        void router.navigate({ to: "/finances/scheduled" });
     };
 
     const handleSubmit = async (data: ScheduledFormEditData) => {
@@ -65,7 +65,7 @@ function RouteComponent() {
                 },
             });
             await router.invalidate({ sync: true });
-            router.navigate({ to: "/finances/scheduled" });
+            void router.navigate({ to: "/finances/scheduled" });
         } finally {
             setIsSaving(false);
         }

@@ -68,7 +68,7 @@ function RouteComponent() {
         : undefined;
 
     const handleBack = () => {
-        router.navigate({ to: "/applications", search: backSearch });
+        void router.navigate({ to: "/applications", search: backSearch });
     };
 
     const handleSubmit = async (data: ApplicationFields) => {

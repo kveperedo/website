@@ -60,7 +60,7 @@ function RouteComponent() {
     const [isSaving, setIsSaving] = useState(false);
 
     const handleBack = () => {
-        router.navigate({
+        void router.navigate({
             to: "/finances/transactions",
             search: (current) => ({ ...current }),
         });

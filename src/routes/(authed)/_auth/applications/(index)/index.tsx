@@ -123,9 +123,12 @@ function RouteComponent() {
                     selectedKey={current}
                     onSelectionChange={(key) => {
                         if (key === "closed") {
-                            router.navigate({ to: "/applications", search: { view: "closed" } });
+                            void router.navigate({
+                                to: "/applications",
+                                search: { view: "closed" },
+                            });
                         } else if (key === "active") {
-                            router.navigate({ to: "/applications" });
+                            void router.navigate({ to: "/applications" });
                         }
                     }}
                     className="flex min-h-0 flex-1 flex-col gap-4"

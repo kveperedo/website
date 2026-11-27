@@ -85,7 +85,7 @@ function RouteComponent() {
     };
 
     const handleClearFilters = () => {
-        router.navigate({
+        void router.navigate({
             to: "/finances/transactions",
             search: { year, month, q: undefined, type: undefined, categories: undefined },
         });

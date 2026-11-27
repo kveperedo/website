@@ -5,7 +5,7 @@
 - **pnpm** (lockfile is `pnpm-lock.yaml`)
 - `pnpm run dev` — `CLOUDFLARE_PREVIEW_BUILD=true cf dev`; port 3000 and `--host` live in `vite.config.ts` because `cf dev` forwards no extra arguments to Vite. That env var is what makes local dev take the `ctx.isPreview` config branch — without it `E2E_PASSWORD` is undeclared, `isE2EAvailable()` is false, and `/api/e2e` answers 404.
 - `pnpm run db:local:up` — starts the local Postgres container and waits for health; run `pnpm run db:deploy` afterwards to apply migrations. `db:local:down` stops it.
-- `pnpm run lint` / `pnpm run format:check` — pre-commit runs both
+- `pnpm run lint` — type-aware oxlint run: syntax + type-aware rules + TypeScript diagnostics. The only type check; there is no `tsc` step. Needs `.cloudflare/types` (`cf:generate`) and a generated Prisma client (`db:generate`); `pnpm run checks` generates the Worker types first, and pre-commit generates either tree only when it is missing
 - `pnpm run db:generate` → `pnpm run db:deploy` — required before build if schema changed
 - `pnpm run test` — Vitest unit tests
 - `pnpm run build` — `cf build`, writes Build Output to `.cloudflare/output/v0/`
@@ -14,7 +14,6 @@
 - **Preview delete**: `pnpm run preview:delete pr-123-website` — `cf` has no `previews delete`, so this is `cf workers delete <worker-name>`, which prompts; pass `--force` to skip the prompt (CI does)
 - `pnpm run preview:vite` — Vite's own preview server, unrelated to Worker Previews
 - `pnpm run cf:generate` — regenerates `.cloudflare/types/index.d.ts` from `cloudflare.config.ts`
-- `pnpm run typecheck` — runs `cf workers types` first, because the generated types are gitignored
 
 ## Previews
 
@@ -102,7 +101,8 @@
 - Build artifacts (`.output`, `.tanstack`, `.cloudflare`) are all gitignored
 - `cf` (the Cloudflare CLI) replaced Wrangler for build, deploy, and previews. Wrangler is no longer installed and `wrangler.jsonc` is gone — secrets go through `cf workers secrets update <KEY> --worker website --text <VALUE>` and live logs through `cf o11y telemetry live-tail`
 - `cloudflare.config.ts` must stay loadable by Node (Node >= 22.18, `"type": "module"` already set). It is imported by every `cf` command, including plain API commands
-- Oxlint ignores `src/routeTree.gen.ts`; oxfmt ignores it plus `.agents/*`, `.claude/skills/*`, `CLAUDE.md`, and `.cloudflare/*`
+- Oxlint runs type-aware: `options.typeAware` + `options.typeCheck` in `.oxlintrc.json`, so every run needs `.cloudflare/types` and a generated Prisma client. The semantic backend is `tsrs` (`tsrs-lint`), not `oxlint-tsgolint`; oxlint auto-detects it at 1.92+, and `OXLINT_TSGOLINT_PATH=node_modules/.bin/tsrs-lint` is the manual override. Lint only type-checks files oxlint sends, which is every hand-written `.ts`/`.tsx` — generated code and `src/routeTree.gen.ts` are the only gaps
+- Oxlint ignores `src/routeTree.gen.ts` and `src/generated/**`; oxfmt ignores `src/routeTree.gen.ts` plus `.agents/*`, `.claude/skills/*`, `CLAUDE.md`, and `.cloudflare/*`
 - Skills in `.agents/skills/`; remotely-sourced skills mirrored in `skills-lock.json`
 - The deployed Worker must use the `HYPERDRIVE` binding; `DATABASE_URL` is reserved for local development and Prisma CLI commands
 - `.env.example` documents required env vars; use `tsx` to run TypeScript scripts locally

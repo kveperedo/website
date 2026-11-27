@@ -30,7 +30,7 @@ export const ScheduledTransactionList = ({
     const label = isArchivedView ? "Archived scheduled transactions" : "Scheduled transactions";
 
     const handleRowAction = (id: string) => {
-        router.navigate({
+        void router.navigate({
             to: "/finances/scheduled/$id",
             params: { id },
         });

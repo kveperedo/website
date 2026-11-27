@@ -148,7 +148,9 @@ export const CategoryTrendsCard = () => {
                             wrapperStyle={{ zIndex: 50 }}
                             content={
                                 <ChartTooltipContent
-                                    labelFormatter={(label) => formatMonthLabel(String(label))}
+                                    labelFormatter={(label) =>
+                                        typeof label === "string" ? formatMonthLabel(label) : ""
+                                    }
                                     formatter={(value, name) => {
                                         const config =
                                             CATEGORY_CHART_CONFIG[

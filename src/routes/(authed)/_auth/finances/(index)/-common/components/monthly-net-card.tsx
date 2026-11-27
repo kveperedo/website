@@ -123,7 +123,12 @@ export const MonthlyNetCard = () => {
                                                 const isCurrentMonth = Boolean(
                                                     payload[0]?.payload?.isCurrentMonth,
                                                 );
-                                                return `${formatMonthLabel(String(label))}${isCurrentMonth ? " (month-to-date)" : ""}`;
+                                                const monthLabel =
+                                                    typeof label === "string"
+                                                        ? formatMonthLabel(label)
+                                                        : "";
+
+                                                return `${monthLabel}${isCurrentMonth ? " (month-to-date)" : ""}`;
                                             }}
                                             formatter={(value, _name, _item, _index, payload) => {
                                                 const data = payload as unknown as {
