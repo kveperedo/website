@@ -37,7 +37,7 @@ export const ScheduledTransactionList = ({
     };
 
     return (
-        <Card variant="flat" className="flex min-h-0 min-w-0 flex-1 flex-col py-0 lg:border-0">
+        <Card variant="flat" className="flex min-h-0 min-w-0 flex-1 flex-col border-0 py-0">
             <CardContent className="min-h-0 flex-1 overflow-y-auto p-0">
                 {items.length === 0 ? (
                     <div className="py-8">
